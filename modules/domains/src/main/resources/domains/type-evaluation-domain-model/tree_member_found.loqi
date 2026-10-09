@@ -66,51 +66,33 @@ tpg MemberFound(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M
                         null -> { conclude: null };
                     }
                 };
+                // Обращение на самом деле не состоится, поэтому заблуждения о его результате не разбираются:
+                // студент решил, что обращение работает, и взял тип члена.
                 _ -> {
-                    agg and {
-                        _ -> {
-                            ask (M.visibility == Visibility:private and not isEnclosedInHeirOfDeclarer(E, M)) out false else {
-                                conclude: error [
-                                    skill = "member_visibility";
-                                    hypothesis = "private_assumed_accessible";
-                                    RU.explanation = "${M} — ${M.visibility == Visibility:private ? (M is class:Field ? 'закрытое поле' : 'закрытый метод') : (M is class:Field ? 'защищённое поле' : 'защищённый метод')}: к нему можно обратиться только в методах ${M.visibility == Visibility:private ? 'своего класса' : 'своего класса и его наследников'}.";
-                                    EN.explanation = "${M} is a ${M.visibility == Visibility:private ? 'private' : 'protected'} ${M is class:Field ? 'field' : 'method'}: it can be accessed only in the methods of ${M.visibility == Visibility:private ? 'its class' : 'its class and its subclasses'}.";
-                                    RU.reason = "К закрытому члену можно обратиться откуда угодно.";
-                                    EN.reason = "A private member can be accessed from anywhere.";
-                                ];
-                            };
-                            conclude: null
-                        };
-                        _ -> {
-                            conclude: subcall("member_accessible", E, Old, New, Owner, M, C, R, T)
-                        };
-                        correct -> { conclude: correct };
-                        error -> { conclude: error };
-                        null -> { conclude: null };
-                    }
+                    ask (M.visibility == Visibility:private and not isEnclosedInHeirOfDeclarer(E, M) and T == R) out false else {
+                        conclude: error [
+                            skill = "member_visibility";
+                            hypothesis = "private_assumed_accessible";
+                            RU.explanation = "${M} — ${M.visibility == Visibility:private ? (M is class:Field ? 'закрытое поле' : 'закрытый метод') : (M is class:Field ? 'защищённое поле' : 'защищённый метод')}: к нему можно обратиться только в методах ${M.visibility == Visibility:private ? 'своего класса' : 'своего класса и его наследников'}.";
+                            EN.explanation = "${M} is a ${M.visibility == Visibility:private ? 'private' : 'protected'} ${M is class:Field ? 'field' : 'method'}: it can be accessed only in the methods of ${M.visibility == Visibility:private ? 'its class' : 'its class and its subclasses'}.";
+                            RU.reason = "К закрытому члену можно обратиться откуда угодно.";
+                            EN.reason = "A private member can be accessed from anywhere.";
+                        ];
+                    };
+                    conclude: null
                 };
                 _ -> {
-                    agg and {
-                        _ -> {
-                            ask (M.visibility == Visibility:private and isEnclosedInHeirOfDeclarer(E, M)) out false else {
-                                conclude: error [
-                                    skill = "member_visibility";
-                                    hypothesis = "private_inherited_assumed_accessible";
-                                    RU.explanation = "${M} — закрытый член родительского класса: в методах наследника к нему не обратиться.";
-                                    EN.explanation = "${M} is a private member of the parent class: it cannot be accessed in the methods of a subclass.";
-                                    RU.reason = "Наследник может обращаться к закрытым членам родителя.";
-                                    EN.reason = "A subclass can access the private members of its parent.";
-                                ];
-                            };
-                            conclude: null
-                        };
-                        _ -> {
-                            conclude: subcall("member_accessible", E, Old, New, Owner, M, C, R, T)
-                        };
-                        correct -> { conclude: correct };
-                        error -> { conclude: error };
-                        null -> { conclude: null };
-                    }
+                    ask (M.visibility == Visibility:private and isEnclosedInHeirOfDeclarer(E, M) and T == R) out false else {
+                        conclude: error [
+                            skill = "member_visibility";
+                            hypothesis = "private_inherited_assumed_accessible";
+                            RU.explanation = "${M} — закрытый член родительского класса: в методах наследника к нему не обратиться.";
+                            EN.explanation = "${M} is a private member of the parent class: it cannot be accessed in the methods of a subclass.";
+                            RU.reason = "Наследник может обращаться к закрытым членам родителя.";
+                            EN.reason = "A subclass can access the private members of its parent.";
+                        ];
+                    };
+                    conclude: null
                 };
                 correct -> { conclude: correct };
                 error -> { conclude: error };

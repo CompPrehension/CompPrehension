@@ -35,6 +35,7 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.EMPTY_NAME_OR_NAMES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.FIRST_CHAR_PLUS_ONE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADES_PLUS_ONE;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_INHERITED_NAME;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_TEXT_APPEND;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADE_COUNT;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.STUDENT_FIRST_GRADE;
@@ -244,6 +245,24 @@ class TypeEvaluationDTDomainJudgeTest {
                         + " его не создаёт."),
                 messages(verdict(result).explanation()));
         assertEquals(List.of("numeric_result_type"), lawNames(violations(result)));
+    }
+
+    /** Объяснение неверного ответа на обращение к полю не подсказывает верный ответ: тип поля в нём не называется. */
+    @Test
+    void wrongFieldTypeExplanationDoesNotNameFieldType() {
+        // Arrange.
+        var question = question(OOP_INHERITED_NAME);
+
+        // Act.
+        var unexplained = judge(question, List.of(answer(question, "op_name", "t_int")));
+        var ownerType = judge(question, List.of(answer(question, "op_name", "t_student")));
+
+        // Assert.
+        assertEquals(List.of("Выражение <code>student.name</code> не может иметь тип <code>int</code>, потому что поле"
+                + " <code>name</code> имеет другой тип."), messages(verdict(unexplained).explanation()));
+        assertEquals(List.of("Выражение <code>student.name</code> не может иметь тип <code>Student</code>, потому что"
+                        + " обращение к полю даёт значение поля <code>name</code>, а не то, у чего поле берут."),
+                messages(onlyReasoning(reasoned(ownerType)).explanation()));
     }
 
     /**

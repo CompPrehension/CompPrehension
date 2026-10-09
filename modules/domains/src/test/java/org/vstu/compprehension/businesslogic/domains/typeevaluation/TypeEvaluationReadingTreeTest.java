@@ -254,6 +254,28 @@ class TypeEvaluationReadingTreeTest {
         assertEquals(Set.of(Set.of(NAME_CONFUSED)), verdict.reasonings());
     }
 
+    /**
+     * Прочтение поля как похожего поля другого класса не объясняет произвольный ответ: решив вдобавок, что такое поле
+     * есть у объекта, студент рассуждал бы уже о выдуманном.
+     */
+    @Test
+    void foreignLookalikeFieldDoesNotExplainAnyAnswer() {
+        // Act.
+        var verdict = judgeSituation(TYPES + """
+                obj grade : Field { hasType(t_int); isStatic = false; visibility = Visibility:public; looksLike(grades); }
+                obj grades : Field { hasType(t_list_int); isStatic = false; visibility = Visibility:public; }
+                obj t_student : py_class { declares(grade); }
+                obj t_group : py_class { declares(grades); }
+                obj student : Variable { hasType(t_student); }
+                var E = obj op : py_field_access { hasOperand<OperandPlacement:left>(student); accesses(grade); }
+                var T = t_float
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(), verdict.reasonings());
+    }
+
     /** Поле не читается как похожий на него метод: путаются только имена одного вида. */
     @Test
     void fieldIsNotReadAsLookalikeMethod() {

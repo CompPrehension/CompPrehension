@@ -343,15 +343,32 @@ class TypeEvaluationMemberTreeTest {
         assertEquals(Set.of(Set.of("static_via_instance_inaccessible", "error_kind_confused")), verdict.reasonings());
     }
 
-    /** Тип объекта в ответ на закрытое поле снаружи объясняют вместе два заблуждения: о закрытости и о результате. */
+    /**
+     * Тип объекта в ответ на закрытое поле снаружи не объясняется: обращение не состоится, и заблуждения о его
+     * результате не разбираются.
+     */
     @Test
-    void ownerTypeForPrivateFieldOutsideCombinesTwoMisconceptions() {
+    void ownerTypeForPrivateFieldOutsideIsNotExplained() {
         // Act.
         var verdict = judgeFieldAccess("person", "secret", "", "t_person");
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of("private_assumed_accessible", "owner_type")), verdict.reasonings());
+        assertEquals(Set.of(), verdict.reasonings());
+    }
+
+    /**
+     * Тип класса в ответ на Person.average() не объясняется: при вызове через класс нет объекта, о котором говорят
+     * заблуждения о результате метода.
+     */
+    @Test
+    void receiverTypeForInstanceMethodViaClassIsNotExplained() {
+        // Act.
+        var verdict = judgeMethodCall("Person", "average", "t_person");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(), verdict.reasonings());
     }
 
     /**

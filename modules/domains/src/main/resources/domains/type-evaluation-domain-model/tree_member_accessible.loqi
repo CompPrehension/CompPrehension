@@ -47,25 +47,20 @@ tpg MemberAccessible(E: Operation, Old: CodeElement, New: CodeElement, Owner: Ex
                         null -> { conclude: null };
                     }
                 };
+                // Обращение на самом деле не состоится, а объекта, о котором говорят заблуждения о результате, нет:
+                // студент решил, что обращение работает, и взял тип члена.
                 _ -> {
-                    agg and {
-                        _ -> {
-                            conclude: error [
-                                skill = "static_member_access";
-                                hypothesis = "instance_member_via_class";
-                                RU.explanation = "${M} — ${M is class:Field ? 'поле объекта, а не класса, поэтому у самого класса его нет' : 'метод объекта, а при вызове через класс ему не передан объект'}.";
-                                EN.explanation = "${M} is a ${M is class:Field ? 'field of an object, not of the class, so the class itself does not have it' : 'method of an object, and when it is called through the class, no object is passed to it'}.";
-                                RU.reason = "${M is class:Field ? 'Поле объекта можно прочитать через класс.' : 'Метод объекта можно вызвать через класс и без объекта.'}";
-                                EN.reason = "${M is class:Field ? 'A field of an object can be read through the class.' : 'A method of an object can be called through the class without an object.'}";
-                            ]
-                        };
-                        _ -> {
-                            conclude: subcall("member_result", E, Old, New, Owner, M, C, R, T)
-                        };
-                        correct -> { conclude: correct };
-                        error -> { conclude: error };
-                        null -> { conclude: null };
-                    }
+                    ask (T == R) out false else {
+                        conclude: error [
+                            skill = "static_member_access";
+                            hypothesis = "instance_member_via_class";
+                            RU.explanation = "${M} — ${M is class:Field ? 'поле объекта, а не класса, поэтому у самого класса его нет' : 'метод объекта, а при вызове через класс ему не передан объект'}.";
+                            EN.explanation = "${M} is a ${M is class:Field ? 'field of an object, not of the class, so the class itself does not have it' : 'method of an object, and when it is called through the class, no object is passed to it'}.";
+                            RU.reason = "${M is class:Field ? 'Поле объекта можно прочитать через класс.' : 'Метод объекта можно вызвать через класс и без объекта.'}";
+                            EN.reason = "${M is class:Field ? 'A field of an object can be read through the class.' : 'A method of an object can be called through the class without an object.'}";
+                        ];
+                    };
+                    conclude: null
                 };
                 correct -> { conclude: correct };
                 error -> { conclude: error };

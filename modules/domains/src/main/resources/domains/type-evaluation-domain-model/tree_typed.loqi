@@ -1729,7 +1729,8 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                         _ -> {
                             // Решив, что член есть, студент дальше рассуждает о том, чего у типа нет: что он думает о
                             // результате такого члена, проверить и объяснить нельзя, поэтому рассуждение здесь заканчивается.
-                            ask (T is class:Type) out false else {
+                            // После прочтения имени как другого такой вывод объяснял бы любой ответ: два выдуманных шага подряд.
+                            ask (Old == New and T is class:Type) out false else {
                                 conclude: error [
                                     skill = "member_lookup";
                                     hypothesis = "foreign_member";

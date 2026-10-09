@@ -24,8 +24,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                         conclude: error [
                             skill = "field_access";
                             hypothesis = "owner_type";
-                            RU.explanation = "обращение к полю даёт значение поля ${M} типа ${R}, а не то, у чего поле берут.";
-                            EN.explanation = "a field access gives the value of the field ${M} of type ${R}, not the value the field is taken from.";
+                            RU.explanation = "обращение к полю даёт значение поля ${M}, а не то, у чего поле берут.";
+                            EN.explanation = "a field access gives the value of the field ${M}, not the value the field is taken from.";
                             RU.reason = "Результат берёт тип того, у чего берут поле.";
                             EN.reason = "The result takes the type of what the field is taken from.";
                         ];
@@ -37,8 +37,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                 null -> {
                     conclude: null [
                         skill = "field_access";
-                        RU.explanation = "поле ${M} имеет тип ${R}.";
-                        EN.explanation = "the field ${M} has type ${R}.";
+                        RU.explanation = "поле ${M} имеет другой тип.";
+                        EN.explanation = "the field ${M} has a different type.";
                     ]
                 };
             } as fieldResult
@@ -62,8 +62,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                         conclude: error [
                             skill = "method_call";
                             hypothesis = "mutator_returns_receiver";
-                            RU.explanation = "метод ${M} изменяет сам объект, а возвращает ${R}.";
-                            EN.explanation = "the method ${M} changes the object itself and returns ${R}.";
+                            RU.explanation = "метод ${M} изменяет сам объект, но не возвращает его.";
+                            EN.explanation = "the method ${M} changes the object itself but does not return it.";
                             RU.reason = "Метод возвращает изменённый объект.";
                             EN.reason = "The method returns the changed object.";
                         ];
@@ -75,8 +75,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                         conclude: error [
                             skill = "method_call";
                             hypothesis = "receiver_type";
-                            RU.explanation = "у ${C} метод ${M} возвращает ${R}, а не значение того же типа, что и объект.";
-                            EN.explanation = "the method ${M} of ${C} returns ${R}, not a value of the same type as the object.";
+                            RU.explanation = "метод ${M} возвращает значение другого типа, чем у объекта.";
+                            EN.explanation = "the method ${M} returns a value of a different type than the object.";
                             RU.reason = "Метод возвращает значение того же типа, что и объект.";
                             EN.reason = "The method returns a value of the same type as the object.";
                         ];
@@ -88,8 +88,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                         conclude: error [
                             skill = "method_call";
                             hypothesis = "no_result_assumed";
-                            RU.explanation = "у ${C} метод ${M} возвращает ${R}${Mt.mutatesReceiver ? ': он изменяет сам объект' : ''}.";
-                            EN.explanation = "the method ${M} of ${C} returns ${R}${Mt.mutatesReceiver ? ': it changes the object itself' : ''}.";
+                            RU.explanation = "метод ${M} возвращает значение${Mt.mutatesReceiver ? ', хотя и изменяет сам объект' : ''}.";
+                            EN.explanation = "the method ${M} returns a value${Mt.mutatesReceiver ? ', even though it changes the object itself' : ''}.";
                             RU.reason = "Метод только выполняет действие и ничего не возвращает.";
                             EN.reason = "The method only performs an action and returns nothing.";
                         ];
@@ -101,8 +101,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                         conclude: error [
                             skill = "method_call";
                             hypothesis = "argument_type";
-                            RU.explanation = "у ${C} метод ${M} возвращает ${R}, а не значение того же типа, что и аргумент.";
-                            EN.explanation = "the method ${M} of ${C} returns ${R}, not a value of the same type as the argument.";
+                            RU.explanation = "метод ${M} возвращает значение другого типа, чем у аргумента.";
+                            EN.explanation = "the method ${M} returns a value of a different type than the argument.";
                             RU.reason = "Результат берёт тип аргумента.";
                             EN.reason = "The result takes the type of the argument.";
                         ];
@@ -114,8 +114,8 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                 null -> {
                     conclude: null [
                         skill = "method_call";
-                        RU.explanation = "у ${C} метод ${M} возвращает ${R}.";
-                        EN.explanation = "the method ${M} of ${C} returns ${R}.";
+                        RU.explanation = "метод ${M} возвращает значение другого типа.";
+                        EN.explanation = "the method ${M} returns a value of a different type.";
                     ]
                 };
             } as methodResult
