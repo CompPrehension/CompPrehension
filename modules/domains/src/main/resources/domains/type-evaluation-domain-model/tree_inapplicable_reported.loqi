@@ -1,0 +1,37 @@
+// Студент решил, что операция E неприменима, и выбирает, какой ошибкой об этом сообщают: T — его ответ.
+tpg InapplicableReported(E: Operation, T: Outcome) {
+    ask (T is class:EvaluationError) out false else {
+        ask (T is class:InapplicableOperationError) {
+            true -> {
+                conclude: correct [
+                    skill = "error_kind";
+                ]
+            };
+            false -> {
+                conclude: error [
+                    skill = "error_kind";
+                    hypothesis = "error_kind_confused";
+                    RU.explanation = "о неприменимой операции сообщает ошибка другого вида.";
+                    EN.explanation = "an inapplicable operation is reported by an error of another kind.";
+                    RU.reason = "О неприменимой операции сообщает ${T}.";
+                    EN.reason = "An inapplicable operation is reported by ${T}.";
+                ]
+            };
+        } as inapplicableOperationErrorKind
+    };
+    conclude: null
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+meta for inapplicableOperationErrorKind [
+    skill = "error_kind";
+]

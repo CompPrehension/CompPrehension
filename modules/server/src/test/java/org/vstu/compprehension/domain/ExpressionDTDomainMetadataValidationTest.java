@@ -17,7 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.services.QuestionDataService;
-import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
@@ -36,9 +37,13 @@ import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Disabled("Утилита сверки метаданных банка в БД с решателем.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -72,7 +77,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true,
-                true, 7, null, null));
+                true, 7, null, null, null));
         exercise.setName("test");
         exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");
@@ -130,10 +135,10 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 boolean foundCorrectSolution = false;
                 for (List<AnswerObjectData> ans : combinations) {
                     var result = solve(q, lang, ans);
-                    if (result.IterationsLeft == 0) {
+                    if (result.stepsLeft() == 0) {
                         foundCorrectSolution = true;
                     }
-                    for (String rawSkill : result.domainSkills) {
+                    for (String rawSkill : traceMetadata(q, lang, ans, "skill")) {
                         Skill skill = domain.getSkill(rawSkill);
                         if (skill == null) {
                             System.err.println(qInfo.concat("Unknown skill in domain " + rawSkill));
@@ -146,7 +151,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                             allSkills.addAll(skill.getBaseSkills());
                         }
                     }
-                    for (String rawLaw : result.domainNegativeLaws) {
+                    for (String rawLaw : traceMetadata(q, lang, ans, "law")) {
                         NegativeLaw nLaw = domain.getNegativeLaw(rawLaw);
                         if (nLaw == null) {
                             System.err.println(qInfo.concat("Unknown law in domain " + rawLaw));
@@ -211,8 +216,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 QuestionDynamicDataAppender.appendQuestionData(q, qBank, lang, domain, Language.ENGLISH).getContent());
     }
 
-    public Domain.InterpretSentenceResult solve(QuestionData q, SupportedLanguage language, List<AnswerObjectData> answerSequence) {
-        String outLangStr = language.toString().substring(0, 1).toUpperCase() + language.toString().substring(1);
+    public Judgement solve(QuestionData q, SupportedLanguage language, List<AnswerObjectData> answerSequence) {
 
         // Check metadata
         Assert.isTrue(q.getContent().getMetadata() != null
@@ -223,11 +227,36 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 q.getContent().getMetadata().getDistinctErrorsCount(),
                 q.getContent().getMetadata().getSolutionSteps()));
 
+        return domain.judgeAnswer(q, responses(answerSequence), tags(language), Language.ENGLISH);
+    }
+
+    // Метаданные узлов, через которые прошло рассуждение по дереву: их сверяют с метаданными вопроса.
+    private Set<String> traceMetadata(QuestionData q, SupportedLanguage language, List<AnswerObjectData> answerSequence,
+                                      String key) {
+        DecisionTreeReasonerBackend.Interface backendInterface = domain.getBackendInterface();
+        var output = new DecisionTreeReasonerBackend().judge(
+                backendInterface.prepareBackendInfoForJudge(q, responses(answerSequence), tags(language)));
+        if (!output.isReasoningDone()) {
+            return Set.of();
+        }
+        return DecisionTreeReasonerBackend.nestedTraceElements(output.results()).stream()
+                .map(element -> element.getNode().getMetadata().get(key))
+                .filter(Objects::nonNull)
+                .flatMap(value -> Arrays.stream(value.toString().split(";")))
+                .collect(Collectors.toSet());
+    }
+
+    private static List<AnswerData> responses(List<AnswerObjectData> answerSequence) {
         List<AnswerData> responses = new ArrayList<>();
         for (AnswerObjectData answerObject : answerSequence) {
             responses.add(new AnswerData.Pair(answerObject, answerObject));
         }
-        return domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
+        return responses;
+    }
+
+    private List<org.vstu.compprehension.businesslogic.Tag> tags(SupportedLanguage language) {
+        String outLangStr = language.toString().substring(0, 1).toUpperCase() + language.toString().substring(1);
+        return List.of(domain.getTag(outLangStr));
     }
 
     // Метод для получения всех комбинаций

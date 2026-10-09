@@ -1,0 +1,119 @@
+{
+  "id": 17,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "inheritance",
+      "field_access",
+      "method_call",
+      "strings"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "oop_inherited_name",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"k\">class</span><span class=\"w\"> </span><span class=\"nc\">Person</span><span class=\"p\">:</span>\n    <span class=\"k\">def</span><span class=\"w\"> </span><span class=\"fm\">__init__</span><span class=\"p\">(</span><span class=\"bp\">self</span><span class=\"p\">,</span> <span class=\"n\">name</span><span class=\"p\">:</span> <span class=\"nb\">str</span><span class=\"p\">):</span>\n        <span class=\"bp\">self</span><span class=\"o\">.</span><span class=\"n\">name</span> <span class=\"o\">=</span> <span class=\"n\">name</span>\n\n\n<span class=\"k\">class</span><span class=\"w\"> </span><span class=\"nc\">Student</span><span class=\"p\">(</span><span class=\"n\">Person</span><span class=\"p\">):</span>\n    <span class=\"k\">def</span><span class=\"w\"> </span><span class=\"fm\">__init__</span><span class=\"p\">(</span><span class=\"bp\">self</span><span class=\"p\">,</span> <span class=\"n\">name</span><span class=\"p\">:</span> <span class=\"nb\">str</span><span class=\"p\">,</span> <span class=\"n\">grades</span><span class=\"p\">:</span> <span class=\"nb\">list</span><span class=\"p\">[</span><span class=\"nb\">int</span><span class=\"p\">]):</span>\n        <span class=\"nb\">super</span><span class=\"p\">()</span><span class=\"o\">.</span><span class=\"fm\">__init__</span><span class=\"p\">(</span><span class=\"n\">name</span><span class=\"p\">)</span>\n        <span class=\"bp\">self</span><span class=\"o\">.</span><span class=\"n\">grades</span> <span class=\"o\">=</span> <span class=\"n\">grades</span>\n\n\n<span class=\"n\">student</span> <span class=\"o\">=</span> <span class=\"n\">Student</span><span class=\"p\">(</span><span class=\"s2\">&quot;Анна&quot;</span><span class=\"p\">,</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">4</span><span class=\"p\">])</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">student</span><span class=\"comp-ph-expr-token\">.</span><span class=\"comp-ph-expr-token\">name</span></span><span class=\"comp-ph-expr-token\">.</span><span class=\"comp-ph-expr-token\">upper</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-token\">)</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "student.name",
+          "domainInfo": "op_name",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 1,
+          "hyperText": "student.name.upper()",
+          "domainInfo": "op_upper",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "None",
+          "domainInfo": "t_none",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "list[int]",
+          "domainInfo": "t_list_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 105,
+          "hyperText": "AttributeError",
+          "domainInfo": "t_attribute_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 106,
+          "hyperText": "Student",
+          "domainInfo": "t_student",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 107,
+          "hyperText": "Person",
+          "domainInfo": "t_person",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_str : py_str { elementType(t_str); declares(m_upper); }\nobj t_none : py_NoneType {}\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj t_attribute_error : py_AttributeError {}\nobj f_name : Field { hasType(t_str); isStatic = false; visibility = Visibility:public; } [ text = \"name\" ]\nobj f_grades : Field { hasType(t_list_int); isStatic = false; visibility = Visibility:public; } [ text = \"grades\" ]\nobj m_upper : Method { returns(t_str); isStatic = false; visibility = Visibility:public; mutatesReceiver = false; } [ text = \"upper\" ]\nobj t_person : py_class { declares(f_name); } [ text = \"Person\" ]\nobj t_student : py_class { directlyInheritsFrom(t_person); declares(f_grades); } [ text = \"Student\" ]\nobj student : Variable { hasType(t_student); } [ text = \"student\" ]\nobj op_name : py_field_access { hasOperand<OperandPlacement:left>(student); accesses(f_name); } [ text = \"student.name\"; expectedType = \"t_str\" ]\nobj op_upper : py_method_call { hasOperand<OperandPlacement:left>(op_name); accesses(m_upper); } [ text = \"student.name.upper()\"; expectedType = \"t_str\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "oop_inherited_name",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 623616,
+  "skillBits": 1703936,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 2
+}

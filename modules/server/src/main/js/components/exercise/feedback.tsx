@@ -9,6 +9,7 @@ import {Alert, Badge} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import {isNullOrUndefined} from "../../utils/helpers";
 import {ParsedMessage} from "./domain-terms";
+import {Clarification} from "./clarification";
 
 
 type FeedbackProps = { 
@@ -25,20 +26,40 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
         return <div className="mt-2"><Loader /></div>;
     }
 
-    if (!feedback || isQuestionLoading || !question) {
+    if (isQuestionLoading || !question) {
+        return null;
+    }
+
+    if (store.isQuestionFreezed) {
+        return (
+            <div className='comp-ph-feedback-wrapper mt-3'>
+                <Clarification store={store} />
+            </div>
+        );
+    }
+
+    if (!feedback) {
         return null;
     }
 
     const defaultFeedbackMessage: FeedbackSuccessMessage = { type: 'SUCCESS',
-         message: t('issolved_feeback'), violationLaws: [] };
+         message: t('issolved_feeback'), knowledge: [] };
 
-    const feedbackMessages = feedback.messages;
-    if (feedbackMessages !== null && store.questionState === 'COMPLETED') {
-        feedbackMessages?.push(defaultFeedbackMessage);
-    }
+    // The explanation of the named reason already says whether the answer is right, so it replaces the messages.
+    const answerMessages: FeedbackMessage[] | null | undefined = store.clarificationExplanation
+        ? [{
+            type: feedback.isCorrect ? 'SUCCESS' : 'ERROR',
+            message: store.clarificationExplanation,
+            knowledge: feedback.messages?.flatMap(m => m.knowledge ?? []) ?? null,
+        }]
+        : feedback.messages;
+    // A new list rather than a push: changing observable feedback while rendering re-renders forever.
+    const feedbackMessages = store.questionState === 'COMPLETED'
+        ? [...(answerMessages ?? []), defaultFeedbackMessage]
+        : answerMessages;
 
     return (
-      <div className='comp-ph-feedback-wrapper mt-2'>
+      <div className='comp-ph-feedback-wrapper mt-3'>
         {isFeedbackVisible && (
           <>
             <div className='mb-3'>
@@ -51,7 +72,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                     showExtendedFeedback &&
                     question.options.showSupplementaryQuestions &&
                     m.type === 'ERROR' &&
-                    m.violationLaws?.every(
+                    m.knowledge?.every(
                       (e) => e.canCreateSupplementaryQuestion
                     )
                   }
@@ -119,20 +140,19 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
     return (
       <Alert variant={variant} className={variant === 'danger' ? 'comp-ph-feedback-error' : 'comp-ph-feedback-success'}>
         <div
-          data-domain-laws={message.violationLaws?.map((v) => v.name).join(';')}
+          data-domain-knowledge={message.knowledge?.map((v) => v.name).join(';')}
         >
           <ParsedMessage html={message.message} />
         </div>
         {(showGenerateSupQuestion &&
           message.type === 'ERROR' &&
-          message.violationLaws && (
+          message.knowledge && (
             <GenerateSupQuestion
               store={supQuestionStore!}
-              violationLaw={message.violationLaws}
+              knowledge={message.knowledge}
             />
           )) ||
           null}
       </Alert>
     );
 })
-

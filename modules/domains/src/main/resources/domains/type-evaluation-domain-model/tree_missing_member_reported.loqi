@@ -1,0 +1,38 @@
+// Студент решил, что члена, к которому обращается E, нет или он отсюда не виден, и выбирает, какой ошибкой
+// об этом сообщают: T — его ответ.
+tpg MissingMemberReported(E: Operation, T: Outcome) {
+    ask (T is class:EvaluationError) out false else {
+        ask (T is class:MissingMemberError) {
+            true -> {
+                conclude: correct [
+                    skill = "error_kind";
+                ]
+            };
+            false -> {
+                conclude: error [
+                    skill = "error_kind";
+                    hypothesis = "error_kind_confused";
+                    RU.explanation = "об обращении к члену, которого нет или который отсюда не виден, сообщает ошибка другого вида.";
+                    EN.explanation = "accessing a member that does not exist or is not visible from here is reported by an error of another kind.";
+                    RU.reason = "Об обращении к такому члену сообщает ${T}.";
+                    EN.reason = "Accessing such a member is reported by ${T}.";
+                ]
+            };
+        } as missingMemberErrorKind
+    };
+    conclude: null
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+meta for missingMemberErrorKind [
+    skill = "error_kind";
+]

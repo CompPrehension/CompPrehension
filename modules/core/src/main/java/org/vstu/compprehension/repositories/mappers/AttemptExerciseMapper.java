@@ -17,6 +17,7 @@ class AttemptExerciseMapper implements Mapper<ExerciseEntity, AttemptExerciseDat
                 source.getId(),
                 source.getDomainId(),
                 source.getStages() == null ? List.of() : List.copyOf(source.getStages()),
-                source.getTags());
+                source.getTags(),
+                source.getOptions().getStrategySettings());
     }
 }

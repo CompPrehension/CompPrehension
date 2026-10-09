@@ -12,4 +12,5 @@ public class StrategyDto {
     @NotNull String displayName;
     @Nullable String description;
     @NotNull StrategyOptions options;
+    @NotNull StrategySettingsDto settings;
 }

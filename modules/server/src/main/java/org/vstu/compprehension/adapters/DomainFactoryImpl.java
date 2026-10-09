@@ -31,7 +31,8 @@ public class DomainFactoryImpl implements DomainFactory {
                         new ControlFlowStatementsDomain(localizationService, randomProvider, questionStorage),
                         new ControlFlowDTDomain(randomProvider, localizationService, questionStorage),
                         new ObjectsScopeDTDomain(localizationService, randomProvider, questionStorage),
-                        new DataFlowDTDomain(localizationService, randomProvider, questionStorage))
+                        new DataFlowDTDomain(localizationService, randomProvider, questionStorage),
+                        new TypeEvaluationDTDomain(randomProvider, localizationService, questionStorage))
                 .collect(Collectors.toUnmodifiableMap(Domain::getDomainId, Function.identity()));
     }
 

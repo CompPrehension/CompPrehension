@@ -19,17 +19,18 @@ public record AnswerFeedbackData(
 
     public record Message(@NotNull MessageType type,
                           @NotNull String text,
-                          @Nullable List<Law> laws) {
+                          @Nullable List<Knowledge> knowledge) {
 
-        public static @NotNull Message success(@NotNull String text, @Nullable List<Law> laws) {
-            return new Message(MessageType.SUCCESS, text, laws);
+        public static @NotNull Message success(@NotNull String text, @Nullable List<Knowledge> knowledge) {
+            return new Message(MessageType.SUCCESS, text, knowledge);
         }
 
-        public static @NotNull Message error(@NotNull String text, @Nullable List<Law> laws) {
-            return new Message(MessageType.ERROR, text, laws);
+        public static @NotNull Message error(@NotNull String text, @Nullable List<Knowledge> knowledge) {
+            return new Message(MessageType.ERROR, text, knowledge);
         }
     }
 
-    public record Law(@NotNull String name, boolean canCreateSupplementaryQuestion) {
+    /** Знание домена, о котором сообщение: закон или навык — как в домене. */
+    public record Knowledge(@NotNull String name, boolean canCreateSupplementaryQuestion) {
     }
 }

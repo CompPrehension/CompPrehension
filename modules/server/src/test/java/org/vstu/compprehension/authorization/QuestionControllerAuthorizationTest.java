@@ -4,6 +4,7 @@ import org.vstu.compprehension.controllers.QuestionController;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.InteractionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionRequestDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,24 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
                         .addQuestionAnswer(interaction)).build().toUri())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(toJson(interaction)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Преподаватель не отвечает за студента на уточняющий вопрос о причине его ответа. */
+    @Test
+    void answerClarificationForbiddenForCourseTeacher() throws Exception {
+        // Arrange.
+        var question = createQuestion(createMainCourseAttempt());
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+        var answer = new ClarificationAnswerDto(question.getId(), null);
+
+        // Act.
+        var result = mockMvc.perform(post(fromMethodName(QuestionController.class, "answerClarification", answer)
+                        .build().toUri())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(answer)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -171,7 +190,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         var questionRequest = SupplementaryQuestionRequestDto.builder()
                 .questionId(question.getId())
                 .exerciseAttemptId(attempt.getId())
-                .violationLaws(new String[0])
+                .violatedKnowledge(new String[0])
                 .build();
 
         // Act.

@@ -1,0 +1,196 @@
+// Обращение E к члену M того, что стоит слева от точки (Owner, тип C; R — значение поля или результат метода):
+// студент считает член доступным и решает, можно ли обратиться к нему так, как написано —
+// через класс или через объект. T — ответ студента; Old и New — как в typed.
+tpg MemberAccessible(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M: Member, C: Type, R: Outcome, T: Outcome) {
+    ask (Owner is class:ClassReference and not M.isStatic) {
+        true -> {
+            agg hyp {
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M is class:Field) out false else {
+                                conclude: correct [
+                                    skill = "static_member_access";
+                                    hypothesis = "rule";
+                                    RU.explanation = "${M} — ${M is class:Field ? 'поле объекта, а не класса, поэтому у самого класса его нет' : 'метод объекта, а при вызове через класс ему не передан объект'}.";
+                                    EN.explanation = "${M} is a ${M is class:Field ? 'field of an object, not of the class, so the class itself does not have it' : 'method of an object, and when it is called through the class, no object is passed to it'}.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("missing_member_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M is class:Method) out false else {
+                                conclude: correct [
+                                    skill = "static_member_access";
+                                    hypothesis = "rule";
+                                    RU.explanation = "${M} — ${M is class:Field ? 'поле объекта, а не класса, поэтому у самого класса его нет' : 'метод объекта, а при вызове через класс ему не передан объект'}.";
+                                    EN.explanation = "${M} is a ${M is class:Field ? 'field of an object, not of the class, so the class itself does not have it' : 'method of an object, and when it is called through the class, no object is passed to it'}.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("inapplicable_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                // Обращение на самом деле не состоится, а объекта, о котором говорят заблуждения о результате, нет:
+                // студент решил, что обращение работает, и взял тип члена.
+                _ -> {
+                    ask (T == R) out false else {
+                        conclude: error [
+                            skill = "static_member_access";
+                            hypothesis = "instance_member_via_class";
+                            RU.explanation = "${M} — ${M is class:Field ? 'поле объекта, а не класса, поэтому у самого класса его нет' : 'метод объекта, а при вызове через класс ему не передан объект'}.";
+                            EN.explanation = "${M} is a ${M is class:Field ? 'field of an object, not of the class, so the class itself does not have it' : 'method of an object, and when it is called through the class, no object is passed to it'}.";
+                            RU.reason = "${M is class:Field ? 'Поле объекта можно прочитать через класс.' : 'Метод объекта можно вызвать через класс и без объекта.'}";
+                            EN.reason = "${M is class:Field ? 'A field of an object can be read through the class.' : 'A method of an object can be called through the class without an object.'}";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (M is class:Field and T == C) out false else {
+                        conclude: error [
+                            skill = "static_member_access";
+                            hypothesis = "owner_type";
+                            RU.explanation = "у класса ${Owner} нет поля ${M}: оно есть только у объектов этого класса. И даже у объекта обращение к полю дало бы значение поля, а не сам объект.";
+                            EN.explanation = "the class ${Owner} has no field ${M}: only objects of this class have it. And even on an object, accessing the field would give the value of the field, not the object itself.";
+                            RU.reason = "Результат того же типа, что и ${Owner}.";
+                            EN.reason = "The result has the same type as ${Owner}.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (M is class:Method and T == C) out false else {
+                        conclude: error [
+                            skill = "static_member_access";
+                            hypothesis = "owner_type";
+                            RU.explanation = "метод ${M} вызывают у объекта, а не у класса ${Owner}. И даже у объекта вызов вернул бы результат метода, а не сам объект.";
+                            EN.explanation = "the method ${M} is called on an object, not on the class ${Owner}. And even on an object, the call would return the result of the method, not the object itself.";
+                            RU.reason = "Результат того же типа, что и ${Owner}.";
+                            EN.reason = "The result has the same type as ${Owner}.";
+                        ];
+                    };
+                    conclude: null
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "static_member_access";
+                        RU.explanation = "${M} — ${M is class:Field ? 'поле объекта, а не класса, поэтому у самого класса его нет' : 'метод объекта, а при вызове через класс ему не передан объект'}.";
+                        EN.explanation = "${M} is a ${M is class:Field ? 'field of an object, not of the class, so the class itself does not have it' : 'method of an object, and when it is called through the class, no object is passed to it'}.";
+                    ]
+                };
+            }
+        };
+        false -> {
+            agg hyp {
+                _ -> {
+                    conclude: subcall("member_result", E, Old, New, Owner, M, C, R, T)
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M.isStatic and not (Owner is class:ClassReference)) out false else {
+                                conclude: error [
+                                    skill = "static_member_access";
+                                    hypothesis = "static_via_instance_inaccessible";
+                                    RU.explanation = "к ${M is class:Field ? 'статическому полю' : 'статическому методу'} ${M} можно обратиться и через объект.";
+                                    EN.explanation = "the static ${M is class:Field ? 'field' : 'method'} ${M} can be accessed through an object as well.";
+                                    RU.reason = "К статическому члену можно обратиться только через класс.";
+                                    EN.reason = "A static member can be accessed only through the class.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("missing_member_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M.isStatic and Owner is class:ClassReference and M is class:Field) out false else {
+                                conclude: error [
+                                    skill = "static_member_access";
+                                    hypothesis = "static_via_class_inaccessible";
+                                    RU.explanation = "${M} — статическое поле: к нему обращаются через класс, объект не нужен.";
+                                    EN.explanation = "${M} is a static field: it is accessed through the class, no object is needed.";
+                                    RU.reason = "К полю можно обратиться только через объект.";
+                                    EN.reason = "A field can be accessed only through an object.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("missing_member_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M.isStatic and Owner is class:ClassReference and M is class:Method) out false else {
+                                conclude: error [
+                                    skill = "static_member_access";
+                                    hypothesis = "static_via_class_inaccessible";
+                                    RU.explanation = "${M} — статический метод: его вызывают через класс, объект не нужен.";
+                                    EN.explanation = "${M} is a static method: it is called through the class, no object is needed.";
+                                    RU.reason = "Метод можно вызвать только у объекта.";
+                                    EN.reason = "A method can be called only on an object.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("inapplicable_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> { conclude: null };
+            }
+        };
+    } as staticAccess
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+meta for staticAccess [
+    skill = "static_member_access";
+]

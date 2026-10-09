@@ -1,8 +1,8 @@
-import { IReactionDisposer, autorun, makeAutoObservable, observable, untracked } from "mobx";
+import { IReactionDisposer, autorun, makeAutoObservable, observable, toJS, untracked } from "mobx";
 import { courseController, exerciseSettingsController } from "../controllers";
 import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { ExerciseOptions } from "../types/exercise-options";
+import { ExerciseOptions, StrategySettingValues } from "../types/exercise-options";
 import { RequestError } from "../types/request-error";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
@@ -330,10 +330,32 @@ export class ExerciseSettingsStore {
             this.currentCard.stages[0].concepts = [];
             this.currentCard.stages.splice(1);
             this.currentCard.strategyId = strategyId;
+            // Settings of one strategy mean nothing to another one.
+            this.currentCard.options.strategySettings = this.copyStrategyDefaults(strategyId);
         }
         
     }
     
+    /** Sets one strategy setting; the path leads through setting groups to the field. */
+    setCardStrategySetting(path: string[], value: boolean | number | string) {
+        if (!this.currentCard)
+            return;
+        const settings = this.currentCard.options.strategySettings ?? this.copyStrategyDefaults(this.currentCard.strategyId);
+        let group = settings;
+        for (const name of path.slice(0, -1)) {
+            if (typeof group[name] !== 'object') {
+                group[name] = {};
+            }
+            group = group[name] as StrategySettingValues;
+        }
+        group[path[path.length - 1]] = value;
+        this.currentCard.options.strategySettings = settings;
+    }
+
+    private copyStrategyDefaults(strategyId: string): StrategySettingValues {
+        return structuredClone(toJS(this.strategies?.find(s => s.id === strategyId)?.settings.defaults ?? {}));
+    }
+
     setCardStageComplexity(stageIdx: number, rawComplexity: string) {
         if (!this.currentCard || !this.currentCard.stages[stageIdx])
             return;

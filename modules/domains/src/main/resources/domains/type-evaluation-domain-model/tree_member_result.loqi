@@ -1,0 +1,141 @@
+// Обращение E к члену M того, что стоит слева от точки (Owner, тип C; R — значение поля или результат метода):
+// студент считает обращение допустимым и определяет его результат.
+// T — ответ студента; Old и New — как в typed.
+
+lambda rightOf(E: Operation, Old: CodeElement, New: CodeElement) = E->hasOperand<OperandPlacement:right> == Old ? (New as class:Expr) : E->hasOperand<OperandPlacement:right>;
+
+tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M: Member, C: Type, R: Outcome, T: Outcome) {
+    ask (M is class:Field) {
+        true -> {
+            agg hyp {
+                _ -> {
+                    ask (T == R) out false else {
+                        conclude: correct [
+                            skill = "field_access";
+                            hypothesis = "rule";
+                            RU.explanation = "у ${C} есть ${M.isStatic ? 'статическое поле' : 'поле'} ${M} типа ${R}.";
+                            EN.explanation = "${C} has the ${M.isStatic ? 'static field' : 'field'} ${M} of type ${R}.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (T == C) out false else {
+                        conclude: error [
+                            skill = "field_access";
+                            hypothesis = "owner_type";
+                            RU.explanation = "${E} возвращает значение поля ${M}, а не сам объект ${Owner}.";
+                            EN.explanation = "${E} returns the value of the field ${M}, not the object ${Owner} itself.";
+                            RU.reason = "Результат того же типа, что и ${Owner}.";
+                            EN.reason = "The result has the same type as ${Owner}.";
+                        ];
+                    };
+                    conclude: null
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "field_access";
+                        RU.explanation = "поле ${M} имеет другой тип.";
+                        EN.explanation = "the field ${M} has a different type.";
+                    ]
+                };
+            } as fieldResult
+        };
+        false -> {
+            var Mt : Method = (M as class:Method);
+            agg hyp {
+                _ -> {
+                    ask (T == R) out false else {
+                        conclude: correct [
+                            skill = "method_call";
+                            hypothesis = "rule";
+                            RU.explanation = "у ${C} метод ${M} возвращает ${R}${Mt.mutatesReceiver ? ': он изменяет сам объект' : ''}.";
+                            EN.explanation = "the method ${M} of ${C} returns ${R}${Mt.mutatesReceiver ? ': it changes the object itself' : ''}.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (Mt.mutatesReceiver and T == C) out false else {
+                        conclude: error [
+                            skill = "method_call";
+                            hypothesis = "mutator_returns_receiver";
+                            RU.explanation = "метод ${M} изменяет сам объект, но не возвращает его.";
+                            EN.explanation = "the method ${M} changes the object itself but does not return it.";
+                            RU.reason = "Метод возвращает изменённый объект.";
+                            EN.reason = "The method returns the changed object.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (not Mt.mutatesReceiver and T == C) out false else {
+                        conclude: error [
+                            skill = "method_call";
+                            hypothesis = "receiver_type";
+                            RU.explanation = "метод ${M} возвращает значение другого типа, чем у объекта.";
+                            EN.explanation = "the method ${M} returns a value of a different type than the object.";
+                            RU.reason = "Метод возвращает значение того же типа, что и объект.";
+                            EN.reason = "The method returns a value of the same type as the object.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (T is class:NoneType and not (R is class:NoneType)) out false else {
+                        conclude: error [
+                            skill = "method_call";
+                            hypothesis = "no_result_assumed";
+                            RU.explanation = "метод ${M} возвращает значение${Mt.mutatesReceiver ? ', хотя и изменяет сам объект' : ''}.";
+                            EN.explanation = "the method ${M} returns a value${Mt.mutatesReceiver ? ', even though it changes the object itself' : ''}.";
+                            RU.reason = "Метод только выполняет действие и ничего не возвращает.";
+                            EN.reason = "The method only performs an action and returns nothing.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (forAny Expr a {E=>hasOperand<OperandPlacement:right>($a)} and T == rightOf(E, Old, New)->hasType) out false else {
+                        conclude: error [
+                            skill = "method_call";
+                            hypothesis = "argument_type";
+                            RU.explanation = "метод ${M} возвращает значение другого типа, чем у аргумента.";
+                            EN.explanation = "the method ${M} returns a value of a different type than the argument.";
+                            RU.reason = "Результат берёт тип аргумента.";
+                            EN.reason = "The result takes the type of the argument.";
+                        ];
+                    };
+                    conclude: null
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "method_call";
+                        RU.explanation = "метод ${M} возвращает значение другого типа.";
+                        EN.explanation = "the method ${M} returns a value of a different type.";
+                    ]
+                };
+            } as methodResult
+        };
+    } as memberKind
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+meta for fieldResult [
+    skill = "field_access";
+]
+meta for methodResult [
+    skill = "method_call";
+]

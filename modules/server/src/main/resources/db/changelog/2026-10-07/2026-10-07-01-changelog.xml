@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Рассуждения взаимодействия хранят знания домена — законы или навыки, — а не только законы: ключи lawName
+        и appliedLaws становятся knowledgeName и appliedKnowledge. Ключ в тексте JSON узнаётся однозначно: внутри
+        строковых значений кавычки экранированы.
+    -->
+    <changeSet id="2026-10-07-01-knowledge-keys" author="Artem Prokudin">
+        <sql>
+            update interaction
+            set reasonings = cast(replace(replace(cast(reasonings as char),
+                    '"lawName":', '"knowledgeName":'),
+                    '"appliedLaws":', '"appliedKnowledge":') as json)
+            where reasonings is not null;
+        </sql>
+        <rollback>
+            <sql>
+                update interaction
+                set reasonings = cast(replace(replace(cast(reasonings as char),
+                        '"knowledgeName":', '"lawName":'),
+                        '"appliedKnowledge":', '"appliedLaws":') as json)
+                where reasonings is not null;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -149,6 +149,10 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return interactionDataRepository.record(interaction);
     }
 
+    public void answerClarification(long interactionId, @Nullable Integer chosenReasoning) {
+        interactionDataRepository.answerClarification(interactionId, chosenReasoning);
+    }
+
     /** Выставить оценку за уже записанное взаимодействие. */
     public void gradeInteraction(long interactionId, float grade) {
         interactionDataRepository.grade(interactionId, grade);

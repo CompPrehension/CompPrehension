@@ -3,8 +3,17 @@ package org.vstu.compprehension.mappers;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.PositiveLaw;
+import org.vstu.compprehension.businesslogic.domains.Reasoning;
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
+import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsType;
+import org.vstu.compprehension.data.question.Assumption;
+import org.vstu.compprehension.data.question.HypothesisClarificationData;
+import org.vstu.compprehension.data.question.InteractionClarificationData;
+import org.vstu.compprehension.data.question.ViolationData;
+import org.vstu.compprehension.entities.InteractionClarificationEntity;
 import org.vstu.compprehension.data.outbox.OutboxEventType;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.InteractionEntity;
@@ -25,6 +34,12 @@ class MapperContractTest {
                     "org.vstu.compprehension.services.mappers")
             .subtype(Law.class, PositiveLaw.class)
             .value(ResponseEntity.class, MapperContractTest::response)
+            .value(Reasoning.class, MapperContractTest::reasoning)
+            .value(StrategySettingsType.class, () -> CommonStrategySettings.TYPE)
+            // Выбранное рассуждение — идентификатор рассуждения взаимодействия, случайный идентификатор вне их.
+            .value(InteractionClarificationData.class, () -> new InteractionClarificationData(
+                    new HypothesisClarificationData("prompt", List.of()), true, null))
+            .value(InteractionClarificationEntity.class, MapperContractTest::clarification)
             .value("ClaimedOutboxEventMapper", String.class, OutboxEventType.ATTEMPT_FINISHED::name)
             .ignore("AnswerDtoMapper", "answer")
             .ignore("CourseRoleAssignmentMapper", "role")
@@ -163,6 +178,21 @@ class MapperContractTest {
     }
 
     /** Ответ из базы: ровно одно из «правый объект» и «значение». */
+    private static InteractionClarificationEntity clarification(RandomObjects random) {
+        var clarification = new InteractionClarificationEntity();
+        clarification.setId(random.next(Long.class));
+        clarification.setContent(new HypothesisClarificationData("prompt", List.of()));
+        return clarification;
+    }
+
+    /** Рассуждение состоит хотя бы из одного допущения. */
+    private static Reasoning reasoning(RandomObjects random) {
+        return new Reasoning(random.next(Integer.class),
+                List.of(new Assumption(random.next(String.class), random.nextInt(2) == 0)),
+                random.next(String.class), Explanation.empty(Explanation.Type.HINT),
+                List.of(random.next(ViolationData.class)), List.of(random.next(String.class)));
+    }
+
     private static ResponseEntity response(RandomObjects random) {
         var response = new ResponseEntity();
         response.setId(random.next(Long.class));

@@ -1,5 +1,5 @@
 import { API_URL } from "../../appconfig";
-import { Feedback, TFeedback } from "../../types/feedback";
+import { ClarificationAnswer, ClarificationFeedback, Feedback, TClarificationFeedback, TFeedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
 import { Question, TQuestion } from "../../types/question";
 import { RequestError } from "../../types/request-error";
@@ -32,6 +32,10 @@ export class QuestionController {
         return ajaxPost(`${API_URL}/api/question/addQuestionAnswer`, interaction, TFeedback);
     }
     
+    answerClarification(answer: ClarificationAnswer): PromiseEither<RequestError, ClarificationFeedback> {
+        return ajaxPost(`${API_URL}/api/question/answerClarification`, answer, TClarificationFeedback);
+    }
+
     addSupplementaryQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, SupplementaryFeedback> {
         return ajaxPost(`${API_URL}/api/question/addSupplementaryQuestionAnswer`, interaction, TSupplementaryFeedback);
     }

@@ -25,6 +25,7 @@ import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
 import { ImportFromGlobalModal } from "../components/exercise/import-from-global-modal";
+import { StrategySettingsForm } from "../components/exercise/strategy-settings-form";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => new ExerciseSettingsStore());
@@ -189,6 +190,13 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         {strategies?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
                     </Form.Select>
                     <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
+                    {currentStrategy && currentStrategy.settings.fields.length > 0 &&
+                        <div className="mt-2 ps-3 border-start">
+                            <StrategySettingsForm fields={currentStrategy.settings.fields}
+                                                  values={card.options.strategySettings ?? {}}
+                                                  defaults={currentStrategy.settings.defaults}
+                                                  onChange={(path, value) => store.setCardStrategySetting(path, value)} />
+                        </div>}
                 </div>
 
                 <div className="mb-3">

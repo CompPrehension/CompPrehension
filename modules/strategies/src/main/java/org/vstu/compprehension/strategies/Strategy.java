@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ import java.util.random.RandomGenerator;
 import static java.lang.Math.abs;
 
 @Log4j2
-public class Strategy extends StrategyBase {
+public class Strategy extends StrategyBase<CommonStrategySettings> {
 
     private final DomainFactory domainFactory;
     protected final RandomProvider randomProvider;
@@ -39,7 +40,7 @@ public class Strategy extends StrategyBase {
 
     public Strategy(DomainFactory domainFactory, RandomProvider randomProvider,
                     ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService);
+        super(exerciseAttemptService, CommonStrategySettings.TYPE);
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
         this.options = StrategyOptions.builder()
@@ -435,7 +436,7 @@ public class Strategy extends StrategyBase {
         int interactionWithMistakes = 0;
         for (AttemptQuestionInteractionData i : interactions) {
 
-            if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
+            if (i.violatedKnowledge() != null || i.violatedKnowledge().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -457,7 +458,7 @@ public class Strategy extends StrategyBase {
         int interactionWithMistakes = 0;
         for (AttemptQuestionInteractionData i : interactions) {
 
-            if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
+            if (i.violatedKnowledge() != null || i.violatedKnowledge().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -471,7 +472,7 @@ public class Strategy extends StrategyBase {
     }
 
     @Override
-    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+    public float grade(long exerciseAttemptId) {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
 
         val res = getLawGrade(exerciseAttempt);
@@ -637,8 +638,8 @@ public class Strategy extends StrategyBase {
 
         for (AttemptQuestionInteractionData ie : ies){
             ArrayList<String> mistakes = new ArrayList<>();
-            if (ie.violationLawNames() != null) {
-                mistakes.addAll(ie.violationLawNames());
+            if (ie.violatedKnowledge() != null) {
+                mistakes.addAll(ie.violatedKnowledge());
             }
 
             for(String me : mistakes){
@@ -652,8 +653,8 @@ public class Strategy extends StrategyBase {
             }
 
             ArrayList<String> correctLaws = new ArrayList<>();
-            if(ie.correctLawNames() != null) {
-                correctLaws.addAll(ie.correctLawNames());
+            if(ie.appliedKnowledge() != null) {
+                correctLaws.addAll(ie.appliedKnowledge());
             }
 
             for(String cle : correctLaws){
@@ -682,18 +683,18 @@ public class Strategy extends StrategyBase {
 
         ArrayList<String> lastCorrectLaws = new ArrayList<>();
         if(last != null) {
-            for (String cle : last.correctLawNames()) {
+            for (String cle : last.appliedKnowledge()) {
                 lastCorrectLaws.add(cle);
             }
         }
 
-        for(String cle : current.correctLawNames()){
+        for(String cle : current.appliedKnowledge()){
             if(!lastCorrectLaws.contains(cle)) {
                 result.add(Pair.of(true, cle));
             }
         }
 
-        for(String ve : current.violationLawNames()){
+        for(String ve : current.violatedKnowledge()){
             result.add(Pair.of(false, ve));
         }
 

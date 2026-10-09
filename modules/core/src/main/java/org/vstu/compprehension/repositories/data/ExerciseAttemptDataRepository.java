@@ -25,7 +25,8 @@ import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.Att
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.GradePassbackTargetRow;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
-import org.vstu.compprehension.repositories.entity.InteractionRepository.InteractionLawRow;
+import org.vstu.compprehension.data.question.CountedKnowledgeData;
+import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.repositories.entity.InteractionRepository.InteractionRow;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
@@ -66,21 +67,11 @@ public class ExerciseAttemptDataRepository {
         var interactionRows = questionIds.isEmpty()
                 ? List.<InteractionRow>of()
                 : interactionRepository.findRowsByQuestionIdIn(questionIds);
-        var interactionIds = interactionRows.stream().map(InteractionRow::getInteractionId).toList();
-
-        Map<Long, List<String>> violationsByInteraction = interactionIds.isEmpty()
-                ? Map.of() : groupLawNames(interactionRepository.findViolationLawsByInteractionIdIn(interactionIds));
-        Map<Long, List<String>> correctLawsByInteraction = interactionIds.isEmpty()
-                ? Map.of() : groupLawNames(interactionRepository.findCorrectLawsByInteractionIdIn(interactionIds));
 
         Map<Long, List<AttemptQuestionInteractionData>> interactionsByQuestion = interactionRows.stream()
                 .collect(Collectors.groupingBy(
                         InteractionRow::getQuestionId,
-                        Collectors.mapping(row -> toInteractionData(
-                                row,
-                                violationsByInteraction.getOrDefault(row.getInteractionId(), List.of()),
-                                correctLawsByInteraction.getOrDefault(row.getInteractionId(), List.of())
-                        ), Collectors.toList())));
+                        Collectors.mapping(ExerciseAttemptDataRepository::toInteractionData, Collectors.toList())));
 
         var questionsData = questions.stream()
                 .map(q -> attemptQuestionMapper.map(
@@ -216,21 +207,19 @@ public class ExerciseAttemptDataRepository {
                 exerciseAttemptRepository.findNonSupplementaryQuestionIds(row.getAttemptId()));
     }
 
-    private static @NotNull AttemptQuestionInteractionData toInteractionData(@NotNull InteractionRow row,
-                                                                             @NotNull List<String> violationLawNames,
-                                                                             @NotNull List<String> correctLawNames) {
+    private static @NotNull AttemptQuestionInteractionData toInteractionData(@NotNull InteractionRow row) {
+        var reasonings = row.getReasonings();
+        var chosen = row.getChosenReasoning();
+        var counted = new CountedKnowledgeData(row.getIsCorrect(), reasonings, chosen);
         return new AttemptQuestionInteractionData(
                 row.getInteractionId(),
                 row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
                 row.getInteractionType(),
                 row.getInteractionsLeft(),
-                violationLawNames,
-                correctLawNames);
-    }
-
-    private static Map<Long, List<String>> groupLawNames(List<InteractionLawRow> rows) {
-        return rows.stream().collect(Collectors.groupingBy(
-                InteractionLawRow::getInteractionId,
-                Collectors.mapping(InteractionLawRow::getLawName, Collectors.toList())));
+                row.getIsCorrect(),
+                counted.getViolations().stream().map(ViolationData::getKnowledgeName).toList(),
+                counted.getAppliedKnowledge(),
+                row.getClarificationId() == null ? null : chosen != null && reasonings.stream()
+                        .anyMatch(reasoning -> reasoning.getId() == chosen && reasoning.isCorrect()));
     }
 }

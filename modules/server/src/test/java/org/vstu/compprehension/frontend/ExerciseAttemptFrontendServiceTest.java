@@ -1,27 +1,45 @@
 package org.vstu.compprehension.frontend;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.authorization.TestUserService;
+import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
+import org.vstu.compprehension.services.QuestionDataService;
 import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.InteractionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationDto;
+import org.vstu.compprehension.data.question.Assumption;
+import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
-import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.TestData.ExpressionBank.BankQuestion;
+import org.vstu.compprehension.infrastructure.TestData;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -45,6 +63,9 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     @Autowired private ExerciseAttemptFrontendService service;
     @Autowired private AuthFrontendService authService;
+    @Autowired private AbstractStrategyFactory strategyFactory;
+    @Autowired private ExerciseAttemptDataService attemptDataService;
+    @Autowired private QuestionDataService questionDataService;
     @PersistenceContext private EntityManager entityManager;
 
     @AfterEach
@@ -279,6 +300,23 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     // ---- ответы на вопрос без попытки ----
 
+    /** Вне попытки банк отлаживают: верный ответ, к которому ведут и заблуждения, уточняется всеми рассуждениями. */
+    @Test
+    void correctAnswerWithoutAttemptIsClarifiedWithAllReasonings() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(TestData.TypeEvaluationBank.GRADE_COUNT_METADATA_ID, Language.ENGLISH);
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(Set.of("rule", "name_confused + argument_type", "name_confused + inapplicable_call_gives_result"),
+                offeredHypotheses(question.getQuestionId(), feedback));
+    }
+
     /** Верный первый оператор. */
     @Test
     void addQuestionAnswerAcceptsCorrectFirstStepWithoutAttempt() {
@@ -319,7 +357,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(1, feedback.getStepsWithErrors());
         assertEquals(0, feedback.getCorrectAnswers().length);
         assertSingleMessage(feedback, FeedbackDto.MessageType.ERROR);
-        assertTrue(feedback.getMessages()[0].getViolationLaws().stream()
+        assertTrue(feedback.getMessages()[0].getKnowledge().stream()
                 .anyMatch(law -> law.getName().equals("left_competing_to_right_precedence") && law.isCanCreateSupplementaryQuestion()));
     }
 
@@ -339,7 +377,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(bankQuestion.steps(), feedback.getStepsLeft());
         assertEquals(1, feedback.getStepsWithErrors());
         assertSingleMessage(feedback, FeedbackDto.MessageType.ERROR);
-        assertFalse(feedback.getMessages()[0].getViolationLaws().isEmpty());
+        assertFalse(feedback.getMessages()[0].getKnowledge().isEmpty());
     }
 
     /** Полное решение по шагам. */
@@ -359,6 +397,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(bankQuestion.steps(), feedback.getCorrectSteps());
         assertEquals(0, feedback.getStepsWithErrors());
         assertAnswerIds(feedback, bankQuestion.evaluationOrder());
+        assertNull(feedback.getMessages(), "о решении задачи сообщает интерфейс, у последнего ответа своего сообщения нет");
         assertEquals(bankQuestion.steps(), service.getQuestion(question.getQuestionId()).getResponses().length);
     }
 
@@ -493,7 +532,467 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertAnswerIds(feedback, bankQuestion.operatorAt(0));
     }
 
+    // ---- гипотезы о рассуждении студента ----
+
+    /** Ответ студента сохраняется вместе с гипотезой, которой объясняется его рассуждение. */
+    @Test
+    void addQuestionAnswerRecordsHypothesesOfStudentReasoning() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+        var lengthAsList = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT,
+                TestData.TypeEvaluationBank.LIST_INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(
+                new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsList }));
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        resetPersistenceContext();
+        assertEquals(List.of("argument_type:false"), recordedHypotheses(question.getQuestionId()));
+    }
+
+    /** В домене потока управления на онтологии верный ответ без нарушений и записывается, и сообщается верным. */
+    @Test
+    void answerWithoutViolationsInOntologyControlFlowDomainIsCorrect() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(TestData.ControlFlowBank.FORMAT_FREE_METADATA_ID, Language.ENGLISH);
+
+        // Act.
+        var feedback = service.generateNextCorrectAnswer(question.getQuestionId());
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        resetPersistenceContext();
+        assertTrue(questionDataService.getQuestion(question.getQuestionId()).getInteractions().getLast().isCorrect());
+    }
+
+    /** Подсказку дала система, поэтому гипотез о рассуждении студента у неё нет. */
+    @Test
+    void generateNextCorrectAnswerRecordsNoHypotheses() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+
+        // Act.
+        var feedback = service.generateNextCorrectAnswer(question.getQuestionId());
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(1, feedback.getCorrectAnswers().length);
+        assertArrayEquals(new Long[] { TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE },
+                feedback.getCorrectAnswers()[0].getAnswer());
+        resetPersistenceContext();
+        assertEquals(List.of(), recordedHypotheses(question.getQuestionId()));
+    }
+
+    /** Студент видит трассу решения вопроса на типы: значение верно решённой части выражения и после обновления страницы. */
+    @Test
+    void typeEvaluationTraceShowsValueOfSolvedOperationAndSurvivesReload() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+
+        // Assert.
+        var expectedTrace = new String[] { "<code>len(grades)</code> вычислено: значение <code>3</code>, тип <code>int</code>" };
+        assertArrayEquals(new String[0], question.getInitialTrace());
+        assertArrayEquals(expectedTrace, feedback.getTrace());
+        resetPersistenceContext();
+        assertArrayEquals(expectedTrace, service.getQuestion(question.getQuestionId()).getFeedback().getTrace());
+    }
+
+    // ---- уточняющий вопрос о рассуждении студента ----
+
+    /** Ошибку, которую объясняют два заблуждения, сопровождает вопрос о причине с вариантами-заблуждениями. */
+    @Test
+    void addQuestionAnswerAsksClarificationForAmbiguousError() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+
+        // Act.
+        var feedback = answerIntegerForTrueDivision(question);
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        assertNotNull(feedback.getClarification());
+        assertFalse(feedback.getClarification().prompt().isBlank());
+        assertEquals(Set.of("operand_type", "foreign_semantics"), offeredHypotheses(question.getQuestionId(), feedback));
+    }
+
+    /** Уточнение без ответа возвращается с перезагруженным вопросом, чтобы студент не пропустил его. */
+    @Test
+    void getQuestionReturnsClarificationAwaitingAnswer() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        var asked = answerIntegerForTrueDivision(question).getClarification();
+        resetPersistenceContext();
+
+        // Act.
+        var reloaded = service.getQuestion(question.getQuestionId());
+
+        // Assert.
+        assertEquals(asked, reloaded.getFeedback().getClarification());
+    }
+
+    /** Перезагруженный вопрос сообщает уже принятые ответы: по ним интерфейс открывает следующие части выражения. */
+    @Test
+    void getQuestionReturnsAcceptedAnswers() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        resetPersistenceContext();
+
+        // Act.
+        var reloaded = service.getQuestion(question.getQuestionId());
+
+        // Assert.
+        assertEquals(1, reloaded.getFeedback().getCorrectAnswers().length);
+        assertArrayEquals(new Long[] { TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE },
+                reloaded.getFeedback().getCorrectAnswers()[0].getAnswer());
+    }
+
+    /**
+     * Ошибку len(grades) → TypeError объясняют заблуждения разных навыков: путаница grades с grade и неприменимость len.
+     * Пока студент не назвал причину, стратегии не засчитывается ни один навык, а после — навык выбранного заблуждения.
+     */
+    @Test
+    void ambiguousErrorCountsLawsOfReasonNamedByStudent() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        var lengthAsError = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.ERROR_TYPE, true, null);
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsError }));
+        var countedBeforeReason = lastInteraction(attempt.getAttemptId()).violatedKnowledge();
+
+        // Act.
+        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), feedback, "name_confused")));
+
+        // Assert.
+        assertEquals(Set.of("name_confused", "inapplicable_assumed"), offeredHypotheses(question.getQuestionId(), feedback));
+        assertEquals(List.of(), countedBeforeReason);
+        var counted = lastInteraction(attempt.getAttemptId());
+        assertFalse(counted.isCorrect());
+        assertEquals(List.of("operand_identification"), counted.violatedKnowledge());
+    }
+
+    /** Выбранная студентом причина записывается, и он получает объяснение именно этого заблуждения. */
+    @Test
+    void answerClarificationRecordsChosenHypothesisAndExplainsIt() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        var asked = answerIntegerForTrueDivision(question);
+
+        // Act.
+        var feedback = service.answerClarification(
+                new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, "foreign_semantics")));
+
+        // Assert.
+        assertNotNull(feedback.explanation());
+        resetPersistenceContext();
+        assertEquals(List.of("foreign_semantics"), answeredClarifications(question.getQuestionId()));
+        assertNull(service.getQuestion(question.getQuestionId()).getFeedback().getClarification());
+    }
+
+    /** «Другая причина» тоже закрывает уточнение, но гипотезу не подтверждает. */
+    @Test
+    void answerClarificationWithOtherReasonRecordsNoHypothesis() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        answerIntegerForTrueDivision(question);
+
+        // Act.
+        var feedback = service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), null));
+
+        // Assert.
+        assertNull(feedback.explanation());
+        resetPersistenceContext();
+        assertEquals(Arrays.asList((String) null), answeredClarifications(question.getQuestionId()));
+    }
+
+    /** Вариант, которого не было в вопросе, выбрать нельзя. */
+    @Test
+    void answerClarificationRejectsOptionNotOffered() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        var asked = answerIntegerForTrueDivision(question);
+        var answer = new ClarificationAnswerDto(question.getQuestionId(), asked.getClarification().options().size());
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.answerClarification(answer));
+    }
+
+    /**
+     * Неверный ответ, который одно рассуждение объясняет меньшим числом ошибок, чем другие, объясняется сразу по нему
+     * и по нему же засчитывается; остальные рассуждения записываются, но студенту не предлагаются.
+     */
+    @Test
+    void wrongAnswerWithFewestErrorsReasoningIsExplainedWithoutClarification() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var afterLength = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        var productAsError = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.ERROR_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(productAsError))
+                        .toArray(AnswerDto[]::new)));
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        assertNull(feedback.getClarification());
+        assertEquals(Map.of("inapplicable_assumed", true, "name_confused + inapplicable_assumed", false),
+                questionDataService.getQuestion(question.getQuestionId()).getInteractions().getLast().getReasonings()
+                        .stream()
+                        .collect(Collectors.toMap(ExerciseAttemptFrontendServiceTest::nameOf,
+                                InteractionReasoningData::isProbable)));
+        assertEquals(List.of("numeric_result_type"), lastInteraction(attempt.getAttemptId()).violatedKnowledge());
+    }
+
+    /** Рассуждения ответа хранятся под теми же ключами, под которыми их записала миграция: прежние ответы читаются так же. */
+    @Test
+    void reasoningsAreStoredUnderMigratedKeys() throws Exception {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        answerIntegerForTrueDivision(question);
+        var interactionId = questionDataService.getQuestion(question.getQuestionId()).getInteractions().getLast().getId();
+
+        // Act.
+        var keys = (String) entityManager.createNativeQuery(
+                        "select cast(json_keys(reasonings, '$[0]') as char) from interaction where id = :id")
+                .setParameter("id", interactionId)
+                .getSingleResult();
+
+        // Assert.
+        assertEquals(Set.of("id", "assumptions", "isProbable", "isCorrect", "reason", "violations", "appliedKnowledge"),
+                Set.copyOf(new ObjectMapper().readValue(keys, new TypeReference<List<String>>() {
+                })));
+    }
+
+    /**
+     * Если упражнение допускает все рассуждения, студенту предлагаются и сочетания ошибок, которые объясняют ответ
+     * хуже одиночного заблуждения: так проверяется, выбирают ли их студенты.
+     */
+    @Test
+    void wrongAnswerOffersAllReasoningsWhenExerciseAdmitsAll() {
+        // Arrange.
+        setStrategySettings("{\"reasoningSelection\": \"ALL\"}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var afterLength = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        var productAsError = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.ERROR_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(productAsError))
+                        .toArray(AnswerDto[]::new)));
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        assertEquals(Set.of("inapplicable_assumed", "name_confused + inapplicable_assumed"),
+                offeredHypotheses(question.getQuestionId(), feedback));
+        assertTrue(questionDataService.getQuestion(question.getQuestionId()).getInteractions().getLast().getReasonings()
+                .stream().allMatch(InteractionReasoningData::isProbable));
+    }
+
+    /** Если упражнение допускает все рассуждения, верный ответ уточняется и сериями заблуждений, которые к нему привели. */
+    @Test
+    void correctAnswerOffersMisconceptionSeriesWhenExerciseAdmitsAll() {
+        // Arrange.
+        setStrategySettings("{\"reasoningSelection\": \"ALL\", \"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(Set.of("rule", "operand_type", "name_confused + operand_type"),
+                offeredHypotheses(question.getQuestionId(), feedback));
+    }
+
+    /** Неверный ответ с единственной причиной уточняется, если упражнение спрашивает всегда: студент может её отвергнуть. */
+    @ParameterizedTest
+    @CsvSource({
+            "WHEN_AMBIGUOUS, false",
+            "ALWAYS,         true",
+    })
+    void wrongAnswerWithSingleReasonIsClarifiedOnlyWhenExerciseAlwaysAsks(String mode, boolean isClarified) {
+        // Arrange.
+        setStrategySettings("{\"wrongAnswerClarification\": \"" + mode + "\"}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        var lengthAsList = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.LIST_INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsList }));
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        assertEquals(isClarified, feedback.getClarification() != null);
+        if (isClarified) {
+            assertEquals(Set.of("argument_type"), offeredHypotheses(question.getQuestionId(), feedback));
+        }
+    }
+
+    // ---- уточнение рассуждения при верном ответе ----
+
+    /** По умолчанию верный ответ не уточняется, даже если к нему ведёт и заблуждение. */
+    @Test
+    void correctAnswerReachedByMisconceptionIsNotClarifiedByDefault() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertNull(feedback.getClarification());
+    }
+
+    /** Если стратегия спрашивает всегда, верный ответ, к которому ведёт и заблуждение, сопровождает вопрос о рассуждении. */
+    @Test
+    void correctAnswerReachedByMisconceptionIsClarifiedWhenStrategyAlwaysAsks() {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertNotNull(feedback.getClarification());
+        assertEquals(Set.of("rule", "operand_type"), offeredHypotheses(question.getQuestionId(), feedback));
+    }
+
+    /** До серии верных ответов заданной длины верный ответ уточняется, после — нет; серия считается до этого ответа. */
+    @ParameterizedTest
+    @CsvSource({
+            "1, false",
+            "2, true",
+    })
+    void correctAnswerIsClarifiedUntilStreakOfCorrectAnswers(int streakLength, boolean isClarified) {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": "
+                + streakLength + "}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(isClarified, feedback.getClarification() != null);
+    }
+
+    /** Выбравший заблуждение после верного ответа узнаёт, что ответ верен, а рассуждение ошибочно. */
+    @Test
+    void answerClarificationOfCorrectAnswerExplainsMisreasoning() {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        var asked = answerProductAsInteger(question);
+
+        // Act.
+        var feedback = service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, "operand_type")));
+
+        // Assert.
+        assertEquals("Выражение <code>len(grades) * grade</code> действительно имеет тип <code>int</code>, но рассуждение"
+                + " ошибочно: тип результата задают правила арифметики, а не тип операнда, и оператор <code>*</code>"
+                + " над целыми операндами даёт целое число.", feedback.explanation());
+        resetPersistenceContext();
+        assertEquals(List.of("rule", "operand_type"), answeredClarifications(question.getQuestionId()));
+    }
+
+    /**
+     * Верный ответ продолжает серию, только если студент подтвердил верное рассуждение: заблуждение или
+     * «другая причина» её обрывают, и следующий верный ответ снова уточняется.
+     */
+    @ParameterizedTest
+    @CsvSource(value = {
+            "rule,                              false",
+            "name_confused + argument_type, true",
+            "null,                              true",
+    }, nullValues = "null")
+    void clarificationAnswerDecidesWhetherStreakContinues(String chosenHypothesis, boolean isNextClarified) {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var asked = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, chosenHypothesis)));
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 1}}");
+        resetPersistenceContext();
+        var productAsInt = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(asked.getCorrectAnswers()), Stream.of(productAsInt)).toArray(AnswerDto[]::new)));
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(isNextClarified, feedback.getClarification() != null);
+    }
+
     // ---- оценка стратегией внутри попытки ----
+
+    /**
+     * Стратегия оценки по уверенности оценивает ответ и в домене на навыках: знания такого домена для неё — его навыки,
+     * а не законы, которых у домена нет.
+     */
+    @Test
+    void gradeConfidenceStrategyGradesAnswerInSkillDomain() {
+        // Arrange.
+        var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.TYPE_EVALUATION_ID);
+        exercise.setStrategyId("GradeConfidenceBaseStrategy");
+        entityManager.flush();
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = service.generateQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = service.addQuestionAnswer(anyAnswer(question));
+
+        // Assert.
+        assertFalse(Float.isNaN(feedback.getGrade()));
+    }
 
     /** Верный ответ в попытке оценивается стратегией. */
     @Test
@@ -530,6 +1029,23 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(feedback.isCorrect());
         assertEquals(0f, feedback.getGrade(), GRADE_DELTA);
         assertEquals(Decision.CONTINUE, feedback.getStrategyDecision());
+    }
+
+    /** Верный ответ в домене на деревьях решений приносит стратегии применённые законы, а не только ошибки. */
+    @Test
+    void correctAnswerInDecisionTreeDomainRecordsAppliedLaws() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = service.generateQuestion(attempt.getAttemptId());
+        var bankQuestion = TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId());
+
+        // Act.
+        service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
+
+        // Assert.
+        var answered = attemptDataService.getAttemptWithQuestions(attempt.getAttemptId()).questions().getFirst();
+        assertFalse(answered.interactions().getLast().appliedKnowledge().isEmpty());
     }
 
     /** Подсказки не дают баллов. */
@@ -605,7 +1121,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
         // Act.
-        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake));
+        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), knowledgeOf(mistake));
 
         // Assert.
         var supplementaryQuestion = supplementaryQuestion(supplementary);
@@ -622,7 +1138,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
-        var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1))));
+        var laws = knowledgeOf(service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1))));
         var supplementary = supplementaryQuestion(service.generateSupplementaryQuestion(question.getQuestionId(), laws));
 
         // Act.
@@ -641,7 +1157,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
-        var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.endEvaluationAnswerId())));
+        var laws = knowledgeOf(service.addQuestionAnswer(interaction(question, bankQuestion.endEvaluationAnswerId())));
         var supplementary = supplementaryQuestion(service.generateSupplementaryQuestion(question.getQuestionId(), laws));
         var everythingSwitchedOn = new InteractionDto(supplementary.getQuestionId(), Arrays.stream(supplementary.getAnswers())
                 .map(answer -> new AnswerDto(answer.getId(), (long) MultiChoiceOptionsData.SWITCH_ON, true, null))
@@ -679,7 +1195,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
         // Act.
-        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake));
+        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), knowledgeOf(mistake));
 
         // Assert.
         supplementaryQuestion(supplementary);
@@ -727,9 +1243,9 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         return feedback;
     }
 
-    private static String[] violationLawsOf(FeedbackDto mistake) {
+    private static String[] knowledgeOf(FeedbackDto mistake) {
         return Arrays.stream(mistake.getMessages())
-                .flatMap(message -> message.getViolationLaws().stream())
+                .flatMap(message -> message.getKnowledge().stream())
                 .filter(law -> law.isCanCreateSupplementaryQuestion())
                 .map(law -> law.getName())
                 .toArray(String[]::new);
@@ -744,6 +1260,110 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         return new InteractionDto(question.getQuestionId(), Arrays.stream(question.getAnswers())
                 .map(answer -> new AnswerDto(answer.getId(), right, true, null))
                 .toArray(AnswerDto[]::new));
+    }
+
+    // Идентификатор варианта с этими гипотезами в заданном вопросе; без гипотез — «другая причина».
+    private Integer optionOf(long questionId, FeedbackDto feedback, String hypotheses) {
+        var reasonings = questionDataService.getQuestion(questionId).getInteractions().getLast().getReasonings();
+        return hypotheses == null ? null : feedback.getClarification().options().stream()
+                .filter(option -> nameOf(reasonings, option.id()).equals(hypotheses))
+                .map(ClarificationDto.Option::id)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    // Вариант уточнения называет рассуждение последнего ответа его идентификатором.
+    private Set<String> offeredHypotheses(long questionId, FeedbackDto feedback) {
+        var reasonings = questionDataService.getQuestion(questionId).getInteractions().getLast().getReasonings();
+        return feedback.getClarification().options().stream()
+                .map(option -> nameOf(reasonings, option.id()))
+                .collect(Collectors.toSet());
+    }
+
+    // Рассуждение называется своими гипотезами через « + », от внешнего допущения к вложенному.
+    private static String nameOf(InteractionReasoningData reasoning) {
+        return reasoning.getAssumptions().stream().map(Assumption::hypothesis).collect(Collectors.joining(" + "));
+    }
+
+    private static String nameOf(List<InteractionReasoningData> reasonings, int id) {
+        return nameOf(reasonings.stream().filter(reasoning -> reasoning.getId() == id).findFirst().orElseThrow());
+    }
+
+    private QuestionDto typeEvaluationQuestion() {
+        return service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+    }
+
+    /** Верный тип len(grades), затем int для total / len(grades): ошибка, которую объясняют два заблуждения. */
+    private FeedbackDto answerIntegerForTrueDivision(QuestionDto question) {
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var afterLength = service.addQuestionAnswer(
+                new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        assertTrue(afterLength.isCorrect());
+        var divisionAsInt = new AnswerDto(TestData.TypeEvaluationBank.DIV_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        return service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(divisionAsInt))
+                        .toArray(AnswerDto[]::new)));
+    }
+
+    private void setStrategySettings(String settings) {
+        var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.TYPE_EVALUATION_ID);
+        try {
+            exercise.setOptions(exercise.getOptions().withStrategySettings(new ObjectMapper().readValue(settings,
+                    new TypeReference<Map<String, Object>>() {
+                    })));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+        entityManager.flush();
+    }
+
+    private AttemptQuestionInteractionData lastInteraction(long attemptId) {
+        return attemptDataService.getAttemptWithQuestions(attemptId).questions().getLast().interactions().getLast();
+    }
+
+    private QuestionDto gradeCountQuestion(long attemptId) {
+        var question = service.generateQuestion(attemptId);
+        assertEquals(TestData.TypeEvaluationBank.GRADE_COUNT_METADATA_ID, question.getQuestionMetadataId());
+        return question;
+    }
+
+    // len(grades) — int, к которому ведёт и путаница grade с grades вместе с заблуждением: если стратегия уточняет
+    // верные ответы, студент подтверждает верное рассуждение. Затем len(grades) * grade — int, к которому ведёт
+    // и заблуждение «тип операнда».
+    private FeedbackDto answerProductAsInteger(QuestionDto question) {
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var afterLength = service.addQuestionAnswer(
+                new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        assertTrue(afterLength.isCorrect());
+        if (afterLength.getClarification() != null) {
+            assertEquals(Set.of("rule", "name_confused + argument_type", "name_confused + inapplicable_call_gives_result"),
+                    offeredHypotheses(question.getQuestionId(), afterLength));
+            service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(),
+                    optionOf(question.getQuestionId(), afterLength, "rule")));
+        }
+        var productAsInt = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        return service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(productAsInt))
+                        .toArray(AnswerDto[]::new)));
+    }
+
+    private List<String> answeredClarifications(long questionId) {
+        return questionDataService.getQuestion(questionId).getInteractions().stream()
+                .filter(interaction -> interaction.getClarification() != null && interaction.getClarification().isAnswered())
+                .map(interaction -> {
+                    var chosen = interaction.getClarification().chosenReasoning();
+                    return chosen == null ? null : nameOf(interaction.getReasonings(), chosen);
+                })
+                .toList();
+    }
+
+    private List<String> recordedHypotheses(long questionId) {
+        return questionDataService.getQuestion(questionId).getInteractions().stream()
+                .flatMap(interaction -> interaction.getReasonings().stream())
+                .filter(reasoning -> !reasoning.getAssumptions().isEmpty())
+                .map(reasoning -> nameOf(reasoning) + ":" + reasoning.isCorrect())
+                .toList();
     }
 
     private static void assertAnswerIds(FeedbackDto feedback, long... expected) {

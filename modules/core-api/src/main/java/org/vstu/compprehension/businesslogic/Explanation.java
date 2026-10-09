@@ -28,7 +28,7 @@ public class Explanation {
 
     @Setter private @NotNull HyperText rawMessage;
 
-    @Setter private String currentDomainLawName;
+    @Setter private String currentKnowledgeName;
 
     public Explanation(Type t, @NotNull String message) {
         this(t, new HyperText(message));
@@ -68,18 +68,18 @@ public class Explanation {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Explanation that)) return false;
-        return Objects.equals(rawMessage, that.rawMessage) && type == that.type && Objects.equals(children, that.children) && Objects.equals(currentDomainLawName, that.currentDomainLawName);
+        return Objects.equals(rawMessage, that.rawMessage) && type == that.type && Objects.equals(children, that.children) && Objects.equals(currentKnowledgeName, that.currentKnowledgeName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawMessage, type, children, currentDomainLawName);
+        return Objects.hash(rawMessage, type, children, currentKnowledgeName);
     }
 
-    public Set<String> getDomainLawNames() {
+    public Set<String> getKnowledgeNames() {
         return Stream.concat(
-                Stream.of(currentDomainLawName),
-                children.stream().map(Explanation::getDomainLawNames).flatMap(Set<String>::stream)
+                Stream.of(currentKnowledgeName),
+                children.stream().map(Explanation::getKnowledgeNames).flatMap(Set<String>::stream)
         ).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
@@ -199,14 +199,14 @@ public class Explanation {
         }
         Set<String> denied = new HashSet<>(deniedSkills);
         muteDeniedLeaves(denied);
-        if (denied.containsAll(getDomainLawNames())) {
+        if (denied.containsAll(getKnowledgeNames())) {
             removeAllMute();
         }
     }
 
     private void muteDeniedLeaves(Set<String> deniedSkills) {
         if (children.isEmpty()) {
-            if (!Collections.disjoint(getDomainLawNames(), deniedSkills)) {
+            if (!Collections.disjoint(getKnowledgeNames(), deniedSkills)) {
                 setMuted(true);
             }
             return;

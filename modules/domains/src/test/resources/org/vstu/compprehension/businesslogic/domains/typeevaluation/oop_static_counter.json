@@ -1,0 +1,105 @@
+{
+  "id": 14,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "static_members",
+      "field_access",
+      "arithmetic",
+      "numbers"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "oop_static_counter",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"k\">class</span><span class=\"w\"> </span><span class=\"nc\">Student</span><span class=\"p\">:</span>\n    <span class=\"n\">count</span> <span class=\"o\">=</span> <span class=\"mi\">0</span>\n\n    <span class=\"k\">def</span><span class=\"w\"> </span><span class=\"fm\">__init__</span><span class=\"p\">(</span><span class=\"bp\">self</span><span class=\"p\">,</span> <span class=\"n\">name</span><span class=\"p\">:</span> <span class=\"nb\">str</span><span class=\"p\">):</span>\n        <span class=\"bp\">self</span><span class=\"o\">.</span><span class=\"n\">name</span> <span class=\"o\">=</span> <span class=\"n\">name</span>\n        <span class=\"n\">Student</span><span class=\"o\">.</span><span class=\"n\">count</span> <span class=\"o\">+=</span> <span class=\"mi\">1</span>\n\n\n<span class=\"n\">student</span> <span class=\"o\">=</span> <span class=\"n\">Student</span><span class=\"p\">(</span><span class=\"s2\">&quot;Анна&quot;</span><span class=\"p\">)</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">Student</span><span class=\"comp-ph-expr-token\">.</span><span class=\"comp-ph-expr-token\">count</span></span><span class=\"comp-ph-expr-token\">+</span><span class=\"comp-ph-expr-token\">1</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "Student.count",
+          "domainInfo": "op_count",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 1,
+          "hyperText": "Student.count + 1",
+          "domainInfo": "op_add",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "float",
+          "domainInfo": "t_float",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "AttributeError",
+          "domainInfo": "t_attribute_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 105,
+          "hyperText": "Student",
+          "domainInfo": "t_student",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj t_attribute_error : py_AttributeError {}\nobj f_name : Field { hasType(t_str); isStatic = false; visibility = Visibility:public; } [ text = \"name\" ]\nobj f_count : Field { hasType(t_int); isStatic = true; visibility = Visibility:public; } [ text = \"count\" ]\nobj t_student : py_class { declares(f_name); declares(f_count); } [ text = \"Student\" ]\nobj student : Variable { hasType(t_student); } [ text = \"student\" ]\nobj Student : ClassReference { refersTo(t_student); looksLike(student); } [ text = \"Student\" ]\nobj one : Literal { hasType(t_int); intValue = 1; } [ text = \"1\" ]\nobj op_count : py_field_access { hasOperand<OperandPlacement:left>(Student); accesses(f_count); } [ text = \"Student.count\"; expectedType = \"t_int\" ]\nobj op_add : py_add { hasOperand<OperandPlacement:left>(op_count); hasOperand<OperandPlacement:right>(one); } [ text = \"Student.count + 1\"; expectedType = \"t_int\" ]\nobj op_add_as_py_add_text_conversion : py_add_text_conversion { hasOperand<OperandPlacement:left>(op_count); hasOperand<OperandPlacement:right>(one); foreignVariantOf(op_add); } [ text = \"Student.count + 1\" ]\nobj op_add_as_py_add_numeric_text : py_add_numeric_text { hasOperand<OperandPlacement:left>(op_count); hasOperand<OperandPlacement:right>(one); foreignVariantOf(op_add); } [ text = \"Student.count + 1\" ]\nobj op_add_as_py_add_elementwise : py_add_elementwise { hasOperand<OperandPlacement:left>(op_count); hasOperand<OperandPlacement:right>(one); foreignVariantOf(op_add); } [ text = \"Student.count + 1\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "oop_static_counter",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 295425,
+  "skillBits": 5373954,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 2
+}

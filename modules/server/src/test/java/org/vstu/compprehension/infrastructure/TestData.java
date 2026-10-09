@@ -37,6 +37,8 @@ public final class TestData {
         public static final long OTHER_COURSE_ID = -4L;
         public static final long EXPRESSION_DT_ID = -5L;
         public static final int EXPRESSION_DT_QUESTIONS = 2;
+        /** Упражнение домена типов, в котором стратегия выдаёт вопрос {@link TypeEvaluationBank#GRADE_COUNT_METADATA_ID}. */
+        public static final long TYPE_EVALUATION_ID = -6L;
 
         public static final String DOMAIN_ID = ProgrammingLanguageExpressionDTDomain.DOMAIN_ID;
         public static final String STRATEGY_ID = "StaticStrategy";
@@ -91,5 +93,30 @@ public final class TestData {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Нет вопроса банка с metadataId " + metadataId));
         }
+    }
+
+    /** Вопрос домена потока управления на онтологии. */
+    public static final class ControlFlowBank {
+        private ControlFlowBank() {
+        }
+
+        public static final int FORMAT_FREE_METADATA_ID = -1001;
+    }
+
+    /** Вопрос домена типов выражений: total / len(grades), где total — int, grades — list[int]. */
+    public static final class TypeEvaluationBank {
+        private TypeEvaluationBank() {
+        }
+
+        public static final int AVERAGE_OF_GRADES_METADATA_ID = -2001;
+        public static final long LEN_SLOT = 0;
+        public static final long DIV_SLOT = 1;
+        public static final long INT_TYPE = 100;
+        public static final long LIST_INT_TYPE = 103;
+        public static final long ERROR_TYPE = 104;
+
+        /** len(grades) * grade: к верному int для произведения ведёт и заблуждение «тип операнда». */
+        public static final int GRADE_COUNT_METADATA_ID = -2003;
+        public static final long MUL_SLOT = 1;
     }
 }
