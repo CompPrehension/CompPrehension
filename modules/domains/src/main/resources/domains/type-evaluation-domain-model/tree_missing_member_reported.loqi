@@ -1,6 +1,7 @@
 // Студент решил, что члена, к которому обращается E, нет или он отсюда не виден, и выбирает, какой ошибкой
 // об этом сообщают: T — его ответ.
 tpg MissingMemberReported(E: Operation, T: Outcome) {
+    // Студент назвал ошибку? Иначе этот шаг к его ответу не ведёт.
     ask (T is class:EvaluationError) out false else {
         ask (T is class:MissingMemberError) {
             true -> {

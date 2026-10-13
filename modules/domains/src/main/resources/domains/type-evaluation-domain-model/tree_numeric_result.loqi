@@ -11,6 +11,7 @@ tpg NumericResult(E: Operation, L: Type, R: Type, T: Outcome) {
     var A : ArithmeticOperation = (E as class:ArithmeticOperation);
     ask (A.isTrueDivision) {
         true -> {
+            // Верно — наибольший ранг из операндов и minResultRank; заблуждение — тип одного из операндов.
             agg hyp {
                 _ -> {
                     ask (isNumberOfRank(T, maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank))) out false else {

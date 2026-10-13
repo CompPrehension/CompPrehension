@@ -7,6 +7,7 @@ lambda rightOf(E: Operation, Old: CodeElement, New: CodeElement) = E->hasOperand
 tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M: Member, C: Type, R: Outcome, T: Outcome) {
     ask (M is class:Field) {
         true -> {
+            // Верно — тип поля; заблуждение — тип объекта.
             agg hyp {
                 _ -> {
                     ask (T == R) out false else {
@@ -45,6 +46,7 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
         };
         false -> {
             var Mt : Method = (M as class:Method);
+            // Верно — результат метода; заблуждения — сам объект, ничего не возвращает, тип аргумента.
             agg hyp {
                 _ -> {
                     ask (T == R) out false else {

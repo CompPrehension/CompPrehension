@@ -6,6 +6,10 @@
 // TODO: верный ответ, к которому ведёт и ошибочная гипотеза, hyp засчитывает как верный; уточнять такие случаи
 //  вопросом — ценная метрика для эксперимента (открытый вопрос: какой вес гипотезы считать высоким).
 
+// hyp: верный способ, объяснивший T, важнее ошибочного. Пояснение у выхода null — почему T так не получить.
+// and из вывода и subcall("*_reported") — два шага: студент решил, что операция неприменима или члена нет,
+// и выбрал, какой ошибкой об этом сообщают; шаг, не ведущий к T, делает null всё рассуждение.
+
 lambda leftOf(E: Operation, Old: CodeElement, New: CodeElement) = E->hasOperand<OperandPlacement:left> == Old ? (New as class:Expr) : E->hasOperand<OperandPlacement:left>;
 
 lambda rightOf(E: Operation, Old: CodeElement, New: CodeElement) = E->hasOperand<OperandPlacement:right> == Old ? (New as class:Expr) : E->hasOperand<OperandPlacement:right>;
@@ -41,6 +45,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
             var L : Type = (Left->hasType);
             var R : Type = (Right->hasType);
 
+            // Оба операнда — числа? Иначе операция над последовательностями.
             ask (L.isArithmetic and R.isArithmetic) {
                 true -> {
                     // Числа: студент посчитал результат — верно или с заблуждениями о делении и типе результата — или
@@ -90,6 +95,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                                             ? SequenceUse:elementwise
                                             : SequenceUse:inapplicable))))) {
                         SequenceUse:concatenation -> {
+                            // Верно — тип операндов; заблуждение — неприменима.
                             agg hyp {
                                 _ -> {
                                     ask (T == L) out false else {
@@ -134,6 +140,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         SequenceUse:repetition -> {
+                            // Верно — тип последовательности; заблуждения — тип числа-множителя, неприменима.
                             agg hyp {
                                 _ -> {
                                     ask (T == (L is class:SequenceType ? L : R)) out false else {
@@ -245,6 +252,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         SequenceUse:inapplicable -> {
+                            // Верно — неприменима; заблуждения — тип операнда, элемент добавлен в список.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -311,6 +319,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
 
             ask (E is class:NegationOperation) {
                 true -> {
+                    // Верно — логический тип; заблуждения — тип операнда, неприменима.
                     agg hyp {
                         _ -> {
                             ask (T is class:BooleanType) out false else {
@@ -372,8 +381,10 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                     var Right : Expr = rightOf(E, Old, New);
                     var R : Type = (Right->hasType);
 
+                    // Операция возвращает один из операндов, а не логическое значение?
                     ask (B.returnsOperand) {
                         false -> {
+                            // Верно — логический тип; заблуждения — тип операнда, неприменима.
                             agg hyp {
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -436,6 +447,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             // решений даёт другой операнд, в обоих — снова верный.
                             var Returned : Expr = (Left.isTruthy == B.returnsLeftWhenLeftTruthy) ? Left : Right;
                             var Other : Expr = (Left.isTruthy == B.returnsLeftWhenLeftTruthy) ? Right : Left;
+                            // Верно — тип возвращённого операнда; заблуждения — истинность оценена неверно, результат логический, неприменима.
                             agg hyp {
                                 _ -> {
                                     conclude: subcall("operand_returned", E, Left, Returned, T)
@@ -517,8 +529,10 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
 
             ask (C.comparisonKind) {
                 ComparisonKind:equality -> {
+                    // Применимо: операция сравнивает любые типы или операнды сравнимы между собой?
                     ask (C.comparesAnyTypes or orderable(L, R)) {
                         true -> {
+                            // Верно — логический тип; заблуждения — тип операнда, неприменимо.
                             agg hyp {
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -576,6 +590,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         false -> {
+                            // Верно — неприменимо; заблуждения — всё равно логический тип, тип операнда.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -637,6 +652,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                 ComparisonKind:ordering -> {
                     ask (orderable(L, R)) {
                         true -> {
+                            // Верно — логический тип; заблуждения — тип операнда, неприменимо.
                             agg hyp {
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -694,6 +710,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         false -> {
+                            // Верно — неприменимо; заблуждения — всё равно логический тип, тип операнда.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -753,8 +770,10 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                     } as orderingApplicability
                 };
                 ComparisonKind:membership -> {
+                    // Применимо: справа коллекция или строка, а в строке ищут только строку?
                     ask ((R is class:SequenceType or R is class:MappingType) and (not (R is class:TextType) or L is class:TextType)) {
                         true -> {
+                            // Верно — логический тип; заблуждения — тип операнда, неприменимо.
                             agg hyp {
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -812,6 +831,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         false -> {
+                            // Верно — неприменимо; заблуждения — всё равно логический тип, тип операнда.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -883,6 +903,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
             ask (X is class:MappingType and I.isHashable) {
                 true -> {
                     var M : MappingType = (X as class:MappingType);
+                    // Верно — тип значения; заблуждения — тип ключа, тип словаря, неприменимо.
                     agg hyp {
                         _ -> {
                             ask (T == M->valueType) out false else {
@@ -953,11 +974,14 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                     } as mappingValueHypotheses
                 };
                 false -> {
+                    // Последовательность с целым индексом? Иначе, как и словарь с изменяемым ключом, — неприменимо.
                     ask (X is class:SequenceType and I is class:IntegerType) {
                         true -> {
+                            // У кортежа тип элемента зависит от позиции, у остальных последовательностей он один.
                             ask (X is class:TupleType) {
                                 true -> {
                                     var TT : TupleType = (X as class:TupleType);
+                                    // Верно — тип элемента на этой позиции; заблуждения — тип кортежа, тип индекса, неприменимо.
                                     agg hyp {
                                         _ -> {
                                             ask (T == TT->itemType<Right.intValue>) out false else {
@@ -1029,6 +1053,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                                 };
                                 false -> {
                                     var S : SequenceType = (X as class:SequenceType);
+                                    // Верно — тип элемента; заблуждения — тип последовательности, тип индекса, пропущен уровень вложенности, неприменимо.
                                     agg hyp {
                                         _ -> {
                                             ask (T == S->elementType) out false else {
@@ -1114,6 +1139,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             } as tupleCheck
                         };
                         false -> {
+                            // Верно — неприменимо; заблуждения — тип элемента без проверки индекса, тип контейнера, тип индекса.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -1199,6 +1225,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
             ask (X is class:SequenceType) {
                 true -> {
                     var S : SequenceType = (X as class:SequenceType);
+                    // Верно — тип той же последовательности; заблуждения — тип элемента (срез как индекс), неприменимо.
                     agg hyp {
                         _ -> {
                             ask (T == X) out false else {
@@ -1256,6 +1283,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                     }
                 };
                 false -> {
+                    // Верно — неприменимо; заблуждение — тип операнда.
                     agg hyp {
                         _ -> {
                             agg and {
@@ -1304,8 +1332,10 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
         OperationGroup:call -> {
             var F : CallOperation = (E as class:CallOperation);
 
+            // Что функция требует от аргумента: от этого зависит, может ли она оказаться неприменимой.
             ask (F.argumentRequirement) {
                 ArgumentRequirement:none -> {
+                    // Верно — тип результата функции; заблуждение — ввод с клавиатуры даёт число.
                     agg hyp {
                         _ -> {
                             ask (givesFixedResult(F, T)) out false else {
@@ -1345,6 +1375,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                 ArgumentRequirement:any -> {
                     var Left : Expr = leftOf(E, Old, New);
                     var A : Type = (Left->hasType);
+                    // Верно — тип результата функции; заблуждения — тип аргумента, неприменима.
                     agg hyp {
                         _ -> {
                             ask (givesFixedResult(F, T)) out false else {
@@ -1404,8 +1435,10 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                 ArgumentRequirement:sized -> {
                     var Left : Expr = leftOf(E, Old, New);
                     var A : Type = (Left->hasType);
+                    // Есть ли у аргумента длина: коллекция или строка?
                     ask (A is class:SequenceType or A is class:MappingType) {
                         true -> {
+                            // Верно — тип результата функции; заблуждения — тип аргумента, неприменима.
                             agg hyp {
                                 _ -> {
                                     ask (givesFixedResult(F, T)) out false else {
@@ -1463,6 +1496,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         false -> {
+                            // Верно — неприменима; заблуждения — всё равно тип результата функции, тип аргумента.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -1526,6 +1560,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                     var A : Type = (Left->hasType);
                     ask (A.isArithmetic or A is class:TextType) {
                         true -> {
+                            // Верно — тип результата функции; заблуждения — тип аргумента, неприменима.
                             agg hyp {
                                 _ -> {
                                     ask (givesFixedResult(F, T)) out false else {
@@ -1583,6 +1618,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                             }
                         };
                         false -> {
+                            // Верно — неприменима; заблуждения — всё равно тип результата функции, тип аргумента.
                             agg hyp {
                                 _ -> {
                                     agg and {
@@ -1649,8 +1685,10 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
             var C : Type = ownerTypeOf(Owner);
             var R : Outcome = resultOf(M);
 
+            // Есть ли член у типа слева от точки, в том числе унаследованный?
             ask (hasMember(C, M)) {
                 true -> {
+                    // Верно — дальше по цепочке (member_found); заблуждения — наследование не учтено, член счёл отсутствующим.
                     agg hyp {
                         _ -> {
                             conclude: subcall("member_found", E, Old, New, Owner, M, C, R, T)
@@ -1709,6 +1747,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                     }
                 };
                 false -> {
+                    // Верно — члена нет; заблуждение — член всё-таки нашёлся.
                     agg hyp {
                         _ -> {
                             agg and {
@@ -1759,6 +1798,7 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
         };
         OperationGroup:construction -> {
             var K : ClassType = ((leftOf(E, Old, New) as class:ClassReference)->refersTo);
+            // Верно — созданный класс; заблуждение — конструктор ничего не возвращает.
             agg hyp {
                 _ -> {
                     ask (T == K) out false else {

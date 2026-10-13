@@ -2,8 +2,10 @@
 // студент считает член доступным и решает, можно ли обратиться к нему так, как написано —
 // через класс или через объект. T — ответ студента; Old и New — как в typed.
 tpg MemberAccessible(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M: Member, C: Type, R: Outcome, T: Outcome) {
+    // Член объекта, к которому обращаются через имя класса?
     ask (Owner is class:ClassReference and not M.isStatic) {
         true -> {
+            // Верно — у класса нет такого поля, метод без объекта неприменим; заблуждения — обращение сработает, тип класса.
             agg hyp {
                 _ -> {
                     agg and {
@@ -100,6 +102,7 @@ tpg MemberAccessible(E: Operation, Old: CodeElement, New: CodeElement, Owner: Ex
             }
         };
         false -> {
+            // Верно — дальше по цепочке (member_result); заблуждения — статический член недоступен через объект, статические поле и метод — через класс.
             agg hyp {
                 _ -> {
                     conclude: subcall("member_result", E, Old, New, Owner, M, C, R, T)

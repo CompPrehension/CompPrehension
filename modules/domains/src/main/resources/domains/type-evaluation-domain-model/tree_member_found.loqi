@@ -14,6 +14,7 @@ lambda isAccessibleFrom(E: Operation, M: Member) = M.visibility == Visibility:pu
 tpg MemberFound(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M: Member, C: Type, R: Outcome, T: Outcome) {
     ask (isAccessibleFrom(E, M)) {
         true -> {
+            // Верно — дальше по цепочке (member_accessible); заблуждение — защищённый член счёл недоступным.
             agg hyp {
                 _ -> {
                     conclude: subcall("member_accessible", E, Old, New, Owner, M, C, R, T)
@@ -47,6 +48,7 @@ tpg MemberFound(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M
             }
         };
         false -> {
+            // Верно — член недоступен; заблуждения — закрытый член доступен (в том числе наследнику), тип того, что слева.
             agg hyp {
                 _ -> {
                     agg and {

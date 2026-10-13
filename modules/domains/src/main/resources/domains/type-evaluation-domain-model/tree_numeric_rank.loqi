@@ -12,6 +12,7 @@ tpg NumericRank(E: Operation, L: Type, R: Type, T: Outcome) {
     var A : ArithmeticOperation = (E as class:ArithmeticOperation);
     ask (L is class:FloatingType or R is class:FloatingType) {
         true -> {
+            // Верно — наибольший ранг; заблуждения — тип одного из операндов, деление нацело даёт целое.
             agg hyp {
                 _ -> {
                     ask (isNumberOfRank(T, (A.isTrueDivision ? maxOf(L.conversionRank, R.conversionRank) : maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank)))) out false else {
@@ -62,6 +63,7 @@ tpg NumericRank(E: Operation, L: Type, R: Type, T: Outcome) {
             } as floatResultHypotheses
         };
         false -> {
+            // Верно — наибольший ранг; заблуждения — тип одного из операндов, арифметика над логическими остаётся логической.
             agg hyp {
                 _ -> {
                     ask (isNumberOfRank(T, (A.isTrueDivision ? maxOf(L.conversionRank, R.conversionRank) : maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank)))) out false else {

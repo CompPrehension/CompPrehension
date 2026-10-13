@@ -26,6 +26,7 @@ tpg ExprType(E: Operation, T: Outcome) {
     ask (E is class:SlicingOperation and E->hasOperand<OperandPlacement:left>->hasType is class:TupleType) out false else {
         conclude: null
     };
+    // Прочтения: как написано, с перепутанным именем, как похожий оператор, по правилам другого языка.
     agg hyp {
         _ -> {
             ask (hasLookalikePart(E)) {
@@ -51,6 +52,7 @@ tpg ExprType(E: Operation, T: Outcome) {
             } as lookalikeOperands
         };
         _ -> {
+            // Какую часть операции студент перепутал (O) и с чем (V).
             cycle hyp (isPartOf(E, $O)) with CodeElement O {
                 _ -> {
                     cycle hyp (canBeReadAs(E, O, $V)) with CodeElement V {
@@ -88,8 +90,10 @@ tpg ExprType(E: Operation, T: Outcome) {
             }
         };
         _ -> {
+            // Похожие операторы, за которые студент мог принять написанный.
             cycle hyp (E=>similarOperator($A)) with Operation A {
                 _ -> {
+                    // Оператор перепутан, и по прочитанному оператору студент пришёл к T.
                     agg and {
                         _ -> {
                             conclude: error [
@@ -115,10 +119,12 @@ tpg ExprType(E: Operation, T: Outcome) {
             } as similarOperators
         };
         _ -> {
+            // Та же запись по правилам другого языка — только если это меняет вердикт.
             cycle hyp (E=>foreignVariant($A) and changesVerdict(E, $A, T)) with Operation A {
                 _ -> {
                     // Правила других языков пока есть только у арифметики; чем именно они отличаются, задают свойства класса.
                     var F : ArithmeticOperation = (A as class:ArithmeticOperation);
+                    // Правила взяты из другого языка, и по ним студент пришёл к T.
                     agg and {
                         _ -> {
                             conclude: error [
