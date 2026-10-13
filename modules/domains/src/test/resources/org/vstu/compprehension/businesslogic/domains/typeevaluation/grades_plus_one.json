@@ -1,0 +1,90 @@
+{
+  "id": 6,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "arithmetic",
+      "lists",
+      "type_errors"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "grades_plus_one",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">grade</span> <span class=\"o\">=</span> <span class=\"mi\">5</span>\n<span class=\"n\">grades</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">4</span><span class=\"p\">,</span> <span class=\"mi\">5</span><span class=\"p\">]</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:1\"><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">grades</span><span class=\"comp-ph-expr-token\">+</span><span class=\"comp-ph-expr-token\">1</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "grades + 1",
+          "domainInfo": "op_add",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "float",
+          "domainInfo": "t_float",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "list[int]",
+          "domainInfo": "t_list_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj grade : Variable { hasType(t_int); looksLike(grades); } [ text = \"grade\" ]\nobj grades : Variable { hasType(t_list_int); } [ text = \"grades\" ]\nobj one : Literal { hasType(t_int); intValue = 1; } [ text = \"1\" ]\nobj op_add : py_add { hasOperand<OperandPlacement:left>(grades); hasOperand<OperandPlacement:right>(one); } [ text = \"grades + 1\"; expectedType = \"t_error\" ]\nobj op_add_as_py_add_text_conversion : py_add_text_conversion { hasOperand<OperandPlacement:left>(grades); hasOperand<OperandPlacement:right>(one); foreignVariantOf(op_add); } [ text = \"grades + 1\" ]\nobj op_add_as_py_add_numeric_text : py_add_numeric_text { hasOperand<OperandPlacement:left>(grades); hasOperand<OperandPlacement:right>(one); foreignVariantOf(op_add); } [ text = \"grades + 1\" ]\nobj op_add_as_py_add_elementwise : py_add_elementwise { hasOperand<OperandPlacement:left>(grades); hasOperand<OperandPlacement:right>(one); foreignVariantOf(op_add); } [ text = \"grades + 1\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "grades_plus_one",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 18433,
+  "skillBits": 65540,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 1
+}

@@ -21,7 +21,6 @@ class ExerciseCardDtoMapperImpl implements ExerciseCardDtoMapper {
                 .id(exercise.id())
                 .name(exercise.name())
                 .domainId(exercise.domainId())
-                .strategyId(exercise.strategyId())
                 .backendId(exercise.backendId())
                 .stages(exercise.stages().stream().map(this::map).toList())
                 .options(exercise.options())
@@ -33,6 +32,8 @@ class ExerciseCardDtoMapperImpl implements ExerciseCardDtoMapper {
     
     private @NotNull ExerciseStageDto map(@NotNull ExerciseStageData source) {
         return ExerciseStageDto.builder()
+                .strategyId(source.getStrategyId())
+                .strategySettings(source.getStrategySettings())
                 .numberOfQuestions(source.getNumberOfQuestions())
                 .complexity(source.getComplexity())
                 .laws(source.getLaws())

@@ -5,6 +5,7 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.backend.Backend;
 import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public interface DomainToBackendAdapter<BackendInput, BackendOutput, Back extend
      * Interpret the results of the {@link Backend#judge} method
      * to provide user with the information on their responses
      */
-    Domain.InterpretSentenceResult interpretJudgeOutput(
+    Judgement interpretJudgeOutput(
         QuestionData judgedQuestion,
         BackendOutput backendOutput,
         Language language

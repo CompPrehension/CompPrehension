@@ -5,7 +5,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.vstu.compprehension.businesslogic.Tag;
-import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -34,7 +34,10 @@ import static org.vstu.compprehension.businesslogic.domains.expressiondt.Express
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.endToken;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operator;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operatorsInOrder;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedKnowledge;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
 
@@ -67,10 +70,10 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
             var result = judge(question, given);
 
             // Assert.
-            assertTrue(result.isAnswerCorrect, bankQuestion.expression() + " на шаге " + operator.getHyperText());
-            assertEquals(List.of(), result.violations);
-            assertEquals(bankQuestion.steps() - given.size(), result.IterationsLeft);
-            assertFalse(result.domainSkills.isEmpty());
+            assertTrue(result.isAnswerCorrect(), bankQuestion.expression() + " на шаге " + operator.getHyperText());
+            assertEquals(List.of(), violations(result));
+            assertEquals(bankQuestion.steps() - given.size(), result.stepsLeft());
+            assertFalse(appliedKnowledge(result).isEmpty());
         }
     }
 
@@ -87,9 +90,9 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, given);
 
         // Assert.
-        assertTrue(result.isAnswerCorrect);
-        assertEquals(List.of(), result.violations);
-        assertEquals(0, result.IterationsLeft);
+        assertTrue(result.isAnswerCorrect());
+        assertEquals(List.of(), violations(result));
+        assertEquals(0, result.stepsLeft());
     }
 
     /** Преждевременное «всё вычислено» отклоняется. */
@@ -103,11 +106,11 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, List.of(endToken(question)));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(bankQuestion.steps(), result.IterationsLeft);
-        assertTrue(lawNames(result.violations).contains(EARLY_FINISH_VIOLATION));
-        assertTrue(lawNames(result.violations).contains(EARLY_FINISH_SKILL));
-        assertFalse(result.explanation.toHyperText(Language.ENGLISH).getText().isBlank());
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(bankQuestion.steps(), result.stepsLeft());
+        assertTrue(lawNames(violations(result)).contains(EARLY_FINISH_VIOLATION));
+        assertTrue(lawNames(violations(result)).contains(EARLY_FINISH_SKILL));
+        assertFalse(verdict(result).explanation().toHyperText(Language.ENGLISH).getText().isBlank());
     }
 
     /** Второй по порядку оператор первым не принимается. */
@@ -122,10 +125,10 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, List.of(second));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(bankQuestion.steps(), result.IterationsLeft);
-        assertFalse(result.violations.isEmpty());
-        assertFalse(result.explanation.toHyperText(Language.ENGLISH).getText().isBlank());
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(bankQuestion.steps(), result.stepsLeft());
+        assertFalse(violations(result).isEmpty());
+        assertFalse(verdict(result).explanation().toHyperText(Language.ENGLISH).getText().isBlank());
     }
 
     /** Оператор слева с большим приоритетом: `->` раньше `+`. */
@@ -138,8 +141,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, List.of(operator(question, "+")));
 
         // Assert.
-        assertEquals(List.of(LEFT_OPERATOR_HAS_PRIORITY), lawNames(result.violations));
-        assertTrue(result.domainSkills.contains(LEFT_OPERATOR_HAS_PRIORITY));
+        assertEquals(List.of(LEFT_OPERATOR_HAS_PRIORITY), lawNames(violations(result)));
     }
 
     /** Оператор справа с большим приоритетом: унарный `-` раньше `&`. */
@@ -152,7 +154,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, List.of(operator(question, "&")));
 
         // Assert.
-        assertEquals(List.of(RIGHT_OPERATOR_HAS_PRIORITY), lawNames(result.violations));
+        assertEquals(List.of(RIGHT_OPERATOR_HAS_PRIORITY), lawNames(violations(result)));
     }
 
     /** Левая ассоциативность: `+` раньше `-` при равном приоритете. */
@@ -165,9 +167,9 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, List.of(operator(question, "*"), operator(question, "-")));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(LEFT_OPERATOR_BY_ASSOCIATIVITY), lawNames(result.violations));
-        assertEquals(MUL_PLUS_MINUS.steps() - 1, result.IterationsLeft);
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(LEFT_OPERATOR_BY_ASSOCIATIVITY), lawNames(violations(result)));
+        assertEquals(MUL_PLUS_MINUS.steps() - 1, result.stepsLeft());
     }
 
     /** Присваивание раньше своего правого операнда — ошибка. */
@@ -180,8 +182,8 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var result = judge(question, List.of(operator(question, "=")));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(RIGHT_OPERATOR_HAS_PRIORITY), lawNames(result.violations));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(RIGHT_OPERATOR_HAS_PRIORITY), lawNames(violations(result)));
     }
 
     /** Объяснение ошибки локализовано. */
@@ -193,8 +195,8 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var wrong = answers(operator(question, "+"));
 
         // Act.
-        var english = domain().judgeQuestion(question, wrong, tags, Language.ENGLISH).explanation.toHyperText(Language.ENGLISH).getText();
-        var russian = domain().judgeQuestion(question, wrong, tags, Language.RUSSIAN).explanation.toHyperText(Language.RUSSIAN).getText();
+        var english = verdict(domain().judgeAnswer(question, wrong, tags, Language.ENGLISH)).explanation().toHyperText(Language.ENGLISH).getText();
+        var russian = verdict(domain().judgeAnswer(question, wrong, tags, Language.RUSSIAN)).explanation().toHyperText(Language.RUSSIAN).getText();
 
         // Assert.
         assertTrue(english.contains("cannot be evaluated yet"));
@@ -246,9 +248,9 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
 
             // Assert.
             assertEquals(NESTED_TERNARIES.evaluationOrder().get(step), given.getLast().getDomainInfo());
-            assertTrue(result.isAnswerCorrect, "шаг " + step);
-            assertEquals(List.of(), result.violations);
-            assertEquals(expectedIterationsLeft.get(step), result.IterationsLeft);
+            assertTrue(result.isAnswerCorrect(), "шаг " + step);
+            assertEquals(List.of(), violations(result));
+            assertEquals(expectedIterationsLeft.get(step), result.stepsLeft());
         }
     }
 
@@ -351,13 +353,13 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
 
     // ---- вспомогательное ----
 
-    private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
+    private static Judgement judge(QuestionData question, List<AnswerObjectData> answers) {
         List<Tag> tags = domain().resolveTags(question.getContent().getTags());
-        return domain().judgeQuestion(question, answers(answers), tags, Language.ENGLISH);
+        return domain().judgeAnswer(question, answers(answers), tags, Language.ENGLISH);
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {
-        return violations.stream().map(ViolationData::getLawName).toList();
+        return violations.stream().map(ViolationData::getKnowledgeName).toList();
     }
 
     private static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, BankQuestion bankQuestion) {

@@ -25,7 +25,8 @@ import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.Att
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.GradePassbackTargetRow;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
-import org.vstu.compprehension.repositories.entity.InteractionRepository.InteractionLawRow;
+import org.vstu.compprehension.data.question.CountedKnowledgeData;
+import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.repositories.entity.InteractionRepository.InteractionRow;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
@@ -56,9 +57,9 @@ public class ExerciseAttemptDataRepository {
 
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
-        var attempt = exerciseAttemptRepository.findByIdFetchingExercise(attemptId)
+        var attempt = exerciseAttemptRepository.findById(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
-        var exerciseData = attemptExerciseMapper.map(attempt.getExercise());
+        var exerciseData = attempt.getExerciseSnapshot();
 
         var questions = questionRepository.findAllByAttemptIdFetchingMetadata(attemptId);
         var questionIds = questions.stream().map(QuestionEntity::getId).toList();
@@ -66,21 +67,11 @@ public class ExerciseAttemptDataRepository {
         var interactionRows = questionIds.isEmpty()
                 ? List.<InteractionRow>of()
                 : interactionRepository.findRowsByQuestionIdIn(questionIds);
-        var interactionIds = interactionRows.stream().map(InteractionRow::getInteractionId).toList();
-
-        Map<Long, List<String>> violationsByInteraction = interactionIds.isEmpty()
-                ? Map.of() : groupLawNames(interactionRepository.findViolationLawsByInteractionIdIn(interactionIds));
-        Map<Long, List<String>> correctLawsByInteraction = interactionIds.isEmpty()
-                ? Map.of() : groupLawNames(interactionRepository.findCorrectLawsByInteractionIdIn(interactionIds));
 
         Map<Long, List<AttemptQuestionInteractionData>> interactionsByQuestion = interactionRows.stream()
                 .collect(Collectors.groupingBy(
                         InteractionRow::getQuestionId,
-                        Collectors.mapping(row -> toInteractionData(
-                                row,
-                                violationsByInteraction.getOrDefault(row.getInteractionId(), List.of()),
-                                correctLawsByInteraction.getOrDefault(row.getInteractionId(), List.of())
-                        ), Collectors.toList())));
+                        Collectors.mapping(ExerciseAttemptDataRepository::toInteractionData, Collectors.toList())));
 
         var questionsData = questions.stream()
                 .map(q -> attemptQuestionMapper.map(
@@ -95,24 +86,24 @@ public class ExerciseAttemptDataRepository {
     public @NotNull AttemptGenerationContextData getGenerationContext(long attemptId) {
         var attempt = exerciseAttemptRepository.findByIdFetchingExerciseAndUser(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
+        // Генератор банка настраивают для упражнения, а не для попытки: опции берутся из самого упражнения.
         var exercise = attempt.getExercise();
         return new AttemptGenerationContextData(
                 attempt.getId(),
-                exercise.getDomainId(),
-                exercise.getStrategyId(),
+                attempt.getExerciseSnapshot().domainId(),
                 exercise.getOptions(),
                 attempt.getUser().getPreferred_language());
     }
 
     @Transactional(readOnly = true)
     public @NotNull Optional<ExerciseAttemptContextData> findAttemptContextByQuestionId(long questionId) {
-        return exerciseAttemptRepository.findByQuestionIdFetchingExerciseAndUser(questionId)
+        return exerciseAttemptRepository.findByQuestionIdFetchingUser(questionId)
                 .map(attemptContextMapper::map);
     }
 
     @Transactional(readOnly = true)
-    public long countQuestionsUpTo(long attemptId, long questionId) {
-        return questionRepository.countUpToQuestionInAttempt(attemptId, questionId);
+    public @NotNull Optional<Integer> findQuestionStageIndex(long questionId) {
+        return questionRepository.findStageIndex(questionId);
     }
 
     /** Владелец попытки; пусто, если попытки нет. */
@@ -164,7 +155,10 @@ public class ExerciseAttemptDataRepository {
         }
 
         var attempt = new ExerciseAttemptEntity();
-        attempt.setExercise(exerciseRepository.getReferenceById(exerciseId));
+        var exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NoSuchElementException("Exercise " + exerciseId + " not found"));
+        attempt.setExercise(exercise);
+        attempt.setExerciseSnapshot(attemptExerciseMapper.map(exercise));
         attempt.setUser(userRepository.getReferenceById(userId));
         attempt.setCourse(courseId == null ? null : courseRepository.getReferenceById(courseId));
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
@@ -216,21 +210,19 @@ public class ExerciseAttemptDataRepository {
                 exerciseAttemptRepository.findNonSupplementaryQuestionIds(row.getAttemptId()));
     }
 
-    private static @NotNull AttemptQuestionInteractionData toInteractionData(@NotNull InteractionRow row,
-                                                                             @NotNull List<String> violationLawNames,
-                                                                             @NotNull List<String> correctLawNames) {
+    private static @NotNull AttemptQuestionInteractionData toInteractionData(@NotNull InteractionRow row) {
+        var reasonings = row.getReasonings();
+        var chosen = row.getChosenReasoning();
+        var counted = new CountedKnowledgeData(row.getIsCorrect(), reasonings, chosen);
         return new AttemptQuestionInteractionData(
                 row.getInteractionId(),
                 row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
                 row.getInteractionType(),
                 row.getInteractionsLeft(),
-                violationLawNames,
-                correctLawNames);
-    }
-
-    private static Map<Long, List<String>> groupLawNames(List<InteractionLawRow> rows) {
-        return rows.stream().collect(Collectors.groupingBy(
-                InteractionLawRow::getInteractionId,
-                Collectors.mapping(InteractionLawRow::getLawName, Collectors.toList())));
+                row.getIsCorrect(),
+                counted.getViolations().stream().map(ViolationData::getKnowledgeName).toList(),
+                counted.getAppliedKnowledge(),
+                row.getClarificationId() == null ? null : chosen != null && reasonings.stream()
+                        .anyMatch(reasoning -> reasoning.getId() == chosen && reasoning.isCorrect()));
     }
 }

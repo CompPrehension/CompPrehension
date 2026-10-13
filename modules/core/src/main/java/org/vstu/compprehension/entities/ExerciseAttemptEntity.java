@@ -1,11 +1,14 @@
 package org.vstu.compprehension.entities;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.entities.course.CourseEntity;
 
@@ -39,6 +42,11 @@ public class ExerciseAttemptEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
+
+    /** Настройки упражнения на момент начала попытки: правка упражнения идущую попытку не меняет. */
+    @Type(JsonType.class)
+    @Column(name = "exercise_snapshot_json", columnDefinition = "json", nullable = false, updatable = false)
+    private AttemptExerciseData exerciseSnapshot;
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)

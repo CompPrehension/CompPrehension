@@ -15,7 +15,7 @@ export const GenerateNextAnswerBtn = observer(({ store }: GenerateNextAnswerBtnP
     const { question, feedback } = store;
     const isFeedbackLoading = store.questionState === 'ANSWER_EVALUATING';
     const isQuestionLoading = store.questionState === 'LOADING';
-    if (!question || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
+    if (!question || isFeedbackLoading || isQuestionLoading || store.isQuestionFreezed || feedback?.stepsLeft === 0) {
         return null;
     }
     

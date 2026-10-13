@@ -20,7 +20,6 @@ import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRequestLogRepository;
-import org.vstu.compprehension.repositories.entity.ViolationRepository;
 import org.vstu.compprehension.repositories.mappers.QuestionEntityMapper;
 import org.vstu.compprehension.repositories.mappers.QuestionMapper;
 
@@ -37,7 +36,6 @@ public class QuestionDataRepository {
 
     private final QuestionRepository questionRepository;
     private final InteractionRepository interactionRepository;
-    private final ViolationRepository violationRepository;
     private final AnswerObjectRepository answerObjectRepository;
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final QuestionMetadataRepository questionMetadataRepository;
@@ -52,10 +50,8 @@ public class QuestionDataRepository {
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
 
         questionRepository.findByIdFetchingAnswerObjects(questionId);
-        violationRepository.findAllByQuestionIdFetchingTemplates(questionId);
-        var interactions = interactionRepository.findAllByQuestionIdFetchingViolations(questionId);
+        var interactions = interactionRepository.findAllByQuestionIdFetchingFeedback(questionId);
         interactionRepository.findAllByQuestionIdFetchingResponses(questionId);
-        interactionRepository.findAllByQuestionIdFetchingCorrectLaws(questionId);
 
         return questionMapper.map(question, interactions);
     }
@@ -80,7 +76,8 @@ public class QuestionDataRepository {
     @Transactional
     public @NotNull QuestionData save(@NotNull QuestionData data,
                                       @Nullable QuestionRequestLogData questionRequestLog,
-                                      @Nullable Long exerciseAttemptId) {
+                                      @Nullable Long exerciseAttemptId,
+                                      @Nullable Integer stageIndex) {
         var content = data.getContent();
 
         var metadata = content.getMetadata() == null || content.getMetadata().getId() == null
@@ -101,6 +98,9 @@ public class QuestionDataRepository {
         }
         if (exerciseAttemptId != null) {
             entity.setExerciseAttempt(exerciseAttemptRepository.getReferenceById(exerciseAttemptId));
+        }
+        if (stageIndex != null) {
+            entity.setStageIndex(stageIndex);
         }
 
         questionRepository.saveAndFlush(entity);

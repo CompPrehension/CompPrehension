@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Рассуждение взаимодействия хранит идентификатор, допущения — гипотезы с их верностью, — и отбор тренажёра: было
+        ли оно среди самых вероятных. Уточнение и выбор студента ссылались на рассуждение по позиции, поэтому
+        идентификатор — позиция.
+        В записанных рассуждениях все допущения верны или все ошибочны, поэтому верность допущения — верность
+        рассуждения. Раньше в счёт шли все рассуждения, поэтому все они отобраны. Откат теряет отбор.
+    -->
+    <changeSet id="2026-10-06-02-reasoning-assumptions" author="Artem Prokudin">
+        <sql>
+            create temporary table tmp_reasonings as
+            select distinct t.interaction_id, t.reasoning_index,
+                            json_set(json_remove(t.reasoning, '$.hypotheses'),
+                                     '$.id', t.reasoning_index - 1,
+                                     '$.isProbable', cast('true' as json),
+                                     '$.assumptions', if(t.hypothesis is null, json_array(),
+                                             json_arrayagg(json_object('hypothesis', t.hypothesis,
+                                                                       'isCorrect', json_extract(t.reasoning, '$.isCorrect')))
+                                                 over (partition by t.interaction_id, t.reasoning_index
+                                                     order by t.hypothesis_index
+                                                     rows between unbounded preceding and unbounded following))) as reasoning
+            from (select i.id as interaction_id, r.reasoning_index, r.reasoning, r.hypothesis_index, r.hypothesis
+                  from interaction i,
+                       json_table(i.reasonings, '$[*]' columns (
+                           reasoning_index for ordinality,
+                           reasoning json path '$',
+                           nested path '$.hypotheses[*]' columns (
+                               hypothesis_index for ordinality,
+                               hypothesis varchar(255) path '$'))) r) t;
+
+            update interaction i
+                join (select distinct r.interaction_id,
+                                      json_arrayagg(r.reasoning)
+                                          over (partition by r.interaction_id order by r.reasoning_index
+                                              rows between unbounded preceding and unbounded following) as reasonings
+                      from tmp_reasonings r) n on n.interaction_id = i.id
+            set i.reasonings = n.reasonings;
+
+            drop temporary table tmp_reasonings;
+        </sql>
+        <rollback>
+            <sql>
+                create temporary table tmp_reasonings as
+                select distinct t.interaction_id, t.reasoning_index,
+                                json_set(json_remove(t.reasoning, '$.id', '$.assumptions', '$.isProbable'),
+                                         '$.hypotheses', if(t.hypothesis is null, json_array(),
+                                                 json_arrayagg(t.hypothesis)
+                                                     over (partition by t.interaction_id, t.reasoning_index
+                                                         order by t.assumption_index
+                                                         rows between unbounded preceding and unbounded following))) as reasoning
+                from (select i.id as interaction_id, r.reasoning_index, r.reasoning, r.assumption_index, r.hypothesis
+                      from interaction i,
+                           json_table(i.reasonings, '$[*]' columns (
+                               reasoning_index for ordinality,
+                               reasoning json path '$',
+                               nested path '$.assumptions[*]' columns (
+                                   assumption_index for ordinality,
+                                   hypothesis varchar(255) path '$.hypothesis'))) r) t;
+
+                update interaction i
+                    join (select distinct r.interaction_id,
+                                          json_arrayagg(r.reasoning)
+                                              over (partition by r.interaction_id order by r.reasoning_index
+                                                  rows between unbounded preceding and unbounded following) as reasonings
+                          from tmp_reasonings r) n on n.interaction_id = i.id
+                set i.reasonings = n.reasonings;
+
+                drop temporary table tmp_reasonings;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

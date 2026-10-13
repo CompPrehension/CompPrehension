@@ -1,0 +1,141 @@
+package org.vstu.compprehension.businesslogic.domains.typeevaluation;
+
+import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
+import org.vstu.compprehension.businesslogic.domains.DomainFixtures.BundleLocalizationService;
+import org.vstu.compprehension.businesslogic.domains.DomainFixtures.SeededRandomProvider;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
+import org.vstu.compprehension.businesslogic.domains.TypeEvaluationDTDomain;
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.FeedbackData;
+import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.question.QuestionInteractionData;
+import org.vstu.compprehension.data.question.ResponseData;
+import org.vstu.compprehension.enums.InteractionType;
+import org.vstu.compprehension.enums.Language;
+
+import java.util.ArrayList;
+import java.util.List;
+
+final class TypeEvaluationDomainFixture {
+
+    static final List<String> BUNDLES = List.of("domains/type-evaluation");
+    private static final String BANK_LOCATION = "org/vstu/compprehension/businesslogic/domains/typeevaluation/";
+
+    /** Вопрос банка и его решение: операции в порядке вычисления с эталонными типами. */
+    record BankQuestion(String file, List<Step> solution) {
+    }
+
+    record Step(String operation, String type) {
+    }
+
+    static final BankQuestion AVERAGE_OF_GRADES = new BankQuestion("average_of_grades",
+            List.of(new Step("op_len", "t_int"), new Step("op_div", "t_float")));
+    static final BankQuestion EMPTY_NAME_OR_NAMES = new BankQuestion("empty_name_or_names",
+            List.of(new Step("op_or", "t_list_str"), new Step("op_len", "t_int")));
+    static final BankQuestion STUDENT_FIRST_GRADE = new BankQuestion("student_first_grade",
+            List.of(new Step("op_key", "t_list_int"), new Step("op_first", "t_int")));
+    static final BankQuestion FIRST_CHAR_PLUS_ONE = new BankQuestion("first_char_plus_one",
+            List.of(new Step("op_first", "t_str"), new Step("op_add", "t_error")));
+    static final BankQuestion GRADE_COUNT = new BankQuestion("grade_count",
+            List.of(new Step("op_len", "t_int"), new Step("op_mul", "t_int")));
+    static final BankQuestion GRADES_PLUS_ONE = new BankQuestion("grades_plus_one",
+            List.of(new Step("op_add", "t_error")));
+    static final BankQuestion AVERAGE_BY_SUBJECT = new BankQuestion("average_by_subject",
+            List.of(new Step("op_total", "t_int"), new Step("op_grades", "t_list_int"), new Step("op_len", "t_int"),
+                    new Step("op_or", "t_int"), new Step("op_div", "t_float")));
+    static final BankQuestion AGE_NEXT_YEAR = new BankQuestion("age_next_year",
+            List.of(new Step("op_greeting", "t_str"), new Step("op_int", "t_int"), new Step("op_next", "t_int"),
+                    new Step("op_str", "t_str"), new Step("op_message", "t_str")));
+
+    /** count + total, где у обоих операндов в условии есть похожие списки counts и totals. */
+    static final BankQuestion COUNT_PLUS_TOTAL = new BankQuestion("count_plus_total",
+            List.of(new Step("op_add", "t_int")));
+
+    /** Student("Ann").name: операнд создания объекта — имя класса, а не часть выражения со слотом. */
+    static final BankQuestion STUDENT_NAME = new BankQuestion("student_name",
+            List.of(new Step("op_new", "t_student"), new Step("op_name", "t_str")));
+
+    static final BankQuestion OOP_LIST_APPEND = new BankQuestion("oop_list_append",
+            List.of(new Step("op_append", "t_none")));
+    static final BankQuestion OOP_SPLIT_WORDS = new BankQuestion("oop_split_words",
+            List.of(new Step("op_split", "t_list_str"), new Step("op_len", "t_int")));
+    static final BankQuestion OOP_STUDENT_AVERAGE = new BankQuestion("oop_student_average",
+            List.of(new Step("op_grades", "t_list_int"), new Step("op_len", "t_int"), new Step("op_average", "t_float"),
+                    new Step("op_add", "t_float")));
+    static final BankQuestion OOP_STATIC_COUNTER = new BankQuestion("oop_static_counter",
+            List.of(new Step("op_count", "t_int"), new Step("op_add", "t_int")));
+    static final BankQuestion OOP_FIELD_VIA_CLASS = new BankQuestion("oop_field_via_class",
+            List.of(new Step("op_name", "t_attribute_error")));
+    static final BankQuestion OOP_TEXT_APPEND = new BankQuestion("oop_text_append",
+            List.of(new Step("op_append", "t_attribute_error")));
+    static final BankQuestion OOP_INHERITED_NAME = new BankQuestion("oop_inherited_name",
+            List.of(new Step("op_name", "t_str"), new Step("op_upper", "t_str")));
+    static final BankQuestion OOP_PRIVATE_BALANCE = new BankQuestion("oop_private_balance",
+            List.of(new Step("op_balance", "t_attribute_error")));
+
+    static final List<BankQuestion> BANK = List.of(
+            AVERAGE_OF_GRADES, EMPTY_NAME_OR_NAMES, STUDENT_FIRST_GRADE, FIRST_CHAR_PLUS_ONE, GRADE_COUNT, GRADES_PLUS_ONE,
+            AVERAGE_BY_SUBJECT, AGE_NEXT_YEAR, COUNT_PLUS_TOTAL, STUDENT_NAME, OOP_LIST_APPEND, OOP_SPLIT_WORDS,
+            OOP_STUDENT_AVERAGE, OOP_STATIC_COUNTER, OOP_FIELD_VIA_CLASS, OOP_TEXT_APPEND, OOP_INHERITED_NAME,
+            OOP_PRIVATE_BALANCE);
+
+    private static final class Holder {
+        private static final TypeEvaluationDTDomain DOMAIN = new TypeEvaluationDTDomain(
+                new SeededRandomProvider(),
+                new BundleLocalizationService(BUNDLES.toArray(String[]::new)),
+                null);
+    }
+
+    private TypeEvaluationDomainFixture() {
+    }
+
+    static @NotNull TypeEvaluationDTDomain domain() {
+        return Holder.DOMAIN;
+    }
+
+    static @NotNull QuestionData question(@NotNull BankQuestion bankQuestion) {
+        var record = DomainFixtures.bankRecord(BANK_LOCATION + bankQuestion.file() + ".json");
+        return QuestionData.of(domain().makeQuestion(record, List.of(), Language.RUSSIAN).getContent());
+    }
+
+    /** Ответ студента: в слот операции выбран тип. */
+    static @NotNull AnswerData answer(@NotNull QuestionData question, @NotNull String operation, @NotNull String type) {
+        return new AnswerData.Pair(answerObject(question, operation, false), answerObject(question, type, true));
+    }
+
+    static @NotNull List<AnswerData> solution(@NotNull QuestionData question, @NotNull BankQuestion bankQuestion, int steps) {
+        return bankQuestion.solution().subList(0, steps).stream()
+                .map(step -> answer(question, step.operation(), step.type()))
+                .toList();
+    }
+
+    static @NotNull Judgement judge(@NotNull QuestionData question, @NotNull List<AnswerData> responses) {
+        return domain().judgeAnswer(question, responses,
+                domain().resolveTags(question.getContent().getTags()), Language.RUSSIAN);
+    }
+
+    /** Вопрос, в котором уже принято верное взаимодействие с данными ответами. */
+    static @NotNull QuestionData withCorrectAnswers(@NotNull QuestionData question, @NotNull List<AnswerData> answers,
+                                                    int interactionsLeft) {
+        var responses = answers.stream()
+                .map(answer -> ResponseData.builder().answer(answer).build())
+                .toList();
+        return question.withInteraction(QuestionInteractionData.builder()
+                .id(1L)
+                .interactionType(InteractionType.SEND_RESPONSE)
+                .responses(new ArrayList<>(responses))
+                .isCorrect(true)
+                .feedback(FeedbackData.builder().interactionsLeft(interactionsLeft).build())
+                .build());
+    }
+
+    private static @NotNull AnswerObjectData answerObject(@NotNull QuestionData question, @NotNull String domainInfo,
+                                                          boolean isRightCol) {
+        return question.getContent().getAnswerObjects().stream()
+                .filter(answer -> answer.isRightCol() == isRightCol && answer.getDomainInfo().equals(domainInfo))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Нет объекта ответа " + domainInfo));
+    }
+}

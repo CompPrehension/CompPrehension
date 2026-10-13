@@ -5,7 +5,7 @@ import { Alert, Button } from 'react-bootstrap';
 import { useTranslation } from "react-i18next";
 import { SupplementaryQuestionStore } from '../../stores/sup-question-store';
 import { Answer } from '../../types/answer';
-import { FeedbackMessage, FeedbackViolationLaw } from '../../types/feedback';
+import { FeedbackMessage, FeedbackKnowledge } from '../../types/feedback';
 import { delayPromise } from '../../utils/helpers';
 import { Loader } from '../common/loader';
 import { Modal } from '../common/modal';
@@ -14,21 +14,21 @@ import { QuestionComponent } from '../common/question/question';
 
 type GenerateSupQuestionProps = {
     store: SupplementaryQuestionStore,
-    violationLaw: FeedbackViolationLaw[],
+    knowledge: FeedbackKnowledge[],
 }
 
 export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) => {
-    const { violationLaw, store } = props;    
+    const { knowledge, store } = props;    
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isButtonsVisible, setIsButtonsVisible] = useState(true);
     const [isAllVisible, setAllVisible] = useState(true);
-    const [currentViolationLaw, setCurrentViolationLaw] = useState(violationLaw);
+    const [currentKnowledge, setCurrentKnowledge] = useState(knowledge);
     const { t } = useTranslation();
 
     const onDetailsClicked = async () => { 
         setIsButtonsVisible(false);
         setIsModalVisible(true);
-        await store.generateSupplementaryQuestion(currentViolationLaw.map(v => v.name));
+        await store.generateSupplementaryQuestion(currentKnowledge.map(v => v.name));
         if (!store.question || store.feedback?.action === 'FINISH') {
             console.log(`no need to generate sup question`);
             setAllVisible(false);
@@ -55,15 +55,15 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
         await tryContinueAuto();
     }
     const onNextQuestionClicked = async () => {
-        const newViolationLaw = store.feedback?.message?.violationLaws || null;
-        if (!newViolationLaw) {
+        const newKnowledge = store.feedback?.message?.knowledge || null;
+        if (!newKnowledge) {
             console.log(`empty violation laws`);
             setAllVisible(false);
             return;            
         }
 
-        setCurrentViolationLaw(newViolationLaw)
-        await store.generateSupplementaryQuestion(newViolationLaw.map(v => v.name));
+        setCurrentKnowledge(newKnowledge)
+        await store.generateSupplementaryQuestion(newKnowledge.map(v => v.name));
         await tryContinueAuto();
     }
 
@@ -111,7 +111,7 @@ const SupQuestion = observer((props: SupQuestionProps) => {
     const showSendAnswerButton = store.questionSubmitMode === 'EXPLICIT' && store.canSendQuestionAnswers;
     const showQuestionFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !!questionData;
     const showMessageFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !questionData;
-    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaws;
+    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.knowledge;
 
     return (
         <>

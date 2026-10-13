@@ -1,16 +1,18 @@
 package org.vstu.compprehension.entities;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Type;
+import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.enums.InteractionType;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter @Setter
@@ -40,13 +42,16 @@ public class InteractionEntity {
     @NotFound(action = NotFoundAction.IGNORE)
     private FeedbackEntity feedback;
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ViolationEntity> violations;
+    @Column(name = "is_correct", nullable = false)
+    private boolean isCorrect;
+
+    @Type(JsonType.class)
+    @Column(name = "reasonings", nullable = false)
+    private List<InteractionReasoningData> reasonings;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<CorrectLawEntity> correctLaw;
+    @OneToOne(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private InteractionClarificationEntity clarification;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -69,17 +74,20 @@ public class InteractionEntity {
     public InteractionEntity(
             InteractionType type,
             QuestionEntity question,
-            List<ViolationEntity> violations,
-            List<String> correctlyAppliedLaws,
+            boolean isCorrect,
+            List<InteractionReasoningData> reasonings,
+            InteractionClarificationEntity clarification,
             List<ResponseEntity> allResponses,
             List<ResponseEntity> newResponses){
         this.setQuestion(question);
         this.setInteractionType(type);
         this.setFeedback(new FeedbackEntity());
+        this.setCorrect(isCorrect);
+        this.setReasonings(List.copyOf(reasonings));
 
-        this.setViolations(new ArrayList<>(violations));
-        for(val m : this.getViolations()) {
-            m.setInteraction(this);
+        this.setClarification(clarification);
+        if (clarification != null) {
+            clarification.setInteraction(this);
         }
 
         this.setResponses(new ArrayList<>(allResponses));
@@ -90,20 +98,6 @@ public class InteractionEntity {
         this.setNewResponses(new ArrayList<>(newResponses));
         for(val r : this.getNewResponses()) {
             r.setCreatedByInteraction(this);
-        }
-
-        if(correctlyAppliedLaws == null){
-            this.setCorrectLaw(new ArrayList<>());
-        } else {
-            val correctLaw = correctlyAppliedLaws.stream()
-                    .map(correctlyAppliedLaw -> {
-                        CorrectLawEntity cle = new CorrectLawEntity();
-                        cle.setLawName(correctlyAppliedLaw);
-                        cle.setInteraction(this);
-                        return cle;
-                    })
-                    .collect(Collectors.toList());
-            this.setCorrectLaw(correctLaw);
         }
     }
 }

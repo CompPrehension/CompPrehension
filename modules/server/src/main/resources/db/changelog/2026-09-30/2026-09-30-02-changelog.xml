@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-30-02-interaction-clarification" author="Artem Prokudin">
+        <sql>
+            create table interaction_clarification
+            (
+                id                bigint       not null auto_increment primary key,
+                interaction_id    bigint       not null,
+                content           json         not null,
+                answered_at       datetime     null,
+                chosen_hypothesis varchar(255) null,
+                constraint ux_interaction_clarification_interaction unique (interaction_id),
+                constraint fk_interaction_clarification_interaction
+                    foreign key (interaction_id) references interaction (id)
+            );
+        </sql>
+        <rollback>
+            <sql>
+                drop table interaction_clarification;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -5,7 +5,7 @@ import { TQuestion } from './question';
 
 export type SupplementaryQuestionRequest = {
     questionId: number,
-    violationLaws: NonEmptyArray<string>,
+    violatedKnowledge: NonEmptyArray<string>,
 }
 
 export type SupplementaryFeedbackAction = 'CONTINUE_AUTO' | 'CONTINUE_MANUAL' | 'FINISH';

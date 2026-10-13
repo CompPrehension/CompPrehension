@@ -1,19 +1,27 @@
 package org.vstu.compprehension.businesslogic.backend;
 
 import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
+import org.vstu.compprehension.businesslogic.domains.Reasoning;
+import org.vstu.compprehension.businesslogic.domains.ReasoningInquiry;
+import org.vstu.compprehension.data.question.Assumption;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
+import its.model.DomainSolvingModel;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
 import its.model.nodes.*;
 import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
+import its.reasoner.nodes.AggregationDecisionTreeTraceElement;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
+import its.reasoner.nodes.RedirectedBranchResultDecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
@@ -29,8 +37,7 @@ import org.vstu.compprehension.businesslogic.HyperText;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.vstu.compprehension.businesslogic.domains.Domain.InterpretSentenceResult;
+import java.util.stream.Stream;
 
 /**
  * A reasoning backend that works with decision-tree based reasoning;<br>
@@ -55,13 +62,15 @@ public class DecisionTreeReasonerBackend
                     Pair.of("andAlsoHint", "влияет всё из нижеперечисленного..."),
                     Pair.of("orAlsoHint", "влияет любое из нижеперечисленного..."),
                     Pair.of("moreErrorHint", "...и еще %d похожих ошибок"),
-                    Pair.of("moreHint", "...и еще %d похожих подсказок")
+                    Pair.of("moreHint", "...и еще %d похожих подсказок"),
+                    Pair.of("besides", "Кроме того, ")
             )),
             Pair.of("EN", Map.ofEntries(
                     Pair.of("andAlsoHint", "it is influenced by all of the following..."),
                     Pair.of("orAlsoHint", "it is influenced by any of the following..."),
                     Pair.of("moreErrorHint", "...and also %d more similar errors"),
-                    Pair.of("moreHint", "...and also %d more similar hints")
+                    Pair.of("moreHint", "...and also %d more similar hints"),
+                    Pair.of("besides", "Besides, ")
             ))
     );
 
@@ -75,11 +84,17 @@ public class DecisionTreeReasonerBackend
      * Information, needed to perform a decision-tree based reasoning
      * @param situationDomainModel combined question and domain data, described in the {@link DomainModel} form
      * @param decisionTree a decision tree structure that describes the reasoning process
+     * @param solvingModel all decision trees of the domain, if the tree calls other trees by name
      */
     public record Input(
         DomainModel situationDomainModel,
-        DecisionTree decisionTree
-    ){}
+        DecisionTree decisionTree,
+        @Nullable DomainSolvingModel solvingModel
+    ){
+        public Input(DomainModel situationDomainModel, DecisionTree decisionTree) {
+            this(situationDomainModel, decisionTree, null);
+        }
+    }
 
     /**
      * Aggregation policy for creating explanation messages
@@ -144,11 +159,325 @@ public class DecisionTreeReasonerBackend
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
         }
         // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
-        if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
-            result.setCurrentDomainLawName(result.getChildren().getFirst().getCurrentDomainLawName());
+        if (result.getChildren().stream().map(Explanation::getKnowledgeNames).collect(Collectors.toSet()).size() == 1) {
+            result.setCurrentKnowledgeName(result.getChildren().getFirst().getCurrentKnowledgeName());
         }
         reduceSimilarExplanations(result.getChildren(), type, lang);
         return result;
+    }
+
+    /**
+     * Рассуждения студента, которыми дерево объяснило ответ: шаги каждого — выводы с гипотезой и верные выводы
+     * с навыком, от внешнего к вложенному. Рассуждение ветвится на hyp по ветвям с выводом не null: это разные способы
+     * рассуждать. В остальные агрегации заходит только по ветвям с их итогом — прочие ответ не объясняют.
+     * Рассуждение без гипотез — не рассуждение студента, а проверка ответа; если гипотез нет нигде, результат пуст.
+     */
+    public static @NotNull List<List<DecisionTreeTraceElement<?, ?>>> collectHypothesisPaths(@NotNull DecisionTreeTrace trace) {
+        return collectPaths(trace).stream().filter(path -> path.stream().anyMatch(DecisionTreeReasonerBackend::isAssumption)).toList();
+    }
+
+    /** Шаг рассуждения — допущение студента: вывод, названный гипотезой. */
+    public static boolean isAssumption(@NotNull DecisionTreeTraceElement<?, ?> step) {
+        return step.getNode().getMetadata().getString("hypothesis") != null;
+    }
+
+    private static @NotNull List<List<DecisionTreeTraceElement<?, ?>>> combine(
+            @NotNull List<List<DecisionTreeTraceElement<?, ?>>> prefixes,
+            @NotNull List<List<DecisionTreeTraceElement<?, ?>>> continuations) {
+        return prefixes.stream()
+                .flatMap(prefix -> continuations.stream()
+                        .map(continuation -> Stream.concat(prefix.stream(), continuation.stream()).toList()))
+                .toList();
+    }
+
+    private static @NotNull List<List<DecisionTreeTraceElement<?, ?>>> collectPaths(@NotNull DecisionTreeTrace trace) {
+        List<List<DecisionTreeTraceElement<?, ?>>> paths = List.of(List.of());
+        for (DecisionTreeTraceElement<?, ?> element : trace) {
+            boolean isHypothesis = element instanceof AggregationDecisionTreeTraceElement<?> aggregation
+                    && isHypothesisAggregation(aggregation);
+            var branches = isHypothesis
+                    ? explainingHypothesisBranches((AggregationDecisionTreeTraceElement<?>) element)
+                    : explainedNestedTraces(element);
+            if (branches.isEmpty()) {
+                continue;
+            }
+            // Ветви and — ошибки, совершённые одновременно: части одного рассуждения. Ветви остальных
+            // агрегаций — разные способы прийти к ответу.
+            if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation
+                    && aggregation.getNode().getAggregationMethod() == AggregationMethod.AND) {
+                for (DecisionTreeTrace branch : branches) {
+                    paths = combine(paths, collectPaths(branch));
+                }
+                continue;
+            }
+            var alternatives = new ArrayList<List<DecisionTreeTraceElement<?, ?>>>();
+            for (DecisionTreeTrace branch : branches) {
+                var branchPaths = collectPaths(branch);
+                if (isHypothesis && branchPaths.stream().anyMatch(path -> path.stream().noneMatch(DecisionTreeReasonerBackend::isAssumption))) {
+                    throw new IllegalStateException("Hypothesis branch concluded by "
+                            + branch.getResultingElement().getNode().getDescription() + " has no 'hypothesis' metadata");
+                }
+                alternatives.addAll(branchPaths);
+            }
+            paths = combine(paths, alternatives);
+        }
+        // Вывод, к которому пришла трасса, — внешнее допущение по отношению к рассуждениям внутри неё; верный вывод
+        // с навыком засчитывает этот навык. Вывод через вызов другого дерева — это вывод того дерева, он уже есть
+        // во вложенной трассе.
+        var last = trace.getLast();
+        var meta = last.getNode().getMetadata();
+        if (!(last instanceof RedirectedBranchResultDecisionTreeTraceElement) && last.getNode() instanceof BranchResultNode
+                && last.getNodeResult() != BranchResult.NULL
+                && (meta.getString("hypothesis") != null || last.getNodeResult() == BranchResult.CORRECT && meta.getString("skill") != null)) {
+            paths = paths.stream()
+                    .map(path -> Stream.concat(Stream.<DecisionTreeTraceElement<?, ?>>of(last), path.stream()).toList())
+                    .toList();
+        }
+        return paths;
+    }
+
+    /** Вердикт по всей трассе, ход мысли в которой не установлен. */
+    private static @NotNull Judgement.Verdict makeVerdict(@NotNull DecisionTreeTrace trace,
+                                                          @NotNull LearningSituation situation,
+                                                          boolean isAnswerCorrect,
+                                                          int stepsLeft,
+                                                          @NotNull DomainModel domainModel,
+                                                          @NotNull DecisionTreeReasoningDomain appDomain,
+                                                          @NotNull Language lang) {
+        // Ответ, после которого шагов не осталось, завершает задачу: ошибок в нём быть не может.
+        if (stepsLeft == 0) {
+            return new Judgement.Verdict(true, Explanation.empty(Explanation.Type.HINT), List.of(),
+                    collectAppliedLaws(trace), stepsLeft);
+        }
+        var explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, trace, domainModel, appDomain, lang);
+        var violations = isAnswerCorrect ? List.<ViolationData>of()
+                : explanation.getKnowledgeNames().stream().map(DecisionTreeReasonerBackend::makeViolation).toList();
+        // К неверному ответу не ведёт ни одно рассуждение студента: запасные выводы объясняют развилки правильного
+        // решения и к ответу отношения не имеют, поэтому студенту говорится только, что ответ неверен.
+        // Навыки, на которых решение разошлось с ответом, остаются нарушенными.
+        if (!isAnswerCorrect && hasHypotheses(trace)) {
+            var statement = makeErrorStatement(trace.getResultingElement().getNode().getDecisionTree(), situation, appDomain, lang);
+            if (explanation.getKnowledgeNames().size() == 1) {
+                statement.setCurrentKnowledgeName(explanation.getKnowledgeNames().iterator().next());
+            }
+            explanation = statement;
+        }
+        return new Judgement.Verdict(isAnswerCorrect, explanation, violations, collectAppliedLaws(trace), stepsLeft);
+    }
+
+    private static boolean hasHypotheses(@NotNull DecisionTreeTrace trace) {
+        return nestedTraceElements(trace).stream().anyMatch(element ->
+                element instanceof AggregationDecisionTreeTraceElement<?> aggregation && isHypothesisAggregation(aggregation));
+    }
+
+    /** Рассуждения, которыми студент мог прийти к ответу: по одному на каждый путь, объяснивший ответ. */
+    private static @NotNull List<Reasoning> makeReasonings(@NotNull List<List<DecisionTreeTraceElement<?, ?>>> paths,
+                                                           boolean isAnswerCorrect,
+                                                           @NotNull DomainModel domainModel,
+                                                           @NotNull DecisionTreeReasoningDomain appDomain,
+                                                           @NotNull Language lang) {
+        var reasonings = new ArrayList<Reasoning>();
+        for (var path : paths) {
+            addReasoning(reasonings, makeReasoning(reasonings.size(), path, isAnswerCorrect, domainModel, appDomain, lang));
+        }
+        return reasonings;
+    }
+
+    // Одно рассуждение может прийти из разных прочтений выражения. Это одно рассуждение, если причина у него та же или
+    // у одного из прочтений своей причины нет; знания прочтений объединяются.
+    private static void addReasoning(@NotNull List<Reasoning> reasonings, @NotNull Reasoning added) {
+        for (int i = 0; i < reasonings.size(); i++) {
+            var known = reasonings.get(i);
+            if (!known.assumptions().equals(added.assumptions())
+                    || known.reason() != null && added.reason() != null && !known.reason().equals(added.reason())) {
+                continue;
+            }
+            var kept = known.reason() != null ? known : added;
+            reasonings.set(i, new Reasoning(known.id(), kept.assumptions(), kept.reason(), kept.explanation(),
+                    union(known.violations(), added.violations()), union(known.appliedKnowledge(), added.appliedKnowledge())));
+            return;
+        }
+        reasonings.add(added);
+    }
+
+    private static <T> @NotNull List<T> union(@NotNull List<T> left, @NotNull List<T> right) {
+        return Stream.concat(left.stream(), right.stream()).distinct().toList();
+    }
+
+    // Ошибочное рассуждение студенту называют его ошибочные допущения по порядку, верное — все допущения. Верное
+    // допущение без своей причины называется правилом из объяснения; рассуждение без причины на выбор не предлагается.
+    // Засчитываются навыки всех верных шагов, в том числе выводов-проверок без гипотезы.
+    private static @NotNull Reasoning makeReasoning(int id,
+                                                    @NotNull List<DecisionTreeTraceElement<?, ?>> path,
+                                                    boolean isAnswerCorrect,
+                                                    @NotNull DomainModel domainModel,
+                                                    @NotNull DecisionTreeReasoningDomain appDomain,
+                                                    @NotNull Language lang) {
+        var localizationCode = lang.toLocaleString();
+        var assumed = path.stream().filter(DecisionTreeReasonerBackend::isAssumption).toList();
+        boolean isCorrect = assumed.stream().allMatch(step -> step.getNodeResult() == BranchResult.CORRECT);
+        var told = isCorrect ? assumed : assumed.stream().filter(step -> step.getNodeResult() == BranchResult.ERROR).toList();
+
+        var reasons = new ArrayList<String>();
+        var explanations = new ArrayList<String>();
+        for (var step : told) {
+            var conclusion = step.getNode();
+            var situation = new LearningSituation(domainModel, step.getVariablesSnapshot());
+            var reason = conclusion.getMetadata().get(localizationCode, "reason");
+            if (reason == null && isCorrect) {
+                reason = conclusion.getMetadata().get(localizationCode, "explanation");
+            }
+            if (reason == null && !isCorrect) {
+                throw new IllegalStateException("Hypothesis branch concluded by " + conclusion.getDescription()
+                        + " has no " + localizationCode + " 'reason' metadata");
+            }
+            if (reason != null) {
+                // Причина — отдельная фраза, но может начинаться с подстановки, а названия в модели строчные.
+                reasons.add(TemplatingUtils.capitalize(TemplatingUtils.interpret(reason.toString(), situation, localizationCode, Map.of())));
+            }
+            var explanation = conclusion.getMetadata().get(localizationCode, "explanation");
+            if (explanation != null) {
+                explanations.add(TemplatingUtils.interpret(explanation.toString(), situation, localizationCode, Map.of()));
+            }
+        }
+
+        var assumptions = assumed.stream()
+                .map(step -> new Assumption(step.getNode().getMetadata().getString("hypothesis"),
+                        step.getNodeResult() == BranchResult.CORRECT))
+                .toList();
+        var violations = isCorrect ? List.<ViolationData>of()
+                : told.stream().map(step -> makeViolation(requireSkill(step))).toList();
+        var appliedKnowledge = path.stream()
+                .filter(step -> step.getNodeResult() == BranchResult.CORRECT)
+                .flatMap(step -> Arrays.stream(requireSkill(step).split(";")))
+                .distinct()
+                .sorted()
+                .toList();
+        return new Reasoning(id, assumptions, reasons.isEmpty() ? null : String.join(" ", reasons),
+                makeReasoningExplanation(told.getFirst(), explanations, isCorrect, isAnswerCorrect, domainModel, appDomain, lang),
+                violations, appliedKnowledge);
+    }
+
+    // Объяснения шагов продолжают рамку дерева первого шага: рамку ошибки, подсказки или, если к верному ответу
+    // привело заблуждение, рамку ошибочного рассуждения («не может иметь тип» тогда неверно).
+    private static @NotNull Explanation makeReasoningExplanation(@NotNull DecisionTreeTraceElement<?, ?> firstStep,
+                                                                 @NotNull List<String> explanations,
+                                                                 boolean isCorrect,
+                                                                 boolean isAnswerCorrect,
+                                                                 @NotNull DomainModel domainModel,
+                                                                 @NotNull DecisionTreeReasoningDomain appDomain,
+                                                                 @NotNull Language lang) {
+        var type = isCorrect ? Explanation.Type.HINT : Explanation.Type.ERROR;
+        if (explanations.isEmpty()) {
+            return Explanation.empty(type);
+        }
+        var localizationCode = lang.toLocaleString();
+        var situation = new LearningSituation(domainModel, firstStep.getVariablesSnapshot());
+        var tree = firstStep.getNode().getDecisionTree();
+        String prefix;
+        if (isAnswerCorrect && !isCorrect) {
+            var misreasoningPrefix = tree.getMainBranch().getMetadata().get(localizationCode, "misreasoning_prefix");
+            if (misreasoningPrefix == null) {
+                throw new IllegalStateException("Decision tree with hypotheses has no " + localizationCode
+                        + " 'misreasoning_prefix' metadata");
+            }
+            prefix = TemplatingUtils.interpret(misreasoningPrefix.toString(), situation, localizationCode, Map.of());
+        } else {
+            prefix = Interface.getCommonExplanationPrefix(situation, tree, type, localizationCode);
+        }
+        var explanation = new Explanation(type,
+                prefix + String.join(" " + utilLoc.get(localizationCode).get("besides"), explanations));
+        explanation.setCurrentKnowledgeName(firstStep.getNode().getMetadata().getString("skill"));
+        return annotateTerms(explanation, appDomain, lang);
+    }
+
+    private static @NotNull String requireSkill(@NotNull DecisionTreeTraceElement<?, ?> step) {
+        var skill = step.getNode().getMetadata().getString("skill");
+        if (skill == null || skill.isBlank()) {
+            throw new IllegalStateException("Hypothesis branch concluded by " + step.getNode().getDescription()
+                    + " has no 'skill' metadata");
+        }
+        return skill;
+    }
+
+    private static @NotNull ViolationData makeViolation(@NotNull String lawName) {
+        var violation = new ViolationData();
+        violation.setKnowledgeName(lawName);
+        violation.setViolationFacts(new ArrayList<>());
+        return violation;
+    }
+
+    private static @NotNull List<String> collectAppliedLaws(@NotNull DecisionTreeTrace trace) {
+        return LeafEngagedSkillsExtractor.extract(trace).getCorrectlyApplied().stream().sorted().toList();
+    }
+
+    private static @NotNull Explanation annotateTerms(@NotNull Explanation explanation,
+                                                      @NotNull DecisionTreeReasoningDomain appDomain,
+                                                      @NotNull Language lang) {
+        if (appDomain.getTermDictionary().isPresent()) {
+            explanation.setRawMessage(new HyperText(new DomainTermAnnotationProcessor(appDomain.getTermDictionary().get(),
+                    lang.toLocale()).apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer())));
+        }
+        return explanation;
+    }
+
+    private static boolean isHypothesisAggregation(@NotNull AggregationDecisionTreeTraceElement<?> aggregation) {
+        return aggregation.getNode().getAggregationMethod() == AggregationMethod.HYP;
+    }
+
+    private static @NotNull List<DecisionTreeTrace> explainingHypothesisBranches(
+            @NotNull AggregationDecisionTreeTraceElement<?> aggregation) {
+        return aggregation.nestedTraces().stream()
+                .filter(branch -> branch.getBranchResult() != BranchResult.NULL)
+                .toList();
+    }
+
+    private static @NotNull ReasoningInquiry makeInquiry(@NotNull DecisionTree tree,
+                                                         @NotNull LearningSituation situation,
+                                                         boolean isAnswerCorrect,
+                                                         @NotNull DecisionTreeReasoningDomain appDomain,
+                                                         @NotNull Language lang) {
+        var statement = isAnswerCorrect ? Explanation.empty(Explanation.Type.ERROR)
+                : makeErrorStatement(tree, situation, appDomain, lang);
+        return new ReasoningInquiry(interpretTreeMeta(tree, "clarification_prompt", situation, lang.toLocaleString()), statement);
+    }
+
+    private static @NotNull Explanation makeErrorStatement(@NotNull DecisionTree tree,
+                                                           @NotNull LearningSituation situation,
+                                                           @NotNull DecisionTreeReasoningDomain appDomain,
+                                                           @NotNull Language lang) {
+        return annotateTerms(new Explanation(Explanation.Type.ERROR,
+                interpretTreeMeta(tree, "error_statement", situation, lang.toLocaleString())), appDomain, lang);
+    }
+
+    private static @NotNull String interpretTreeMeta(@NotNull DecisionTree tree,
+                                                     @NotNull String key,
+                                                     @NotNull LearningSituation situation,
+                                                     @NotNull String localizationCode) {
+        var template = tree.getMainBranch().getMetadata().get(localizationCode, key);
+        if (template == null) {
+            throw new IllegalStateException("Decision tree with hypotheses has no " + localizationCode
+                    + " '" + key + "' metadata");
+        }
+        return TemplatingUtils.interpret(template.toString(), situation, localizationCode, Map.of());
+    }
+
+    // Агрегацию объясняют только ветви с её же итогом: при верном итоге or/hyp ошибки неподошедших ветвей
+    // не показываются, при ошибочном итоге and — подсказки удачных ветвей. And без вывода с ошибочной частью —
+    // чужое допущение, к ответу не ведущее: объяснять в нём нечего, иначе необъяснённый ответ получил бы объяснения
+    // чужих допущений. Без ошибочной части это рассуждение правильного решения, и его запасной вывод объясняет ответ.
+    private static Collection<DecisionTreeTrace> explainedNestedTraces(DecisionTreeTraceElement<?, ?> element) {
+        if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation) {
+            if (aggregation.getNode().getAggregationMethod() == AggregationMethod.AND
+                    && aggregation.getNodeResult() == BranchResult.NULL
+                    && aggregation.nestedTraces().stream().anyMatch(branch -> branch.getBranchResult() == BranchResult.ERROR)) {
+                return List.of();
+            }
+            return aggregation.nestedTraces().stream()
+                    .filter(branch -> branch.getBranchResult() == aggregation.getNodeResult())
+                    .toList();
+        }
+        return Objects.requireNonNullElse(element.nestedTraces(), List.of());
     }
 
     // Рекурсивный сбор объяснений для очередной трассы дерева
@@ -162,13 +491,16 @@ public class DecisionTreeReasonerBackend
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
+            Explanation explanation = null;
             if (Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>()).isEmpty()
                     && element.getNode() instanceof BranchResultNode res
                     && (type == Explanation.Type.ERROR) != element.getNodeResult().equals(BranchResult.CORRECT)
                     && element.getNode().getMetadata().containsAny("explanation")) {
                 // одиночное объяснение по заданному типу объяснения
-                var explanation = Interface.extractExplanation(res,
+                explanation = Interface.extractExplanation(res,
                         lang.toLocaleString(), learningSituation);
+            }
+            if (explanation != null) {
                 if (annotationProcessor != null) {
                     var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
                     explanation.setRawMessage(new HyperText(annotatedMessage));
@@ -195,7 +527,7 @@ public class DecisionTreeReasonerBackend
                     }
                 }
                 // Собрать с дочерних трасс элементы
-                for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
+                for (DecisionTreeTrace subTrace : explainedNestedTraces(element)) {
                     traceExplanations.addAll(collectExplanations(type, subTrace, newParent, newPolicy, domain,
                             annotationProcessor, lang));
                 }
@@ -219,8 +551,8 @@ public class DecisionTreeReasonerBackend
                     .toList());
             reduceSimilarExplanations(parent.getChildren(), type, lang);
             // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
-            if (parent.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
-                parent.setCurrentDomainLawName(parent.getChildren().getFirst().getCurrentDomainLawName());
+            if (parent.getChildren().stream().map(Explanation::getKnowledgeNames).collect(Collectors.toSet()).size() == 1) {
+                parent.setCurrentKnowledgeName(parent.getChildren().getFirst().getCurrentKnowledgeName());
             }
             return List.of();
         }
@@ -231,9 +563,9 @@ public class DecisionTreeReasonerBackend
         Map<String, Integer> skillCounter = new HashMap<>();
         List<Explanation> deleteCandidates = new ArrayList<>();
         for (Explanation item : explanations) {
-            int total = skillCounter.getOrDefault(item.getCurrentDomainLawName(), 0) + 1;
-            skillCounter.put(item.getCurrentDomainLawName(), total);
-            if (total > MAX_SIMILAR_EXPLANATION_COUNT && item.getCurrentDomainLawName() != null) {
+            int total = skillCounter.getOrDefault(item.getCurrentKnowledgeName(), 0) + 1;
+            skillCounter.put(item.getCurrentKnowledgeName(), total);
+            if (total > MAX_SIMILAR_EXPLANATION_COUNT && item.getCurrentKnowledgeName() != null) {
                 deleteCandidates.add(item);
             }
         }
@@ -246,15 +578,39 @@ public class DecisionTreeReasonerBackend
         }
     }
 
+    private static String interpretExplanationTemplate(DecisionTreeElement node,
+                                                       Explanation.Type type,
+                                                       String localizationCode,
+                                                       LearningSituation learningSituation) {
+        Object explanation = node.getMetadata().get(localizationCode, "explanation");
+        String prefix = Interface.getCommonExplanationPrefix(learningSituation, node.getDecisionTree(), type, localizationCode);
+        String explanationTemplate = explanation == null ? "WRONG" : prefix.concat(explanation.toString());
+        String expanded = TemplatingUtils.interpret(explanationTemplate, learningSituation, localizationCode, Map.of());
+        {
+            if (expanded.contains("операто ")) {
+                // Fix spelling (note the space at the end).
+                expanded = expanded.replace("операто ", "оператор ");
+            }
+            if (expanded.contains("operato ")) {
+                // Fix spelling (note the space at the end).
+                expanded = expanded.replace("operato ", "operator ");
+            }
+        }
+        return expanded;
+    }
+
+    private static @NotNull LearningSituation makeSituation(@NotNull Input input) {
+        return new LearningSituation(
+            input.situationDomainModel,
+            LearningSituation.collectDecisionTreeVariables(input.situationDomainModel),
+            input.solvingModel
+        );
+    }
+
     @Override
     public DecisionTreeReasonerBackend.Output judge(Input questionData) {
-        DomainModel situationModel = questionData.situationDomainModel;
         DecisionTree decisionTree = questionData.decisionTree;
-
-        LearningSituation situation = new LearningSituation(
-            situationModel,
-            LearningSituation.collectDecisionTreeVariables(situationModel)
-        );
+        LearningSituation situation = makeSituation(questionData);
 
         if(situation.getDecisionTreeVariables().keySet().containsAll(
             decisionTree.getVariables().stream().map(TypedVariable::getVarName).collect(Collectors.toSet())
@@ -283,50 +639,26 @@ public class DecisionTreeReasonerBackend
         DecisionTreeReasoningDomain getDomain();
 
         @Override
-        default InterpretSentenceResult interpretJudgeOutput(
+        default @NotNull Judgement interpretJudgeOutput(
             QuestionData judgedQuestion,
             Output backendOutput,
             Language language
         ) {
-
-            if(!backendOutput.isReasoningDone){
+            if (!backendOutput.isReasoningDone) {
                 return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation, language);
             }
-            List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
-
-            DecisionTreeInterpretSentenceResult result = new DecisionTreeInterpretSentenceResult();
-            result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
-            result.decisionTreeTrace = backendOutput.results;
-            for (DecisionTreeTraceElement<?,?> res : traceElements) {
-                String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
-                        res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
-                String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
-                        res.getNode().getMetadata().get("law").toString().split(";") : new String[0];
-                Collections.addAll(result.domainSkills, resSkill);
-                Collections.addAll(result.domainNegativeLaws, resLaw);
+            var trace = backendOutput.results;
+            var domainModel = backendOutput.situation.getDomainModel();
+            boolean isAnswerCorrect = isCorrectAnswer(trace);
+            int stepsLeft = countStepsLeft(judgedQuestion, backendOutput, isAnswerCorrect);
+            var paths = collectHypothesisPaths(trace);
+            if (paths.isEmpty()) {
+                return makeVerdict(trace, backendOutput.situation, isAnswerCorrect, stepsLeft, domainModel, getDomain(), language);
             }
-
-            updateJudgeInterpretationResult(result, backendOutput);
-
-            result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
-                    backendOutput.situation.getDomainModel(),
-                    getDomain(), language
-            );
-            if (!result.isAnswerCorrect) {
-                List<ViolationData> mistakes = result.explanation.getDomainLawNames()
-                        .stream().map(errorName -> {
-                            ViolationData violation = new ViolationData();
-                            violation.setLawName(errorName);
-                            violation.setViolationFacts(new ArrayList<>());
-                            return violation;
-                        })
-                        .collect(Collectors.toList());
-                result.violations = mistakes;
-            } else {
-                result.violations = List.of();
-            }
-            result.correctlyAppliedLaws = new ArrayList<>();
-            return result;
+            return new Judgement.Reasoned(makeReasonings(paths, isAnswerCorrect, domainModel, getDomain(), language),
+                    makeInquiry(trace.getResultingElement().getNode().getDecisionTree(), backendOutput.situation,
+                            isAnswerCorrect, getDomain(), language),
+                    stepsLeft);
         }
 
         /**
@@ -335,22 +667,14 @@ public class DecisionTreeReasonerBackend
          * @param judgedQuestion a question which prompted the unfinished judge
          * @param preparedSituation a learning situation that was prepared for this question by {@link #prepareBackendInfoForJudge} 
          */
-        InterpretSentenceResult interpretJudgeNotPerformed(
+        Judgement interpretJudgeNotPerformed(
             QuestionData judgedQuestion,
             LearningSituation preparedSituation,
             Language language
         );
 
-        /**
-         * Update a {@link #judge} interpretation result with domain-specific logic
-         * Mainly used on {@link InterpretSentenceResult#IterationsLeft}
-         * @param interpretationResult the updated result
-         * @param backendOutput the output from the backend's {@link #judge} method
-         */
-        void updateJudgeInterpretationResult(
-            InterpretSentenceResult interpretationResult,
-            Output backendOutput
-        );
+        /** Сколько шагов решения осталось после ответа. */
+        int countStepsLeft(@NotNull QuestionData judgedQuestion, @NotNull Output backendOutput, boolean isAnswerCorrect);
 
         static String getCommonExplanationPrefix(LearningSituation situation,
                                                         DecisionTree dt,
@@ -384,24 +708,11 @@ public class DecisionTreeReasonerBackend
                                               LearningSituation learningSituation){
             Explanation.Type type = resultNode.getValue() == BranchResult.CORRECT ?
                     Explanation.Type.HINT : Explanation.Type.ERROR;
-            Object explanation = resultNode.getMetadata().get(localizationCode, "explanation");
-            String prefix = getCommonExplanationPrefix(learningSituation, resultNode.getDecisionTree(), type, localizationCode);
-            String explanationTemplate = explanation == null ? "WRONG" : prefix.concat(explanation.toString());
-            String expanded = TemplatingUtils.interpret(explanationTemplate, learningSituation, localizationCode, Map.of());
-            {
-                if (expanded.contains("операто ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("операто ", "оператор ");
-                }
-                if (expanded.contains("operato ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("operato ", "operator ");
-                }
-            }
-            Explanation expl = new Explanation(type, expanded);
+            Explanation expl = new Explanation(type,
+                    interpretExplanationTemplate(resultNode, type, localizationCode, learningSituation));
             if (resultNode.getMetadata().containsAny("skill")) {
                 String skillName = resultNode.getMetadata().getString("skill");
-                expl.setCurrentDomainLawName(skillName);
+                expl.setCurrentKnowledgeName(skillName);
             }
             if (resultNode.getMetadata().containsAny("muted")
                     && resultNode.getMetadata().get("muted").toString().toLowerCase().trim().equals("true")) {

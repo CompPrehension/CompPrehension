@@ -461,7 +461,7 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
     private static QuestionInteractionData interaction(QuestionData question, AnswerObjectData... answers) {
         var given = responses(answers);
         var tags = domain().resolveTags(question.getContent().getTags());
-        assertFalse(domain().judgeQuestion(question, answers(answers), tags, LANGUAGE).isAnswerCorrect);
+        assertFalse(domain().judgeAnswer(question, answers(answers), tags, LANGUAGE).isAnswerCorrect());
         return QuestionInteractionData.builder()
                 .id(INTERACTION_ID)
                 .interactionType(InteractionType.SEND_RESPONSE)

@@ -1,6 +1,11 @@
 package org.vstu.compprehension.frontend;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
@@ -13,6 +18,7 @@ import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
     private static final String DT_BACKEND_ID = "DTReasoner";
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     @Autowired private ExerciseFrontendService service;
     @Autowired private ExerciseAttemptFrontendService attemptService;
@@ -46,11 +53,11 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(TestData.Exercises.GLOBAL_POOL_ID, card.getId());
         assertEquals("Global pool exercise", card.getName());
         assertEquals(TestData.Exercises.DOMAIN_ID, card.getDomainId());
-        assertEquals(TestData.Exercises.STRATEGY_ID, card.getStrategyId());
         assertEquals(TestData.Exercises.BACKEND_ID, card.getBackendId());
         assertTrue(card.isPublic());
         assertTrue(card.getTags().isEmpty());
-        assertTrue(card.getStages().isEmpty());
+        assertEquals(1, card.getStages().size());
+        assertEquals(TestData.Exercises.STRATEGY_ID, card.getStages().getFirst().getStrategyId());
         assertEquals(new ExerciseOptionsData(), card.getOptions());
     }
 
@@ -191,7 +198,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertEquals(
-                Set.of(TestData.Exercises.GLOBAL_POOL_ID, TestData.Exercises.INHERITED_ID, TestData.Exercises.EXPRESSION_DT_ID),
+                Set.of(TestData.Exercises.GLOBAL_POOL_ID, TestData.Exercises.INHERITED_ID, TestData.Exercises.EXPRESSION_DT_ID,
+                        TestData.Exercises.TYPE_EVALUATION_ID),
                 ids(list.exercises()));
         assertTrue(list.exercises().stream().allMatch(ExerciseDto::isPublic));
         assertTrue(list.permissions().canCreateExercise());
@@ -248,11 +256,12 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
         assertEquals("Pool exercise", card.getName());
         assertEquals(TestData.Exercises.DOMAIN_ID, card.getDomainId());
-        assertEquals(TestData.Exercises.STRATEGY_ID, card.getStrategyId());
         assertEquals(DT_BACKEND_ID, card.getBackendId());
         assertTrue(card.isPublic());
         assertTrue(card.getTags().isEmpty());
         assertEquals(1, card.getStages().size());
+        assertEquals(TestData.Exercises.STRATEGY_ID, card.getStages().getFirst().getStrategyId());
+        assertEquals(Map.of(), card.getStages().getFirst().getStrategySettings());
         assertEquals(5, card.getStages().getFirst().getNumberOfQuestions());
         assertEquals(0.5f, card.getStages().getFirst().getComplexity());
         assertTrue(card.getOptions().isNewQuestionGenerationEnabled());
@@ -293,6 +302,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         // Arrange.
         var id = service.createExerciseAndGetId("Before", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
         var stage = ExerciseStageDto.builder()
+                .strategyId(TestData.Exercises.STRATEGY_ID)
+                .strategySettings(Map.of())
                 .numberOfQuestions(2)
                 .complexity(0.3f)
                 .laws(List.of())
@@ -306,6 +317,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
                 .debugButtonEnabled(true)
                 .forceNewAttemptCreationEnabled(false)
                 .maxExpectedConcurrentStudents(3)
+                .answerReaction(json("{\"reasoningSelection\": \"ALL\", \"wrongAnswerClarification\": \"ALWAYS\","
+                        + " \"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 5}}"))
                 .build();
 
         // Act.
@@ -313,7 +326,6 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
                 .id(id)
                 .name("After")
                 .domainId(TestData.Exercises.DOMAIN_ID)
-                .strategyId(TestData.Exercises.STRATEGY_ID)
                 .backendId("ignored")
                 .tags(List.of("C++", "basics"))
                 .stages(List.of(stage))
@@ -326,12 +338,94 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(DT_BACKEND_ID, card.getBackendId());
         assertEquals(List.of("C++", "basics"), card.getTags());
         assertEquals(1, card.getStages().size());
+        assertEquals(TestData.Exercises.STRATEGY_ID, card.getStages().getFirst().getStrategyId());
         assertEquals(2, card.getStages().getFirst().getNumberOfQuestions());
         assertEquals(0.3f, card.getStages().getFirst().getComplexity());
         assertEquals("order_determined_by_precedence", card.getStages().getFirst().getSkills().getFirst().getName());
         assertEquals(RoleInExercise.TARGETED, card.getStages().getFirst().getSkills().getFirst().getKind());
         assertEquals(options, card.getOptions());
         assertTrue(card.isPublic());
+    }
+
+    /** Настройки реакции на ответы, которых преподаватель не задал, сохраняются со значениями по умолчанию. */
+    @Test
+    void saveExerciseCardCompletesAnswerReactionWithDefaults() {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Settings", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var options = card.getOptions().withAnswerReaction(json("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}"));
+
+        // Act.
+        service.saveExerciseCard(withOptions(card, options), null);
+
+        // Assert.
+        assertEquals(json("{\"reasoningSelection\": \"FEWEST_ERRORS\", \"wrongAnswerClarification\": \"WHEN_AMBIGUOUS\","
+                        + " \"correctAnswerClarification\": {\"mode\": \"ALWAYS\", \"streakLength\": 7}}"),
+                service.getExerciseCard(id, null, TestData.Users.ADMIN_ID).getOptions().getAnswerReaction());
+    }
+
+    /** Настройки реакции на ответы с неизвестным полем или значением вне допустимого не сохраняются. */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"unknownSetting\": true}",
+            "{\"correctAnswerClarification\": {\"streakLength\": 0}}",
+            "{\"correctAnswerClarification\": {\"mode\": \"SOMETIMES\"}}",
+    })
+    void saveExerciseCardRejectsInvalidAnswerReaction(String settings) {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Settings", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var options = card.getOptions().withAnswerReaction(json(settings));
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.saveExerciseCard(withOptions(card, options), null));
+    }
+
+    /** Настройки, которых у стратегии этапа нет, — например, оставшиеся от другой стратегии, — не сохраняются. */
+    @Test
+    void saveExerciseCardRejectsSettingsForeignToStageStrategy() {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Stages", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var stage = stageOf(TestData.Exercises.STRATEGY_ID, json("{\"unknownSetting\": true}"), 5);
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.saveExerciseCard(withStages(card, List.of(stage)), null));
+    }
+
+    /** Этап со стратегией, которой нет в системе, не сохраняется. */
+    @Test
+    void saveExerciseCardRejectsUnknownStageStrategy() {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Stages", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var stage = stageOf("NoSuchStrategy", Map.of(), 5);
+
+        // Act & Assert.
+        assertThrows(RuntimeException.class, () -> service.saveExerciseCard(withStages(card, List.of(stage)), null));
+    }
+
+    /** Этап, на который не запланировано ни одного вопроса, не сохраняется. */
+    @Test
+    void saveExerciseCardRejectsStageWithoutQuestions() {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Stages", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var stage = stageOf(TestData.Exercises.STRATEGY_ID, Map.of(), 0);
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.saveExerciseCard(withStages(card, List.of(stage)), null));
+    }
+
+    /** Упражнение без этапов не сохраняется: в попытке нечего было бы задать. */
+    @Test
+    void saveExerciseCardRejectsExerciseWithoutStages() {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Stages", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.saveExerciseCard(withStages(card, List.of()), null));
     }
 
     /** Унаследованное упражнение в курсе не сохранить. */
@@ -356,7 +450,6 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
                 .id(card.getId())
                 .name("Renamed inherited")
                 .domainId(card.getDomainId())
-                .strategyId(card.getStrategyId())
                 .backendId(card.getBackendId())
                 .tags(card.getTags())
                 .stages(card.getStages())
@@ -385,7 +478,6 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertTrue(clone.isPublic());
         assertEquals(source.getName(), clone.getName());
         assertEquals(source.getDomainId(), clone.getDomainId());
-        assertEquals(source.getStrategyId(), clone.getStrategyId());
         assertEquals(source.getBackendId(), clone.getBackendId());
         assertEquals(source.getTags(), clone.getTags());
         assertEquals(source.getStages().size(), clone.getStages().size());
@@ -510,5 +602,50 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
     private static ExerciseDto find(List<ExerciseDto> exercises, long id) {
         return exercises.stream().filter(e -> e.getId() == id).findFirst().orElseThrow();
+    }
+
+    private static ExerciseCardDto withOptions(ExerciseCardDto card, ExerciseOptionsData options) {
+        return ExerciseCardDto.builder()
+                .id(card.getId())
+                .name(card.getName())
+                .domainId(card.getDomainId())
+                .backendId(card.getBackendId())
+                .tags(card.getTags())
+                .stages(card.getStages())
+                .options(options)
+                .build();
+    }
+
+    private static ExerciseCardDto withStages(ExerciseCardDto card, List<ExerciseStageDto> stages) {
+        return ExerciseCardDto.builder()
+                .id(card.getId())
+                .name(card.getName())
+                .domainId(card.getDomainId())
+                .backendId(card.getBackendId())
+                .tags(card.getTags())
+                .stages(stages)
+                .options(card.getOptions())
+                .build();
+    }
+
+    private static ExerciseStageDto stageOf(String strategyId, Map<String, Object> strategySettings, int numberOfQuestions) {
+        return ExerciseStageDto.builder()
+                .strategyId(strategyId)
+                .strategySettings(strategySettings)
+                .numberOfQuestions(numberOfQuestions)
+                .complexity(0.5f)
+                .laws(List.of())
+                .concepts(List.of())
+                .skills(List.of())
+                .build();
+    }
+
+    private static Map<String, Object> json(String text) {
+        try {
+            return JSON.readValue(text, new TypeReference<>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }

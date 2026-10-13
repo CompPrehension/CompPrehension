@@ -2,6 +2,7 @@ package org.vstu.compprehension.config;
 
 import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.TypeEvaluationDTDomain;
 import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.autoconfigure.DispatcherServletAutoConfiguration;
@@ -57,6 +58,7 @@ public class WebConfig implements WebMvcConfigurer {
         messageSource.addBasenames(ControlFlowDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ObjectsScopeDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(DataFlowDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(TypeEvaluationDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }

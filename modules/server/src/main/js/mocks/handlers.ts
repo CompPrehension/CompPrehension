@@ -1,8 +1,9 @@
 import { HttpResponse, delay, http } from 'msw';
 import { ExerciseCard } from '../types/exercise-settings';
 import { Interaction } from '../types/interaction';
-import { mockBackends, mockCard, mockDomains, mockStrategies, saveMockCard } from './exercise-settings';
-import { Grade, gradeAnswers, mockAttempt, mockQuestions, nextCorrectAnswer, recordAnswers, resetAnswers } from './questions';
+import { mockAnswerReactionSettings, mockBackends, mockCard, mockDomains, mockStrategies, saveMockCard } from './exercise-settings';
+import { ClarificationAnswer } from '../types/feedback';
+import { Grade, answerClarification, gradeAnswers, mockAttempt, mockQuestions, nextCorrectAnswer, recordAnswers, resetAnswers } from './questions';
 
 /** Pretend the backend is thinking, so loading states are actually visible. */
 const THINKING_MS = 800;
@@ -52,6 +53,7 @@ export const handlers = [
 
     http.get('/api/refTables/domains', () => HttpResponse.json(mockDomains)),
     http.get('/api/refTables/strategies', () => HttpResponse.json(mockStrategies)),
+    http.get('/api/refTables/answerReactionSettings', () => HttpResponse.json(mockAnswerReactionSettings)),
     http.get('/api/refTables/backends', () => HttpResponse.json(mockBackends)),
     http.get('/api/refTables/domainLaws', () => HttpResponse.json(mockDomains[0].laws.map(l => l.name))),
     http.get('/api/refTables/domainConcepts', () => HttpResponse.json(mockDomains[0].concepts.map(c => c.name))),
@@ -149,7 +151,7 @@ export const handlers = [
         await delay(THINKING_MS);
         const questionId = Number(new URL(request.url).searchParams.get('questionId'));
         const answers = nextCorrectAnswer(questionId);
-        const graded = gradeAnswers(questionId, answers);
+        const graded = gradeAnswers(questionId, answers, true);
         recordAnswers(questionId, answers);
         return HttpResponse.json(feedback(graded));
     }),
@@ -162,10 +164,16 @@ export const handlers = [
         return HttpResponse.json(feedback(graded));
     }),
 
+    http.post('/api/question/answerClarification', async ({ request }) => {
+        await delay(THINKING_MS);
+        const answer = await request.json() as ClarificationAnswer;
+        return HttpResponse.json({ explanation: answerClarification(answer.questionId, answer.option) });
+    }),
+
     http.post('/api/question/addSupplementaryQuestionAnswer', async () => {
         await delay(THINKING_MS);
         return HttpResponse.json({
-            message: { type: 'SUCCESS', message: 'test', violationLaws: [] },
+            message: { type: 'SUCCESS', message: 'test', knowledge: [] },
             action: 'CONTINUE_AUTO',
         });
     }),

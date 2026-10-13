@@ -11,6 +11,8 @@ import org.vstu.compprehension.frontend.dto.InteractionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionRequestDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationFeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemCapability;
@@ -37,6 +39,16 @@ public class QuestionController {
         var userId = userService.getCurrentUserId();
         authService.ensureCanWriteQuestion(userId, interaction.getQuestionId());
         return exerciseAttemptService.addQuestionAnswer(interaction);
+    }
+
+    /** Ответ студента на уточняющий вопрос о причине его ответа. */
+    @RequestMapping(value = {"answerClarification"}, method = { RequestMethod.POST }, produces = "application/json",
+            consumes = "application/json")
+    @ResponseBody
+    public ClarificationFeedbackDto answerClarification(@RequestBody ClarificationAnswerDto answer) {
+        var userId = userService.getCurrentUserId();
+        authService.ensureCanWriteQuestion(userId, answer.questionId());
+        return exerciseAttemptService.answerClarification(answer);
     }
 
     /**
@@ -94,7 +106,7 @@ public class QuestionController {
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest) throws Exception {
         var userId = userService.getCurrentUserId();
         authService.ensureCanWriteQuestion(userId, questionRequest.getQuestionId());
-        return exerciseAttemptService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
+        return exerciseAttemptService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolatedKnowledge());
     }
 
     /**

@@ -1,6 +1,6 @@
 import { NonEmptyArray } from 'fp-ts/lib/NonEmptyArray';
 import * as io from 'io-ts'
-import { ExerciseOptions, TExerciseOptions } from './exercise-options';
+import { ExerciseOptions, SettingValues, TExerciseOptions, TSettingValues } from './exercise-options';
 import { nonEmptyArray } from './utils';
 
 export type ExerciseListItem = {
@@ -83,6 +83,8 @@ export const TExerciseCardSkill: io.Type<ExerciseCardSkill> = io.type({
 
 
 export type ExerciseStage = {
+    strategyId: string,
+    strategySettings: SettingValues,
     numberOfQuestions: number,
     complexity: number,
     concepts: ExerciseCardConcept[],
@@ -90,6 +92,8 @@ export type ExerciseStage = {
     skills: ExerciseCardSkill[]
 }
 export const TExerciseStage : io.Type<ExerciseStage> = io.type({
+    strategyId: io.string,
+    strategySettings: TSettingValues,
     numberOfQuestions: io.number,
     complexity: io.number,
     concepts: io.array(TExerciseCardConcept),
@@ -117,7 +121,6 @@ export type ExerciseCard = {
     id: number,
     name: string,
     domainId: string,
-    strategyId: string,
     backendId: string,
     stages: NonEmptyArray<ExerciseStage>,
     tags: string[],
@@ -130,7 +133,6 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     id: io.number,
     name: io.string,
     domainId: io.string,
-    strategyId: io.string,
     backendId: io.string,
     stages: nonEmptyArray(TExerciseStage),
     tags: io.array(io.string),
@@ -197,21 +199,40 @@ export const TDomain : io.Type<Domain> = io.type({
     tags: io.array(io.string),
 })
 
+/** A field of a settings form; its name is the key in the stored settings. */
+export type SettingField =
+    | { kind: 'FLAG', name: string, label: string }
+    | { kind: 'NUMERIC', name: string, label: string, min: number, max: number }
+    | { kind: 'CHOICE', name: string, label: string, options: { value: string, label: string }[] }
+    | { kind: 'GROUP', name: string, label: string, fields: SettingField[] }
+export const TSettingField: io.Type<SettingField> = io.recursion('SettingField', () => io.union([
+    io.type({ kind: io.literal('FLAG'), name: io.string, label: io.string }),
+    io.type({ kind: io.literal('NUMERIC'), name: io.string, label: io.string, min: io.number, max: io.number }),
+    io.type({ kind: io.literal('CHOICE'), name: io.string, label: io.string, options: io.array(io.type({ value: io.string, label: io.string })) }),
+    io.type({ kind: io.literal('GROUP'), name: io.string, label: io.string, fields: io.array(TSettingField) }),
+]))
+
+/** A settings form and the values to fill it with while nothing is set. */
+export type SettingsForm = {
+    fields: SettingField[],
+    defaults: SettingValues,
+}
+export const TSettingsForm: io.Type<SettingsForm> = io.type({
+    fields: io.array(TSettingField),
+    defaults: TSettingValues,
+})
+
 export type Strategy = {
     id: string,
     displayName: string,
     description: string | null,
-    options: {
-        multiStagesEnabled: boolean,
-    },
+    settings: SettingsForm,
 }
 export const TStrategy: io.Type<Strategy> = io.type({
     id: io.string,
     displayName: io.string,
     description: io.union([io.string, io.null]),
-    options: io.type({
-        multiStagesEnabled: io.boolean,
-    }),
+    settings: TSettingsForm,
 })
 
 export type QuestionBankSearchResult = {

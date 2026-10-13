@@ -1,11 +1,12 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.businesslogic.strategies.NoStrategySettings;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
+import org.vstu.compprehension.data.exerciseattempt.AttemptStageData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
@@ -37,13 +38,11 @@ public class Strategy extends StrategyBase {
     protected final RandomProvider randomProvider;
     protected final StrategyOptions options;
 
-    public Strategy(DomainFactory domainFactory, RandomProvider randomProvider,
-                    ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService);
+    public Strategy(DomainFactory domainFactory, RandomProvider randomProvider) {
+        super(NoStrategySettings.TYPE);
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
         this.options = StrategyOptions.builder()
-                .multiStagesEnabled(false)
                 .build();
     }
 
@@ -74,14 +73,14 @@ public class Strategy extends StrategyBase {
         return options;
     }
 
-    public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
+    public QuestionRequest generateQuestionRequest(@NotNull AttemptStageData attemptStage) {
+        var exerciseAttempt = attemptStage.getAttempt();
 
         AttemptExerciseData exercise = exerciseAttempt.exercise();
         Domain domain = domainFactory.getDomain(exercise.domainId());
         HashMap<String, LawNode> tree = getTree(domain);
         // Отдельная ветка для старта (взять некоторую часть возможных законов упражнения) - вопрос из середины графа
-        if(exerciseAttempt.questions() == null || exerciseAttempt.questions().size() == 0){
+        if(attemptStage.getQuestions() == null || attemptStage.getQuestions().size() == 0){
 
 
             ArrayList<String> startTasks = null;
@@ -103,9 +102,9 @@ public class Strategy extends StrategyBase {
         // Для вопроса вытянуть все интеракции в змейку по дельте (изменения в правильно примененных правилах и ошибки)
         AttemptQuestionData qe = null;
         // Find last not supplementary question in exercise
-        for (int questionNumber = exerciseAttempt.questions().size() - 1; questionNumber >= 0; --questionNumber) {
-            if (!exerciseAttempt.questions().get(questionNumber).domainType().contains("Supplementary")) {
-                qe = exerciseAttempt.questions().get(questionNumber);
+        for (int questionNumber = attemptStage.getQuestions().size() - 1; questionNumber >= 0; --questionNumber) {
+            if (!attemptStage.getQuestions().get(questionNumber).domainType().contains("Supplementary")) {
+                qe = attemptStage.getQuestions().get(questionNumber);
                 break;
             }
         }
@@ -212,7 +211,7 @@ public class Strategy extends StrategyBase {
                 return getQuestionRequest(exerciseAttempt, nextNode);
             } else {
                 //// Если нет больших, проверить усвоенность всех целевых законов
-                ArrayList<AttemptQuestionData> qes = new ArrayList<>(exerciseAttempt.questions());
+                ArrayList<AttemptQuestionData> qes = new ArrayList<>(attemptStage.getQuestions());
                 Collections.sort(qes, new QuestionOrderComparator());
 
 
@@ -435,7 +434,7 @@ public class Strategy extends StrategyBase {
         int interactionWithMistakes = 0;
         for (AttemptQuestionInteractionData i : interactions) {
 
-            if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
+            if (i.violatedKnowledge() != null || i.violatedKnowledge().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -457,7 +456,7 @@ public class Strategy extends StrategyBase {
         int interactionWithMistakes = 0;
         for (AttemptQuestionInteractionData i : interactions) {
 
-            if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
+            if (i.violatedKnowledge() != null || i.violatedKnowledge().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -471,10 +470,8 @@ public class Strategy extends StrategyBase {
     }
 
     @Override
-    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
-
-        val res = getLawGrade(exerciseAttempt);
+    public float grade(@NotNull AttemptStageData attemptStage) {
+        val res = getLawGrade(attemptStage);
         if(res.keySet().isEmpty()){
             return (float)0;
         }
@@ -491,11 +488,11 @@ public class Strategy extends StrategyBase {
     }
 
     @Override
-    public Decision decide(long exerciseAttemptId) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
+    public Decision decide(@NotNull AttemptStageData attemptStage) {
+        var exerciseAttempt = attemptStage.getAttempt();
         // Должно быть задано не менее 3 вопросов и все вопросы должны быть завершены
-        if(exerciseAttempt.questions().size() <= 3 ||
-            exerciseAttempt.questions().stream().anyMatch(q -> q.questionId() == exerciseAttempt.questions().get(exerciseAttempt.questions().size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
+        if(attemptStage.getQuestions().size() <= 3 ||
+            attemptStage.getQuestions().stream().anyMatch(q -> q.questionId() == attemptStage.getQuestions().get(attemptStage.getQuestions().size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
             return Decision.CONTINUE;
         }
 
@@ -504,7 +501,7 @@ public class Strategy extends StrategyBase {
         HashMap<String, LawNode> tree = getTree(domain);
 
         //// Если нет больших, проверить усвоенность всех целевых законов
-        ArrayList<AttemptQuestionData> qes = new ArrayList<>(exerciseAttempt.questions());
+        ArrayList<AttemptQuestionData> qes = new ArrayList<>(attemptStage.getQuestions());
         Collections.sort(qes, new QuestionOrderComparator());
 
         ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
@@ -616,12 +613,12 @@ public class Strategy extends StrategyBase {
         return nextNodes;
     }
 
-    protected HashMap<String, Float> getLawGrade(ExerciseAttemptWithQuestionsData exerciseAttempt){
+    protected HashMap<String, Float> getLawGrade(AttemptStageData attemptStage){
         HashMap<String, Float> res = new HashMap<>();
 
         HashMap<String, ArrayList<Boolean>> conceptAttempt = new HashMap<>();
         ArrayList<AttemptQuestionData> questions = new ArrayList<>();
-        questions.addAll(exerciseAttempt.questions());
+        questions.addAll(attemptStage.getQuestions());
 
         ArrayList<AttemptQuestionInteractionData> ies = new ArrayList<>();
         for(AttemptQuestionData qe : questions){
@@ -637,8 +634,8 @@ public class Strategy extends StrategyBase {
 
         for (AttemptQuestionInteractionData ie : ies){
             ArrayList<String> mistakes = new ArrayList<>();
-            if (ie.violationLawNames() != null) {
-                mistakes.addAll(ie.violationLawNames());
+            if (ie.violatedKnowledge() != null) {
+                mistakes.addAll(ie.violatedKnowledge());
             }
 
             for(String me : mistakes){
@@ -652,8 +649,8 @@ public class Strategy extends StrategyBase {
             }
 
             ArrayList<String> correctLaws = new ArrayList<>();
-            if(ie.correctLawNames() != null) {
-                correctLaws.addAll(ie.correctLawNames());
+            if(ie.appliedKnowledge() != null) {
+                correctLaws.addAll(ie.appliedKnowledge());
             }
 
             for(String cle : correctLaws){
@@ -682,18 +679,18 @@ public class Strategy extends StrategyBase {
 
         ArrayList<String> lastCorrectLaws = new ArrayList<>();
         if(last != null) {
-            for (String cle : last.correctLawNames()) {
+            for (String cle : last.appliedKnowledge()) {
                 lastCorrectLaws.add(cle);
             }
         }
 
-        for(String cle : current.correctLawNames()){
+        for(String cle : current.appliedKnowledge()){
             if(!lastCorrectLaws.contains(cle)) {
                 result.add(Pair.of(true, cle));
             }
         }
 
-        for(String ve : current.violationLawNames()){
+        for(String ve : current.violatedKnowledge()){
             result.add(Pair.of(false, ve));
         }
 

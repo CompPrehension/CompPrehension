@@ -34,4 +34,7 @@ public class QuestionOptionsData implements Serializable {
     protected boolean requireContext = false;
     @Builder.Default
     private boolean showSupplementaryQuestions = true;
+    /// Show answer trace
+    @Builder.Default
+    private boolean showTrace = false;
 }

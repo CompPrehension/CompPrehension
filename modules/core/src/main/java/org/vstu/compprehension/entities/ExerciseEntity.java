@@ -53,9 +53,6 @@ public class ExerciseEntity implements Cloneable {
     @Column(name = "backend_id", nullable = false, length = 100)
     private @NotNull String backendId;
 
-    @Column(name = "strategy_id", nullable = false, length = 100)
-    private @NotNull String strategyId;
-
     @Column(name = "is_public", nullable = false)
     @ColumnDefault("0")
     private boolean isPublic;
@@ -84,7 +81,6 @@ public class ExerciseEntity implements Cloneable {
             copy.setName(this.name);
             copy.setDomainId(this.domainId);
             copy.setBackendId(this.backendId);
-            copy.setStrategyId(this.strategyId);
             copy.setTags(this.tags);
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));

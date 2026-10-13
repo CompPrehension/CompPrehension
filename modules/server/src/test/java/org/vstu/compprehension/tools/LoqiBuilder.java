@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.data.question.AnswerData;
@@ -73,15 +74,15 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true, true,
-                7, null, null));
+                7, null, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
-        exercise.setStrategyId("StaticStrategy");
+        exercise.setStages(Collections.singletonList(ExerciseStageData.builder().strategyId("StaticStrategy").build()));
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
         attempt = new ExerciseAttemptEntity();
         attempt.setQuestions(List.of());
         attempt.setExercise(exercise);
+        attempt.setExerciseSnapshot(new AttemptExerciseData(exercise.getDomainId(), exercise.getStages(), List.of(), null));
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setUser(userRepository.findAll().iterator().next());
         exerciseAttemptRepository.save(attempt);

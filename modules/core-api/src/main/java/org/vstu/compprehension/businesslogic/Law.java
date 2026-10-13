@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 
-public sealed abstract class Law implements TreeNodeWithBitmask permits PositiveLaw, NegativeLaw {
+public sealed abstract class Law implements DomainKnowledge permits PositiveLaw, NegativeLaw {
 
     static final int DEFAULT_SALIENCE = 0;
 

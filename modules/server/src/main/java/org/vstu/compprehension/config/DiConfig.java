@@ -59,33 +59,29 @@ public class DiConfig {
     @Bean
     @Singleton
     @ConditionalOnProperty(prefix = "bkt", name = "enabled", havingValue = "true")
-    BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory,
-                               @Autowired ExerciseAttemptDataService exerciseAttemptService) {
-        return new BktStrategy(bktService, domainFactory, exerciseAttemptService);
+    BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory) {
+        return new BktStrategy(bktService, domainFactory);
     }
 
     @Bean
     @Singleton @Primary
-    GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory,
-                                                               @Autowired ExerciseAttemptDataService exerciseAttemptService) {
-        return new GradeConfidenceBaseStrategy(domainFactory, exerciseAttemptService);
+    GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory) {
+        return new GradeConfidenceBaseStrategy(domainFactory);
     }
     @Bean
     @Singleton
-    GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider,
-                                                                                                    @Autowired ExerciseAttemptDataService exerciseAttemptService) {
-        return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider, exerciseAttemptService);
+    GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider) {
+        return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider);
     }
     @Bean
     @Singleton
-    StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory,
-                                     @Autowired ExerciseAttemptDataService exerciseAttemptService) {
-        return new StaticStrategy(domainFactory, exerciseAttemptService);
+    StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory) {
+        return new StaticStrategy(domainFactory);
     }
     @Bean
     @Singleton
-    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider, @Autowired ExerciseAttemptDataService exerciseAttemptService) {
-        return new Strategy(domainFactory, randomProvider, exerciseAttemptService);
+    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider) {
+        return new Strategy(domainFactory, randomProvider);
     }
 
     @Bean

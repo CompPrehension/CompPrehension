@@ -1062,7 +1062,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return result;
     }
 
-    public ProcessSolutionResult processSolution(Collection<Fact> solution) {
+    private int countStepsLeft(Collection<Fact> solution) {
         Map<String, String> studentPos = new HashMap<>();
         Map<String, String> unevalOp = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
@@ -1105,10 +1105,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             IterationsLeft++;
         }
 
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        result.CountCorrectOptions = getCorrectAnswers(solution).size();
-        result.IterationsLeft = IterationsLeft;
-        return result;
+        return IterationsLeft;
     }
 
     HyperText getCorrectExplanation(QuestionContentData q, AnswerObjectData answer, Language language) {
@@ -1389,11 +1386,11 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     }
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
-        if (violationLawName.equals("error_base_student_error_in_complex") ||
-                violationLawName.equals("error_base_student_error_strict_operands_order") ||
-                violationLawName.equals("error_base_student_error_unevaluated_operand") ||
-                violationLawName.equals("error_base_student_error_early_finish")) {
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
+        if (violatedKnowledgeName.equals("error_base_student_error_in_complex") ||
+                violatedKnowledgeName.equals("error_base_student_error_strict_operands_order") ||
+                violatedKnowledgeName.equals("error_base_student_error_unevaluated_operand") ||
+                violatedKnowledgeName.equals("error_base_student_error_early_finish")) {
             return false;
         }
         return true;
@@ -1424,7 +1421,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
 
 
     @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
+    protected @NotNull Judgement interpretViolations(@NotNull Collection<Fact> violations, @NotNull Language language) {
         List<ViolationData> mistakes = new ArrayList<>();
 
         String questionType = "";
@@ -1465,26 +1462,26 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 ViolationData violationEntity = new ViolationData();
                 if (violation.getVerb().equals("student_error_more_precedence")) {
                     if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
-                        violationEntity.setLawName("error_base_higher_precedence_left");
+                        violationEntity.setKnowledgeName("error_base_higher_precedence_left");
                     } else {
-                        violationEntity.setLawName("error_base_higher_precedence_right");
+                        violationEntity.setKnowledgeName("error_base_higher_precedence_right");
                     }
                 } else if (violation.getVerb().equals("student_error_left_assoc")) {
-                    violationEntity.setLawName("error_base_same_precedence_left_associativity_left");
+                    violationEntity.setKnowledgeName("error_base_same_precedence_left_associativity_left");
                 } else if (violation.getVerb().equals("student_error_right_assoc")) {
-                    violationEntity.setLawName("error_base_same_precedence_right_associativity_right");
+                    violationEntity.setKnowledgeName("error_base_same_precedence_right_associativity_right");
                 } else if (violation.getVerb().equals("student_error_strict_operands_order")) {
-                    violationEntity.setLawName("error_base_student_error_strict_operands_order");
+                    violationEntity.setKnowledgeName("error_base_student_error_strict_operands_order");
                 } else if (violation.getVerb().equals("student_error_unevaluated_operand")) {
-                    violationEntity.setLawName("error_base_student_error_unevaluated_operand");
+                    violationEntity.setKnowledgeName("error_base_student_error_unevaluated_operand");
                 } else if (violation.getVerb().equals("student_error_early_finish")) {
-                    violationEntity.setLawName("error_base_student_error_early_finish");
+                    violationEntity.setKnowledgeName("error_base_student_error_early_finish");
                 } else if (violation.getVerb().equals("student_error_in_complex")) {
-                    violationEntity.setLawName("error_base_student_error_in_complex");
+                    violationEntity.setKnowledgeName("error_base_student_error_in_complex");
                 } else if (violation.getVerb().equals("wrong_type")) {
-                    violationEntity.setLawName("error_wrong_type");
+                    violationEntity.setKnowledgeName("error_wrong_type");
                 }
-                if (violationEntity.getLawName() != null) {
+                if (violationEntity.getKnowledgeName() != null) {
                     ArrayList<Fact> facts = new ArrayList<>(Arrays.asList(
                             violation,
                             nameToText.get(violation.getObject()),
@@ -1574,7 +1571,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             for (Map.Entry<String, String> kv : studentOperatorType.entrySet()) {
                 if (!operatorType.get(kv.getKey()).equals(kv.getValue())) {
                     ViolationData violationEntity = new ViolationData();
-                    violationEntity.setLawName("wrong_operand_type");
+                    violationEntity.setKnowledgeName("wrong_operand_type");
                     ArrayList<BackendFactData> violationFacts = new ArrayList<>();
                     violationFacts.add(new BackendFactData(kv.getKey(), "student_operand_type", kv.getValue()));
                     violationFacts.add(new BackendFactData(kv.getKey(), "real_operand_type", operatorType.get(kv.getKey())));
@@ -1618,7 +1615,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             for (Map.Entry<String, String> kv : studentPrecedenceType.entrySet()) {
                 if (!precedenceType.get(kv.getKey()).equals(kv.getValue())) {
                     ViolationData violationEntity = new ViolationData();
-                    violationEntity.setLawName("wrong_precedence_type");
+                    violationEntity.setKnowledgeName("wrong_precedence_type");
                     ArrayList<BackendFactData> violationFacts = new ArrayList<>();
                     violationFacts.add(new BackendFactData(kv.getKey(), "student_precedence_type", kv.getValue()));
                     violationFacts.add(new BackendFactData(kv.getKey(), "real_precedence_type", precedenceType.get(kv.getKey())));
@@ -1629,15 +1626,11 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             }
         }
 
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        result.violations = mistakes;
-        result.correctlyAppliedLaws = calculateCorrectlyAppliedLaws(violations);
-        result.isAnswerCorrect = mistakes.isEmpty();
-
-        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = processResult.CountCorrectOptions;
-        result.IterationsLeft = processResult.IterationsLeft + (result.isAnswerCorrect ? 0 : 1);
-        return result;
+        boolean isAnswerCorrect = mistakes.isEmpty();
+        return new Judgement.Verdict(isAnswerCorrect,
+                makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes,
+                calculateCorrectlyAppliedLaws(violations),
+                countStepsLeft(violations) + (isAnswerCorrect ? 0 : 1));
     }
 
     List<String> calculateCorrectlyAppliedLaws(Collection<Fact> violations) {
@@ -1708,9 +1701,9 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     }
 
     private HyperText makeExplanation(ViolationData mistake, FeedbackType feedbackType, Language lang) {
-        if (mistake.getLawName().equals("error_select_precedence_or_associativity")) {
+        if (mistake.getKnowledgeName().equals("error_select_precedence_or_associativity")) {
             return new HyperText(getMessage("ERROR_PRECEDENCE_BEFORE_ASSOC", lang));
-        } else if (mistake.getLawName().equals("error_select_highest_precedence")) {
+        } else if (mistake.getKnowledgeName().equals("error_select_highest_precedence")) {
             String text = "";
             String index;
             for (BackendFactData fact : mistake.getViolationFacts()) {
@@ -1721,7 +1714,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 }
             }
             return new HyperText(getMessage("ERROR_PRECEDENCE_HIGHER1", lang) + text + getMessage("ERROR_PRECEDENCE_HIGHER2", lang));
-        } else if (mistake.getLawName().equals("wrong_operand_type")) {
+        } else if (mistake.getKnowledgeName().equals("wrong_operand_type")) {
             String realType = "";
             String studentType = "";
             String index = "";
@@ -1735,7 +1728,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 }
             }
             return new HyperText("Wrong, operand type of operator at pos " + index + " is '" + realType + "', not '" + studentType + "'");
-        }  else if (mistake.getLawName().equals("wrong_precedence_type")) {
+        }  else if (mistake.getKnowledgeName().equals("wrong_precedence_type")) {
             String realType = "";
             String studentType = "";
             String index = "";
@@ -1790,7 +1783,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .add(errorPos);
         joiner.add("\n").add(getMessage("BECAUSE", lang));
 
-        String errorType = mistake.getLawName();
+        String errorType = mistake.getKnowledgeName();
 
         if (errorType.equals("error_base_higher_precedence_left") ||
                 errorType.equals("error_base_higher_precedence_right")) {

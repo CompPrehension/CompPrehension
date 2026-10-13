@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.businesslogic.DomainKnowledge;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,7 @@ import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.Tag;
+import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.enums.Language;
@@ -23,16 +25,24 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 public abstract class JenaReasoningDomain extends DomainBase {
+
+    // Ответ оценивается по отрицательным законам: нарушенные — допущенные ошибки, применённые — ошибки, которых студент
+    // избежал.
+    @Override
+    public @NotNull Collection<? extends DomainKnowledge> getKnowledge() {
+        return getNegativeLaws();
+    }
     private final FactBackend.Interface<JenaBackend> backendInterface;
 
     protected JenaReasoningDomain(String domainId, RandomProvider randomProvider, DomainStructure structure) {
         super(domainId, randomProvider, structure);
 
-        this.backendInterface = new FactBackend.Interface<>(this);
+        this.backendInterface = new FactBackend.Interface<>(this, this::interpretViolations);
     }
 
     protected static @NotNull AnswerData toCorrectAnswer(@NotNull QuestionContentData content,
@@ -70,9 +80,13 @@ public abstract class JenaReasoningDomain extends DomainBase {
         );
     }
 
-    public InterpretSentenceResult judgeQuestion(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags, Language language) {
-        var backend = new JenaBackend();
-        var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
+    @Override
+    public @NotNull Judgement judgeAnswer(@NotNull QuestionData question, @NotNull List<? extends AnswerData> responses,
+                                          @NotNull List<Tag> tags, @NotNull Language language) {
+        var output = new JenaBackend().judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
         return backendInterface.interpretJudgeOutput(question, output, language);
     }
+
+    /** Вердикт по нарушениям, которые ризонер нашёл в ответе. */
+    protected abstract @NotNull Judgement interpretViolations(@NotNull Collection<Fact> violations, @NotNull Language language);
 }

@@ -9,6 +9,5 @@ import java.util.List;
 public record ExerciseAttemptContextData(
         long attemptId,
         Language userLanguage,
-        String strategyId,
         @NotNull List<ExerciseStageData> stages) {
 }

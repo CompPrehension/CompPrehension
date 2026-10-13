@@ -3,11 +3,14 @@ package org.vstu.compprehension.frontend;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.reaction.AnswerReactionSettings;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.DomainDto;
+import org.vstu.compprehension.frontend.dto.SettingsFormDto;
 import org.vstu.compprehension.frontend.dto.StrategyDto;
 import org.vstu.compprehension.frontend.mappers.DomainDtoMapper;
+import org.vstu.compprehension.frontend.mappers.SettingsFormDtoMapper;
 import org.vstu.compprehension.frontend.mappers.StrategyDtoMapper;
 
 import java.util.List;
@@ -20,15 +23,18 @@ public class ReferenceDataFacadeImpl implements ReferenceTableFrontendService {
     private final AbstractStrategyFactory strategyFactory;
     private final DomainDtoMapper domainDtoMapper;
     private final StrategyDtoMapper strategyDtoMapper;
+    private final SettingsFormDtoMapper settingsFormDtoMapper;
 
     public ReferenceDataFacadeImpl(DomainFactory domainFactory,
                                    AbstractStrategyFactory strategyFactory,
                                    DomainDtoMapper domainDtoMapper,
-                                   StrategyDtoMapper strategyDtoMapper) {
+                                   StrategyDtoMapper strategyDtoMapper,
+                                   SettingsFormDtoMapper settingsFormDtoMapper) {
         this.domainFactory = domainFactory;
         this.strategyFactory = strategyFactory;
         this.domainDtoMapper = domainDtoMapper;
         this.strategyDtoMapper = strategyDtoMapper;
+        this.settingsFormDtoMapper = settingsFormDtoMapper;
     }
 
     @Override
@@ -38,6 +44,11 @@ public class ReferenceDataFacadeImpl implements ReferenceTableFrontendService {
                 .filter(s -> s.getOptions().isVisibleToUser())
                 .map(s -> strategyDtoMapper.map(s, language))
                 .toList();
+    }
+
+    @Override
+    public SettingsFormDto getAnswerReactionSettings(Language language) {
+        return settingsFormDtoMapper.map(AnswerReactionSettings.TYPE, language);
     }
 
     @Override

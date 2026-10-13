@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-public class Skill implements TreeNodeWithBitmask {
+public class Skill implements DomainKnowledge {
     @EqualsAndHashCode.Include
     @ToString.Include
     private final String name;
