@@ -1,4 +1,6 @@
-package org.vstu.compprehension.businesslogic.strategies.settings;
+package org.vstu.compprehension.businesslogic.reaction;
+
+import org.vstu.compprehension.businesslogic.settings.Setting;
 
 /** Когда спрашивать о рассуждении, которым студент пришёл к неверному ответу. */
 public enum WrongAnswerClarification {

@@ -1,39 +1,35 @@
 package org.vstu.compprehension.strategies;
 
-import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
-import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.businesslogic.Concept;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.strategies.NoStrategySettings;
 import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
+import org.vstu.compprehension.data.exerciseattempt.AttemptStageData;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.enums.Language;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
-import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 
 import java.util.List;
 
 @Log4j2
-public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
+public class StaticStrategy extends StrategyBase {
 
     private final DomainFactory domainFactory;
     private final StrategyOptions options;
 
     @Autowired
-    public StaticStrategy(DomainFactory domainFactory, ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService, CommonStrategySettings.TYPE);
+    public StaticStrategy(DomainFactory domainFactory) {
+        super(NoStrategySettings.TYPE);
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
-                .multiStagesEnabled(true)
                 .visibleToUser(true)
                 .build();
     }
@@ -57,9 +53,9 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
     @Override
     public String getDescription(Language language) {
         if (language == Language.RUSSIAN) {
-            return "Статическая стратегия состоит из нескольких этапов с фиксированным количеством вопросов в каждом";
+            return "Статическая стратегия задаёт на этапе все запланированные на него вопросы";
         }
-        return "Static strategy consists of several stages with a fixed number of questions in each stage";
+        return "Static strategy asks all questions planned for the stage";
     }
 
     @NotNull
@@ -69,14 +65,10 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
     }
 
     @Override
-    public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
-        AttemptExerciseData exercise = exerciseAttempt.exercise();
-        Domain domain = domainFactory.getDomain(exercise.domainId());
+    public QuestionRequest generateQuestionRequest(@NotNull AttemptStageData stage) {
+        Domain domain = domainFactory.getDomain(stage.getAttempt().exercise().domainId());
 
-        ExerciseStageData exerciseStage = getStageForNextQuestion(exerciseAttempt);
-
-        QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
+        QuestionRequest qr = initQuestionRequest(stage, domain);
 
 //        Random random = domain.getRandomProvider().getRandom();
 //
@@ -85,17 +77,14 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
 //        float complexity = qr.getComplexity() * changeCoeff;
 //        qr.setComplexity(complexity);
 
-        return adjustQuestionRequest(qr, exerciseAttempt);
+        return adjustQuestionRequest(qr, stage);
     }
 
     @Override
-    public float grade(long exerciseAttemptId) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
-        // all questions defined by exercise
-        int nQuestionsExpected = exerciseAttempt.exercise().stages().stream().mapToInt(ExerciseStageData::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
-        // current progress over all questions
+    public float grade(@NotNull AttemptStageData stage) {
+        // current progress over questions of the stage
         float cumulativeGrade = 0;
-        for(AttemptQuestionData q : exerciseAttempt.questions()) {
+        for(AttemptQuestionData q : stage.getQuestions()) {
             List<AttemptQuestionInteractionData> interactions = q.interactions();
             int knownInteractions = interactions.size();
             long correctInteractions = interactions.stream()
@@ -109,30 +98,11 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
             cumulativeGrade += correctInteractions / (float) Math.max(4, knownInteractions);  // don't give best score for just first 1..3 interactions
         }
 
-        return cumulativeGrade / nQuestionsExpected;
+        return cumulativeGrade / stage.getStage().getNumberOfQuestions();
     }
 
     @Override
-    public Decision decide(long exerciseAttemptId) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
-        List<AttemptQuestionData> questions = exerciseAttempt.questions();
-
-        // get limit of questions defined by teacher in exercise GUI
-        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.exercise());
-
-        // Должно быть задано не менее X вопросов и последний вопрос должен быть завершён (завершение упражнения возможно только в момент завершения вопроса)
-        if(questions.size() < minimumQuestionsToAsk ||
-                questions.stream().anyMatch(q -> q.questionId() == questions.get(questions.size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
-            return Decision.CONTINUE;
-        }
-
-        // Должно быть задано не менее X вопросов, которые были завершены
-        long completedQuestions = questions.stream()
-                .filter(q -> q.interactions().size() > 0 && q.interactions().get(q.interactions().size() - 1).interactionsLeft() == 0)
-                .count();
-        if(completedQuestions < minimumQuestionsToAsk)
-            return Decision.CONTINUE;
-
+    public Decision decide(@NotNull AttemptStageData stage) {
         /*Integer timeLimit = exerciseAttempt.getExercise().getTimeLimit(); // assuming minutes - NO! steps.
 
         if (timeLimit == null) {
@@ -152,6 +122,6 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
                     return Decision.CONTINUE;
             }
         }*/
-        return Decision.FINISH;
+        return Decision.CONTINUE;
     }
 }

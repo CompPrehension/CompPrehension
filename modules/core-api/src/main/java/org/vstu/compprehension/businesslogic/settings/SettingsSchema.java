@@ -1,12 +1,12 @@
-package org.vstu.compprehension.businesslogic.strategies.settings;
+package org.vstu.compprehension.businesslogic.settings;
 
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.List;
 
-/** Форма настроек стратегии: поля, которые преподаватель заполняет в упражнении. */
-public record StrategySettingsSchema(@NotNull List<Field> fields) {
+/** Форма настроек: поля, которые преподаватель заполняет в упражнении. */
+public record SettingsSchema(@NotNull List<Field> fields) {
 
     /** Поле формы; имя совпадает с ключом в JSON настроек. */
     public sealed interface Field permits Flag, Numeric, Choice, Group {

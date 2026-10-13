@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.authorization.TestUserService;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.QuestionDataService;
@@ -796,7 +798,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void wrongAnswerOffersAllReasoningsWhenExerciseAdmitsAll() {
         // Arrange.
-        setStrategySettings("{\"reasoningSelection\": \"ALL\"}");
+        setAnswerReaction("{\"reasoningSelection\": \"ALL\"}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
@@ -821,7 +823,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void correctAnswerOffersMisconceptionSeriesWhenExerciseAdmitsAll() {
         // Arrange.
-        setStrategySettings("{\"reasoningSelection\": \"ALL\", \"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        setAnswerReaction("{\"reasoningSelection\": \"ALL\", \"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
@@ -843,7 +845,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     })
     void wrongAnswerWithSingleReasonIsClarifiedOnlyWhenExerciseAlwaysAsks(String mode, boolean isClarified) {
         // Arrange.
-        setStrategySettings("{\"wrongAnswerClarification\": \"" + mode + "\"}");
+        setAnswerReaction("{\"wrongAnswerClarification\": \"" + mode + "\"}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
@@ -882,7 +884,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void correctAnswerReachedByMisconceptionIsClarifiedWhenStrategyAlwaysAsks() {
         // Arrange.
-        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        setAnswerReaction("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
@@ -904,7 +906,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     })
     void correctAnswerIsClarifiedUntilStreakOfCorrectAnswers(int streakLength, boolean isClarified) {
         // Arrange.
-        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": "
+        setAnswerReaction("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": "
                 + streakLength + "}}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
@@ -922,7 +924,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void answerClarificationOfCorrectAnswerExplainsMisreasoning() {
         // Arrange.
-        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        setAnswerReaction("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
@@ -951,14 +953,13 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     }, nullValues = "null")
     void clarificationAnswerDecidesWhetherStreakContinues(String chosenHypothesis, boolean isNextClarified) {
         // Arrange.
-        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        setAnswerReaction("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 1}}");
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
         var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
         var asked = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
         service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, chosenHypothesis)));
-        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 1}}");
         resetPersistenceContext();
         var productAsInt = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
 
@@ -981,7 +982,9 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     void gradeConfidenceStrategyGradesAnswerInSkillDomain() {
         // Arrange.
         var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.TYPE_EVALUATION_ID);
-        exercise.setStrategyId("GradeConfidenceBaseStrategy");
+        var stage = exercise.getStages().getFirst();
+        exercise.setStages(List.of(new ExerciseStageData("GradeConfidenceBaseStrategy", Map.of(), stage.getNumberOfQuestions(),
+                stage.getComplexity(), stage.getLaws(), stage.getConcepts(), stage.getSkills())));
         entityManager.flush();
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
@@ -1107,6 +1110,83 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(AttemptStatus.COMPLETED_BY_USER, finished.getStatus());
         assertArrayEquals(new Long[] { first.getQuestionId(), second.getQuestionId() }, finished.getQuestionIds());
         assertNull(service.getExistingExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null));
+    }
+
+    /** Когда на этапе решены все запланированные вопросы, следующий вопрос задаётся для следующего этапа. */
+    @Test
+    void questionAfterPassedStageIsAskedForNextStage() {
+        // Arrange.
+        setExpressionStages(1, 1);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var first = service.generateQuestion(attempt.getAttemptId());
+        solveByAnswers(first, TestData.ExpressionBank.byMetadataId(first.getQuestionMetadataId()));
+
+        // Act.
+        service.generateQuestion(attempt.getAttemptId());
+
+        // Assert.
+        var stageIndexes = attemptDataService.getAttemptWithQuestions(attempt.getAttemptId()).questions().stream()
+                .map(AttemptQuestionData::stageIndex)
+                .toList();
+        assertEquals(List.of(0, 1), stageIndexes);
+    }
+
+    /** Пройденный этап не завершает попытку: она закончена, только когда пройдены все этапы. */
+    @Test
+    void attemptFinishesOnlyWhenEveryStageIsPassed() {
+        // Arrange.
+        setExpressionStages(1, 1);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var first = service.generateQuestion(attempt.getAttemptId());
+        var afterFirstStage = solveByAnswers(first, TestData.ExpressionBank.byMetadataId(first.getQuestionMetadataId()));
+        var second = service.generateQuestion(attempt.getAttemptId());
+
+        // Act.
+        var afterSecondStage = solveByAnswers(second, TestData.ExpressionBank.byMetadataId(second.getQuestionMetadataId()));
+
+        // Assert.
+        assertEquals(Decision.CONTINUE, afterFirstStage.getStrategyDecision());
+        assertEquals(Decision.FINISH, afterSecondStage.getStrategyDecision());
+        assertEquals(AttemptStatus.COMPLETED_BY_USER, service.getExerciseAttempt(attempt.getAttemptId()).getStatus());
+    }
+
+    /** Правка упражнения не меняет идущую попытку: она заканчивается по настройкам, с которыми началась. */
+    @Test
+    void exerciseEditDoesNotChangeAttemptInProgress() {
+        // Arrange.
+        setExpressionStages(2);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var first = service.generateQuestion(attempt.getAttemptId());
+        solveByAnswers(first, TestData.ExpressionBank.byMetadataId(first.getQuestionMetadataId()));
+        setExpressionStages(3);
+        var second = service.generateQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = solveByAnswers(second, TestData.ExpressionBank.byMetadataId(second.getQuestionMetadataId()));
+
+        // Assert.
+        assertEquals(Decision.FINISH, feedback.getStrategyDecision());
+    }
+
+    /** Оценка этапа входит в оценку попытки с весом, равным доле запланированных на этап вопросов. */
+    @Test
+    void stageGradeCountsInAttemptGradeByShareOfPlannedQuestions() {
+        // Arrange.
+        setExpressionStages(1, 3);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = service.generateQuestion(attempt.getAttemptId());
+        var bankQuestion = TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId());
+
+        // Act.
+        var feedback = solveByAnswers(question, bankQuestion);
+
+        // Assert.
+        var firstStageGrade = bankQuestion.steps() / 4f;
+        assertEquals(firstStageGrade * 1 / 4, feedback.getGrade(), GRADE_DELTA);
     }
 
     // ---- дополнительные вопросы ----
@@ -1306,15 +1386,26 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                         .toArray(AnswerDto[]::new)));
     }
 
-    private void setStrategySettings(String settings) {
+    private void setAnswerReaction(String settings) {
         var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.TYPE_EVALUATION_ID);
         try {
-            exercise.setOptions(exercise.getOptions().withStrategySettings(new ObjectMapper().readValue(settings,
+            exercise.setOptions(exercise.getOptions().withAnswerReaction(new ObjectMapper().readValue(settings,
                     new TypeReference<Map<String, Object>>() {
                     })));
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
+        entityManager.flush();
+    }
+
+    /** Упражнение выражений из этапов статической стратегии с тем же содержанием и заданным числом вопросов. */
+    private void setExpressionStages(int... numbersOfQuestions) {
+        var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.EXPRESSION_DT_ID);
+        var content = exercise.getStages().getFirst();
+        exercise.setStages(Arrays.stream(numbersOfQuestions)
+                .mapToObj(numberOfQuestions -> new ExerciseStageData(TestData.Exercises.STRATEGY_ID, Map.of(),
+                        numberOfQuestions, content.getComplexity(), content.getLaws(), content.getConcepts(), content.getSkills()))
+                .toList());
         entityManager.flush();
     }
 

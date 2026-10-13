@@ -1,4 +1,6 @@
-package org.vstu.compprehension.businesslogic.strategies.settings;
+package org.vstu.compprehension.businesslogic.reaction;
+
+import org.vstu.compprehension.businesslogic.settings.Setting;
 
 /** Какие рассуждения, которыми студент мог прийти к ответу, тренажёр допускает. */
 public enum ReasoningSelection {

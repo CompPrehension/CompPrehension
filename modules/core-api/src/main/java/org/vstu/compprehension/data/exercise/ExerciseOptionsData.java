@@ -29,9 +29,9 @@ public class ExerciseOptionsData implements Serializable {
     private int maxExpectedConcurrentStudents = 10;
     private Integer generatorThreshold;
     private Integer generatorAdditionalQuestionsToGenerate;
-    // Тип настроек знает только стратегия упражнения: здесь они хранятся как есть.
+    // Хранятся как есть, а не рекордом: поля, которых в сохранённых настройках ещё нет, при чтении берутся по умолчанию.
     @With
-    private @Nullable Map<String, Object> strategySettings;
+    private @Nullable Map<String, Object> answerReaction;
 
     @Data
     @AllArgsConstructor @NoArgsConstructor

@@ -1,35 +1,37 @@
 import { observer } from "mobx-react";
 import React from "react";
 import { Form } from "react-bootstrap";
-import { StrategySettingValues } from "../../types/exercise-options";
-import { StrategySettingField } from "../../types/exercise-settings";
+import { SettingValues } from "../../types/exercise-options";
+import { SettingField } from "../../types/exercise-settings";
 
-type StrategySettingsFormProps = {
-    fields: StrategySettingField[],
-    values: StrategySettingValues,
-    defaults: StrategySettingValues,
+type SettingsFormProps = {
+    /** Distinguishes the controls of this form from those of other forms on the page. */
+    id: string,
+    fields: SettingField[],
+    values: SettingValues,
+    defaults: SettingValues,
     path?: string[],
     onChange: (path: string[], value: boolean | number | string) => void,
 }
 
 /**
- * Settings that the exercise strategy declares, rendered from their description. A value missing in the exercise
- * is shown as the strategy default: the exercise may have been saved before the strategy got the setting.
+ * Settings rendered from their description. A value missing in the exercise is shown as the default:
+ * the exercise may have been saved before the setting appeared.
  */
-export const StrategySettingsForm = observer(({ fields, values, defaults, path = [], onChange }: StrategySettingsFormProps) => (
+export const SettingsForm = observer(({ id, fields, values, defaults, path = [], onChange }: SettingsFormProps) => (
     <>
         {fields.map(field => {
             const fieldPath = [...path, field.name];
-            const id = `strategy-setting-${fieldPath.join('-')}`;
+            const fieldId = `${id}-${fieldPath.join('-')}`;
             const value = values[field.name] ?? defaults[field.name];
             switch (field.kind) {
                 case 'FLAG':
-                    return <Form.Check key={field.name} type="checkbox" id={id} label={field.label}
+                    return <Form.Check key={field.name} type="checkbox" id={fieldId} label={field.label}
                                        checked={value === true}
                                        onChange={e => onChange(fieldPath, e.target.checked)} />;
                 case 'NUMERIC':
                     return (
-                        <Form.Group key={field.name} className="mb-2" controlId={id}>
+                        <Form.Group key={field.name} className="mb-2" controlId={fieldId}>
                             <Form.Label>{field.label}</Form.Label>
                             <Form.Control type="number" min={field.min} max={field.max}
                                           value={typeof value === 'number' ? value : ''}
@@ -38,7 +40,7 @@ export const StrategySettingsForm = observer(({ fields, values, defaults, path =
                     );
                 case 'CHOICE':
                     return (
-                        <Form.Group key={field.name} className="mb-2" controlId={id}>
+                        <Form.Group key={field.name} className="mb-2" controlId={fieldId}>
                             <Form.Label>{field.label}</Form.Label>
                             <Form.Select value={typeof value === 'string' ? value : ''}
                                          onChange={e => onChange(fieldPath, e.target.value)}>
@@ -50,10 +52,10 @@ export const StrategySettingsForm = observer(({ fields, values, defaults, path =
                     return (
                         <fieldset key={field.name} className="mb-2">
                             <legend className="fs-6 mb-1">{field.label}</legend>
-                            <StrategySettingsForm fields={field.fields}
-                                                  values={isGroup(values[field.name]) ? values[field.name] as StrategySettingValues : {}}
-                                                  defaults={isGroup(defaults[field.name]) ? defaults[field.name] as StrategySettingValues : {}}
-                                                  path={fieldPath} onChange={onChange} />
+                            <SettingsForm id={id} fields={field.fields}
+                                          values={isGroup(values[field.name]) ? values[field.name] as SettingValues : {}}
+                                          defaults={isGroup(defaults[field.name]) ? defaults[field.name] as SettingValues : {}}
+                                          path={fieldPath} onChange={onChange} />
                         </fieldset>
                     );
             }
@@ -61,6 +63,6 @@ export const StrategySettingsForm = observer(({ fields, values, defaults, path =
     </>
 ));
 
-function isGroup(value: StrategySettingValues[string] | undefined): boolean {
+function isGroup(value: SettingValues[string] | undefined): boolean {
     return typeof value === 'object';
 }

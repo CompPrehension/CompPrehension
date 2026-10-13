@@ -1,6 +1,7 @@
-package org.vstu.compprehension.businesslogic.strategies.settings;
+package org.vstu.compprehension.businesslogic.reaction;
 
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.businesslogic.settings.Setting;
 
 /** Когда спрашивать о рассуждении, если к верному ответу ведут и заблуждения. */
 public record CorrectAnswerClarification(

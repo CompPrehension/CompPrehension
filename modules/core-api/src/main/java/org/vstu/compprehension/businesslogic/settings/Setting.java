@@ -1,11 +1,11 @@
-package org.vstu.compprehension.businesslogic.strategies.settings;
+package org.vstu.compprehension.businesslogic.settings;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Подпись настройки стратегии или варианта её значения в форме упражнения. */
+/** Подпись настройки или варианта её значения в форме упражнения. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.RECORD_COMPONENT, ElementType.FIELD})
 public @interface Setting {

@@ -75,6 +75,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_name: "Name",
 			exercisesettings_domain: "Domain",
 			exercisesettings_strategy: "Strategy",
+			exercisesettings_answerReaction: "Reaction to answers",
 			exercisesettings_qcomplexity: "Question difficulty",
 			exercisesettings_answlen: "Answer length",
 			exercisesettings_qopt: "Options",
@@ -92,6 +93,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_stages: "Stage",
 			exercisesettings_stageN: "Stage #{{stageNumber}}",
 			exercisesettings_stageN_qnumber: "Number of questions",
+			exercisesettings_stageN_qnumberHint: "The strategy may finish the stage earlier",
 			exercisesettings_stageN_concepts: "Concepts",
 			exercisesettings_stageN_laws: "Laws",
 			exercisesettings_stageN_skills: "Skills",
@@ -267,6 +269,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_name: "Название",
 			exercisesettings_domain: "Домен",
 			exercisesettings_strategy: "Стратегия",
+			exercisesettings_answerReaction: "Реакция на ответы",
 			exercisesettings_qcomplexity: "Сложность вопросов",
 			exercisesettings_answlen: "Длина ответа",
 			exercisesettings_qopt: "Опции",
@@ -284,6 +287,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_stages: "Стадии упражнения",
 			exercisesettings_stageN: "Стадия #{{stageNumber}}",
 			exercisesettings_stageN_qnumber: "Количество вопросов",
+			exercisesettings_stageN_qnumberHint: "Стратегия может закончить стадию раньше",
 			exercisesettings_stageN_concepts: "Концепты",
 			exercisesettings_stageN_laws: "Законы",
 			exercisesettings_stageN_skills: "Умения",
@@ -459,6 +463,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_name: "Name",
 			exercisesettings_domain: "Domain",
 			exercisesettings_strategy: "Strategy",
+			exercisesettings_answerReaction: "Reaction to answers",
 			exercisesettings_qcomplexity: "Question difficulty",
 			exercisesettings_answlen: "Answer length",
 			exercisesettings_qopt: "Options",
@@ -474,6 +479,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_stages: "Stage",
 			exercisesettings_stageN: "Stage #{{stageNumber}}",
 			exercisesettings_stageN_qnumber: "Number of questions",
+			exercisesettings_stageN_qnumberHint: "The strategy may finish the stage earlier",
 			exercisesettings_stageN_concepts: "Concepts",
 			exercisesettings_stageN_laws: "Laws",
 			exercisesettings_stageN_matchedQuestionExamples: "Question examples",
@@ -1020,11 +1026,11 @@ var TCourseDto = type({
 });
 //#endregion
 //#region src/main/js/types/exercise-options.ts
-var TStrategySettingValues = recursion("StrategySettingValues", () => record(string, union([
+var TSettingValues = recursion("SettingValues", () => record(string, union([
 	boolean,
 	number,
 	string,
-	TStrategySettingValues
+	TSettingValues
 ])));
 var TExerciseOptions = intersection([type({
 	forceNewAttemptCreationEnabled: boolean,
@@ -1038,7 +1044,7 @@ var TExerciseOptions = intersection([type({
 		enabled: boolean,
 		surveyId: string
 	}),
-	strategySettings: TStrategySettingValues
+	answerReaction: TSettingValues
 })], "ExerciseOptions");
 //#endregion
 //#region src/main/js/types/utils.ts
@@ -1101,6 +1107,8 @@ var TExerciseCardSkill = type({
 	})
 });
 var TExerciseStage = type({
+	strategyId: string,
+	strategySettings: TSettingValues,
 	numberOfQuestions: number,
 	complexity: number,
 	concepts: array(TExerciseCardConcept),
@@ -1118,7 +1126,6 @@ var TExerciseCard = type({
 	id: number,
 	name: string,
 	domainId: string,
-	strategyId: string,
 	backendId: string,
 	stages: nonEmptyArray(TExerciseStage),
 	tags: array(string),
@@ -1152,7 +1159,7 @@ var TDomain = type({
 	concepts: array(TDomainConcept),
 	tags: array(string)
 });
-var TStrategySettingField = recursion("StrategySettingField", () => union([
+var TSettingField = recursion("SettingField", () => union([
 	type({
 		kind: literal("FLAG"),
 		name: string,
@@ -1178,18 +1185,18 @@ var TStrategySettingField = recursion("StrategySettingField", () => union([
 		kind: literal("GROUP"),
 		name: string,
 		label: string,
-		fields: array(TStrategySettingField)
+		fields: array(TSettingField)
 	})
 ]));
+var TSettingsForm = type({
+	fields: array(TSettingField),
+	defaults: TSettingValues
+});
 var TStrategy = type({
 	id: string,
 	displayName: string,
 	description: union([string, nullType]),
-	options: type({ multiStagesEnabled: boolean }),
-	settings: type({
-		fields: array(TStrategySettingField),
-		defaults: TStrategySettingValues
-	})
+	settings: TSettingsForm
 });
 var TQuestionBankSearchResult = type({
 	count: number,
@@ -1297,6 +1304,9 @@ var ExerciseSettingsController = class {
 	}
 	getStrategies() {
 		return ajaxGet(`/api/refTables/strategies`, array(TStrategy));
+	}
+	getAnswerReactionSettings() {
+		return ajaxGet(`/api/refTables/answerReactionSettings`, TSettingsForm);
 	}
 	getBackends() {
 		return ajaxGet(`/api/refTables/backends`, array(string));
@@ -4234,6 +4244,8 @@ var SurveyPage = observer(() => {
 var ExerciseStageStore = class {
 	courseId;
 	card;
+	strategyId;
+	strategySettings;
 	concepts;
 	laws;
 	skills;
@@ -4249,6 +4261,8 @@ var ExerciseStageStore = class {
 	abortController = null;
 	constructor(courseId, card, stage) {
 		this.courseId = courseId;
+		this.strategyId = stage.strategyId;
+		this.strategySettings = stage.strategySettings;
 		this.concepts = stage.concepts;
 		this.laws = stage.laws;
 		this.skills = stage.skills;
@@ -4296,6 +4310,7 @@ var ExerciseSettingsStore = class {
 	domains = null;
 	backends = null;
 	strategies = null;
+	answerReactionSettings = null;
 	currentCard = null;
 	courseId = null;
 	storeState = { tag: "VALID" };
@@ -4328,6 +4343,8 @@ var ExerciseSettingsStore = class {
 		return {
 			...card,
 			stages: pipe(card.stages, map((stage) => ({
+				strategyId: stage.strategyId,
+				strategySettings: stage.strategySettings,
 				concepts: stage.concepts,
 				laws: stage.laws,
 				skills: stage.skills,
@@ -4341,17 +4358,19 @@ var ExerciseSettingsStore = class {
 		this.storeState = { tag: "VALID" };
 		this.exercisesLoadStatus = "LOADING";
 		this.courseId = courseId;
-		const [rawExercises, domains, backends, strategies] = await Promise.all([
+		const [rawExercises, domains, backends, strategies, answerReactionSettings] = await Promise.all([
 			exerciseSettingsController.listExercises(courseId),
 			exerciseSettingsController.getDomains(),
 			exerciseSettingsController.getBackends(),
-			exerciseSettingsController.getStrategies()
+			exerciseSettingsController.getStrategies(),
+			exerciseSettingsController.getAnswerReactionSettings()
 		]);
 		const failed = [
 			rawExercises,
 			domains,
 			backends,
-			strategies
+			strategies,
+			answerReactionSettings
 		].find(isLeft);
 		if (failed) {
 			this.storeState = {
@@ -4365,6 +4384,7 @@ var ExerciseSettingsStore = class {
 		this.domains = domains.right;
 		this.backends = backends.right;
 		this.strategies = strategies.right;
+		this.answerReactionSettings = answerReactionSettings.right;
 		this.exercisesLoadStatus = "LOADED";
 	}
 	async loadExercise(exerciseId) {
@@ -4472,30 +4492,23 @@ var ExerciseSettingsStore = class {
 			this.currentCard.domainId = domainId;
 		}
 	}
-	setCardStrategy(strategyId) {
-		if (!this.currentCard) return;
-		if (this.currentCard.strategyId !== strategyId) {
-			this.currentCard.stages[0].laws = [];
-			this.currentCard.stages[0].concepts = [];
-			this.currentCard.stages.splice(1);
-			this.currentCard.strategyId = strategyId;
-			this.currentCard.options.strategySettings = this.copyStrategyDefaults(strategyId);
-		}
+	setStageStrategy(stageIdx, strategyId) {
+		const stage = this.currentCard?.stages[stageIdx];
+		if (!stage || stage.strategyId === strategyId) return;
+		stage.strategyId = strategyId;
+		stage.strategySettings = copyDefaults(this.strategies?.find((s) => s.id === strategyId)?.settings);
 	}
-	/** Sets one strategy setting; the path leads through setting groups to the field. */
-	setCardStrategySetting(path, value) {
-		if (!this.currentCard) return;
-		const settings = this.currentCard.options.strategySettings ?? this.copyStrategyDefaults(this.currentCard.strategyId);
-		let group = settings;
-		for (const name of path.slice(0, -1)) {
-			if (typeof group[name] !== "object") group[name] = {};
-			group = group[name];
-		}
-		group[path[path.length - 1]] = value;
-		this.currentCard.options.strategySettings = settings;
+	/** Sets one setting of the stage strategy; the path leads through setting groups to the field. */
+	setStageStrategySetting(stageIdx, path, value) {
+		const stage = this.currentCard?.stages[stageIdx];
+		if (!stage) return;
+		stage.strategySettings = putSetting(stage.strategySettings, path, value);
 	}
-	copyStrategyDefaults(strategyId) {
-		return structuredClone(toJS(this.strategies?.find((s) => s.id === strategyId)?.settings.defaults ?? {}));
+	/** Sets one setting of the reaction to answers; the path leads through setting groups to the field. */
+	setCardAnswerReactionSetting(path, value) {
+		if (!this.currentCard) return;
+		const settings = this.currentCard.options.answerReaction ?? copyDefaults(this.answerReactionSettings);
+		this.currentCard.options.answerReaction = putSetting(settings, path, value);
 	}
 	setCardStageComplexity(stageIdx, rawComplexity) {
 		if (!this.currentCard || !this.currentCard.stages[stageIdx]) return;
@@ -4664,7 +4677,10 @@ var ExerciseSettingsStore = class {
 	addStage() {
 		if (!this.currentCard || !this.domains) return;
 		const card = this.currentCard;
+		const previousStage = card.stages[card.stages.length - 1];
 		const newStage = new ExerciseStageStore(this.courseId, card, {
+			strategyId: previousStage.strategyId,
+			strategySettings: structuredClone(toJS(previousStage.strategySettings)),
 			numberOfQuestions: 10,
 			complexity: .5,
 			laws: [],
@@ -4681,6 +4697,19 @@ var ExerciseSettingsStore = class {
 		this.currentCard.stages.splice(stageIdx, 1);
 	}
 };
+function copyDefaults(form) {
+	return structuredClone(toJS(form?.defaults ?? {}));
+}
+/** Puts the value at the path, creating the setting groups on the way. */
+function putSetting(settings, path, value) {
+	let group = settings;
+	for (const name of path.slice(0, -1)) {
+		if (typeof group[name] !== "object") group[name] = {};
+		group = group[name];
+	}
+	group[path[path.length - 1]] = value;
+	return settings;
+}
 //#endregion
 //#region src/main/js/components/common/site-header.tsx
 /**
@@ -4937,26 +4966,26 @@ var ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose,
 	});
 });
 //#endregion
-//#region src/main/js/components/exercise/strategy-settings-form.tsx
+//#region src/main/js/components/exercise/settings-form.tsx
 /**
-* Settings that the exercise strategy declares, rendered from their description. A value missing in the exercise
-* is shown as the strategy default: the exercise may have been saved before the strategy got the setting.
+* Settings rendered from their description. A value missing in the exercise is shown as the default:
+* the exercise may have been saved before the setting appeared.
 */
-var StrategySettingsForm = observer(({ fields, values, defaults, path = [], onChange }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: fields.map((field) => {
+var SettingsForm = observer(({ id, fields, values, defaults, path = [], onChange }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: fields.map((field) => {
 	const fieldPath = [...path, field.name];
-	const id = `strategy-setting-${fieldPath.join("-")}`;
+	const fieldId = `${id}-${fieldPath.join("-")}`;
 	const value = values[field.name] ?? defaults[field.name];
 	switch (field.kind) {
 		case "FLAG": return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Check, {
 			type: "checkbox",
-			id,
+			id: fieldId,
 			label: field.label,
 			checked: value === true,
 			onChange: (e) => onChange(fieldPath, e.target.checked)
 		}, field.name);
 		case "NUMERIC": return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, {
 			className: "mb-2",
-			controlId: id,
+			controlId: fieldId,
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, { children: field.label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
 				type: "number",
 				min: field.min,
@@ -4967,7 +4996,7 @@ var StrategySettingsForm = observer(({ fields, values, defaults, path = [], onCh
 		}, field.name);
 		case "CHOICE": return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, {
 			className: "mb-2",
-			controlId: id,
+			controlId: fieldId,
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, { children: field.label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Select, {
 				value: typeof value === "string" ? value : "",
 				onChange: (e) => onChange(fieldPath, e.target.value),
@@ -4982,7 +5011,8 @@ var StrategySettingsForm = observer(({ fields, values, defaults, path = [], onCh
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("legend", {
 				className: "fs-6 mb-1",
 				children: field.label
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StrategySettingsForm, {
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SettingsForm, {
+				id,
 				fields: field.fields,
 				values: isGroup(values[field.name]) ? values[field.name] : {},
 				defaults: isGroup(defaults[field.name]) ? defaults[field.name] : {},
@@ -5110,7 +5140,7 @@ var ExerciseCardElement = observer((props) => {
 	const sharedDomainLaws = currentDomain?.laws.filter((l) => !l.targetEnabled);
 	const sharedDomainConcepts = currentDomain?.concepts.filter((c) => !c.targetEnabled);
 	const sharedDomainSkills = [];
-	const currentStrategy = strategies.find((s) => s.id === card.strategyId);
+	const answerReactionSettings = store.answerReactionSettings;
 	const linkType = store.cardLinkType;
 	const canEdit = card.permissions.canEdit;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
@@ -5169,40 +5199,21 @@ var ExerciseCardElement = observer((props) => {
 							})
 						]
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					answerReactionSettings && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "mb-3",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-								className: "fw-bold",
-								children: t("exercisesettings_strategy")
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Select, {
-								id: "strategyId",
-								"aria-describedby": "strategyDescription",
-								value: card.strategyId,
-								onChange: (e) => store.setCardStrategy(e.target.value),
-								title: currentStrategy?.displayName,
-								children: strategies?.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
-									value: d.id,
-									title: d.description ?? d.displayName,
-									children: d.displayName
-								}, d.id))
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", {
-								id: "strategyDescription",
-								className: "form-text text-muted",
-								children: currentStrategy?.description ?? ""
-							}),
-							currentStrategy && currentStrategy.settings.fields.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "mt-2 ps-3 border-start",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StrategySettingsForm, {
-									fields: currentStrategy.settings.fields,
-									values: card.options.strategySettings ?? {},
-									defaults: currentStrategy.settings.defaults,
-									onChange: (path, value) => store.setCardStrategySetting(path, value)
-								})
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "fw-bold",
+							children: t("exercisesettings_answerReaction")
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "mt-2 ps-3 border-start",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SettingsForm, {
+								id: "answer-reaction",
+								fields: answerReactionSettings.fields,
+								values: card.options.answerReaction ?? {},
+								defaults: answerReactionSettings.defaults,
+								onChange: (path, value) => store.setCardAnswerReactionSetting(path, value)
 							})
-						]
+						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "mb-3",
@@ -5380,21 +5391,21 @@ var ExerciseCardElement = observer((props) => {
 								stage,
 								stageIdx,
 								showDeleteBtn: stages.length > 1,
-								strategy: currentStrategy,
+								strategies,
 								stageDomainConcepts,
 								stageDomainSkills,
 								stageDomainLaws
 							}, stageIdx))
 						})]
 					}),
-					currentStrategy?.options.multiStagesEnabled ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						style: { marginTop: "-1rem" },
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 							variant: "success",
 							onClick: () => store.addStage(),
 							children: t("exercisesettings_addStage")
 						})
-					}) : null
+					})
 				]
 			})
 		}),
@@ -5419,7 +5430,7 @@ var ExerciseCardElement = observer((props) => {
 					onClick: () => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}`, "_blank")?.focus(),
 					children: t("exercisesettings_open")
 				}),
-				canEdit && currentStrategy?.options.multiStagesEnabled && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				canEdit && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					variant: "primary",
 					className: "me-2",
 					onClick: () => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}&debug`, "_blank")?.focus(),
@@ -5517,7 +5528,8 @@ var ExerciseModeBar = observer(({ store, linkType, courseId }) => {
 });
 var ExerciseStage = observer((props) => {
 	const { t } = useTranslation();
-	const { store, stage, strategy, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws, stageDomainSkills } = props;
+	const { store, stage, strategies, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws, stageDomainSkills } = props;
+	const strategy = strategies.find((s) => s.id === stage.strategyId);
 	if (!store.currentCard) throw new Error("card not set");
 	const cardConcepts = stage.concepts.reduce((acc, i) => (acc[i.name] = i, acc), {});
 	const cardLaws = stage.laws.reduce((acc, i) => (acc[i.name] = i, acc), {});
@@ -5541,19 +5553,65 @@ var ExerciseStage = observer((props) => {
 						delay: 0
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `${stage.bankSearchResult.count} (${stage.bankSearchResult?.topRatedCount})` })] })]
 				}),
-				strategy?.options.multiStagesEnabled && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mb-3",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-						className: "fw-bold",
-						htmlFor: `numberOfQuestions_stage${stageIdx}`,
-						children: t("exercisesettings_stageN_qnumber")
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
-						type: "text",
-						id: `numberOfQuestions_stage${stageIdx}`,
-						value: stage.numberOfQuestions,
-						onChange: (e) => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)
-					})]
-				}) || null,
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "fw-bold",
+							htmlFor: `strategyId_stage${stageIdx}`,
+							children: t("exercisesettings_strategy")
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Select, {
+							id: `strategyId_stage${stageIdx}`,
+							"aria-describedby": `strategyDescription_stage${stageIdx}`,
+							value: stage.strategyId,
+							title: strategy?.displayName,
+							onChange: (e) => store.setStageStrategy(stageIdx, e.target.value),
+							children: strategies.map((s) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+								value: s.id,
+								title: s.description ?? s.displayName,
+								children: s.displayName
+							}, s.id))
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", {
+							id: `strategyDescription_stage${stageIdx}`,
+							className: "form-text text-muted",
+							children: strategy?.description ?? ""
+						}),
+						strategy && strategy.settings.fields.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "mt-2 ps-3 border-start",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SettingsForm, {
+								id: `strategy-setting-stage${stageIdx}`,
+								fields: strategy.settings.fields,
+								values: stage.strategySettings,
+								defaults: strategy.settings.defaults,
+								onChange: (path, value) => store.setStageStrategySetting(stageIdx, path, value)
+							})
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mb-3",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "fw-bold",
+							htmlFor: `numberOfQuestions_stage${stageIdx}`,
+							children: t("exercisesettings_stageN_qnumber")
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+							type: "text",
+							id: `numberOfQuestions_stage${stageIdx}`,
+							"aria-describedby": `numberOfQuestionsHint_stage${stageIdx}`,
+							value: stage.numberOfQuestions,
+							onChange: (e) => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", {
+							id: `numberOfQuestionsHint_stage${stageIdx}`,
+							className: "form-text text-muted",
+							children: t("exercisesettings_stageN_qnumberHint")
+						})
+					]
+				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mb-3",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {

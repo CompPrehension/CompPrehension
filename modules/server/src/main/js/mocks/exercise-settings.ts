@@ -1,4 +1,4 @@
-import { Domain, ExerciseCard, Strategy } from '../types/exercise-settings';
+import { Domain, ExerciseCard, SettingsForm, Strategy } from '../types/exercise-settings';
 
 export const mockDomains: Domain[] = [
     {
@@ -41,7 +41,7 @@ export const mockDomains: Domain[] = [
     },
 ];
 
-const commonStrategySettings: Strategy['settings'] = {
+export const mockAnswerReactionSettings: SettingsForm = {
     fields: [
         { kind: 'CHOICE', name: 'reasoningSelection', label: 'Reasonings to admit', options: [
             { value: 'FEWEST_ERRORS', label: 'Most probable — with the fewest errors' },
@@ -75,15 +75,13 @@ export const mockStrategies: Strategy[] = [
         id: 'StaticStrategy',
         displayName: 'Static strategy',
         description: 'Hands out questions in a fixed order',
-        options: { multiStagesEnabled: true },
-        settings: commonStrategySettings,
+        settings: { fields: [], defaults: {} },
     },
     {
         id: 'GradeConfidenceBaseStrategy',
         displayName: 'Grade confidence strategy',
         description: null,
-        options: { multiStagesEnabled: false },
-        settings: commonStrategySettings,
+        settings: { fields: [], defaults: {} },
     },
 ];
 
@@ -93,7 +91,6 @@ const initialCard: ExerciseCard = {
     id: 1,
     name: 'Mocked exercise',
     domainId: mockDomains[0].id,
-    strategyId: mockStrategies[0].id,
     backendId: mockBackends[0],
     isPublic: false,
     tags: ['C++'],
@@ -114,6 +111,8 @@ const initialCard: ExerciseCard = {
     },
     stages: [
         {
+            strategyId: mockStrategies[0].id,
+            strategySettings: {},
             numberOfQuestions: 10,
             complexity: 0.5,
             concepts: [{ name: 'operator_binary_+', kind: 'TARGETED' }],

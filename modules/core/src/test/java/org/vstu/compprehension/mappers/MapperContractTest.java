@@ -7,8 +7,8 @@ import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.PositiveLaw;
 import org.vstu.compprehension.businesslogic.domains.Reasoning;
-import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsType;
+import org.vstu.compprehension.businesslogic.reaction.AnswerReactionSettings;
+import org.vstu.compprehension.businesslogic.settings.SettingsType;
 import org.vstu.compprehension.data.question.Assumption;
 import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.InteractionClarificationData;
@@ -35,7 +35,7 @@ class MapperContractTest {
             .subtype(Law.class, PositiveLaw.class)
             .value(ResponseEntity.class, MapperContractTest::response)
             .value(Reasoning.class, MapperContractTest::reasoning)
-            .value(StrategySettingsType.class, () -> CommonStrategySettings.TYPE)
+            .value(SettingsType.class, () -> AnswerReactionSettings.TYPE)
             // Выбранное рассуждение — идентификатор рассуждения взаимодействия, случайный идентификатор вне их.
             .value(InteractionClarificationData.class, () -> new InteractionClarificationData(
                     new HypothesisClarificationData("prompt", List.of()), true, null))

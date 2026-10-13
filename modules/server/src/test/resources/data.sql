@@ -52,26 +52,26 @@ insert ignore into course (id, name, external_course_id, education_resource_id) 
     (-1, 'Main test course',  'ext-course-1', -1),
     (-2, 'Other test course', 'ext-course-2', -1);
 
-insert ignore into exercise (id, name, tags, options_json, stages_json, domain_id, backend_id, strategy_id,
+insert ignore into exercise (id, name, tags, options_json, stages_json, domain_id, backend_id,
                       created_at, updated_at, is_public)
 values
-    (-1, 'Global pool exercise', '', '{}', '[]', 'expression_dt',
-     'ProductionBackend', 'StaticStrategy', now(), now(), 1),
-    (-2, 'Main course exercise', '', '{}', '[]', 'expression_dt',
-     'ProductionBackend', 'StaticStrategy', now(), now(), 0),
-    (-3, 'Inherited exercise', '', '{}', '[]', 'expression_dt',
-     'ProductionBackend', 'StaticStrategy', now(), now(), 1),
-    (-4, 'Other course exercise', '', '{}', '[]', 'expression_dt',
-     'ProductionBackend', 'StaticStrategy', now(), now(), 0),
+    (-1, 'Global pool exercise', '', '{}', '[{"strategyId": "StaticStrategy", "strategySettings": {}}]', 'expression_dt',
+     'ProductionBackend', now(), now(), 1),
+    (-2, 'Main course exercise', '', '{}', '[{"strategyId": "StaticStrategy", "strategySettings": {}}]', 'expression_dt',
+     'ProductionBackend', now(), now(), 0),
+    (-3, 'Inherited exercise', '', '{}', '[{"strategyId": "StaticStrategy", "strategySettings": {}}]', 'expression_dt',
+     'ProductionBackend', now(), now(), 1),
+    (-4, 'Other course exercise', '', '{}', '[{"strategyId": "StaticStrategy", "strategySettings": {}}]', 'expression_dt',
+     'ProductionBackend', now(), now(), 0),
     (-5, 'Expression DT exercise', 'C++',
      '{"newQuestionGenerationEnabled": true, "supplementaryQuestionsEnabled": true, "correctAnswerGenerationEnabled": true, "debugButtonEnabled": true, "forceNewAttemptCreationEnabled": false, "maxExpectedConcurrentStudents": 1}',
-     '[{"numberOfQuestions": 2, "complexity": 0.5, "laws": [], "concepts": [], "skills": []}]',
-     'expression_dt', 'DTReasoner', 'StaticStrategy', now(), now(), 1),
+     '[{"strategyId": "StaticStrategy", "strategySettings": {}, "numberOfQuestions": 2, "complexity": 0.5, "laws": [], "concepts": [], "skills": []}]',
+     'expression_dt', 'DTReasoner', now(), now(), 1),
     -- Деление запрещено, поэтому из банка типов подходит только grade_count; генерировать новые вопросы не нужно.
     (-6, 'Type evaluation exercise', 'Python',
      '{"newQuestionGenerationEnabled": false, "supplementaryQuestionsEnabled": false, "correctAnswerGenerationEnabled": true, "debugButtonEnabled": false, "forceNewAttemptCreationEnabled": false, "maxExpectedConcurrentStudents": 1, "generatorThreshold": 0}',
-     '[{"numberOfQuestions": 1, "complexity": 0.1, "laws": [], "concepts": [{"name": "division", "kind": "FORBIDDEN"}], "skills": []}]',
-     'type_eval_dt', 'DTReasoner', 'StaticStrategy', now(), now(), 1);
+     '[{"strategyId": "StaticStrategy", "strategySettings": {}, "numberOfQuestions": 1, "complexity": 0.1, "laws": [], "concepts": [{"name": "division", "kind": "FORBIDDEN"}], "skills": []}]',
+     'type_eval_dt', 'DTReasoner', now(), now(), 1);
 
 insert ignore into exercise_course_link (exercise_id, course_id) values
     (-2, -1),

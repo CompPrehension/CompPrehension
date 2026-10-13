@@ -21,8 +21,8 @@ import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.Reasoning;
-import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
-import org.vstu.compprehension.businesslogic.strategies.AnswerReaction;
+import org.vstu.compprehension.businesslogic.reaction.AnswerReactionPolicy;
+import org.vstu.compprehension.businesslogic.reaction.AnswerReaction;
 import org.vstu.compprehension.businesslogic.strategies.StrategyDecision;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
@@ -62,10 +62,9 @@ import static org.vstu.compprehension.enums.InteractionType.SEND_RESPONSE;
 @Log4j2
 class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendService {
     private final ExerciseAttemptDataService exerciseAttemptService;
-    private final ExerciseDataService exerciseService;
     private final QuestionDataService questionService;
     private final DomainFactory domainFactory;
-    private final AbstractStrategyFactory strategyFactory;
+    private final AttemptStageService attemptStageService;
     private final LocalizationService localizationService;
     private final UserDataService userService;
     private final QuestionDtoMapper questionDtoMapper;
@@ -76,6 +75,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final Mapper<SubmittedAnswerData, NewInteractionAnswerData> submittedAnswerMapper;
     private final UpdateMapper<Reasoning, InteractionReasoningData> reasoningMapper;
     private final UpdateMapper<Judgement.Verdict, InteractionReasoningData> verdictMapper;
+    private final AnswerReactionPolicy answerReactionPolicy = new AnswerReactionPolicy();
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) {
@@ -131,7 +131,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
             case Judgement.Reasoned reasoned -> {
                 var reaction = context == null
                         ? reactToDebuggedAnswer(reasoned)
-                        : strategyFactory.getStrategy(context.strategyId()).reactToAnswer(context.attemptId(), reasoned);
+                        : answerReactionPolicy.reactToAnswer(
+                                exerciseAttemptService.getAttemptWithQuestions(context.attemptId()), reasoned);
                 explanation = explainAnswer(reasoned, reaction.reply());
                 reasonings = toReasoningData(reasoned, reaction.probable());
                 clarification = toClarification(reasoned, reaction.reply());
@@ -283,15 +284,15 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 judgement.stepsLeft(), strategyDecision.grade(), strategyDecision.decision()), language);
     }
 
-    /** Взаимодействие, записанное и оценённое стратегией, вместе с обновлённым вопросом. */
+    /** Взаимодействие, записанное и оценённое, вместе с обновлённым вопросом. */
     private record GradedInteraction(@NotNull QuestionData question,
                                      @NotNull QuestionInteractionData interaction,
                                      @NotNull StrategyDecision decision) {
     }
 
     /**
-     * Записать взаимодействие студента с вопросом, выставить за него оценку стратегии
-     * и, если стратегия так решила, закрыть попытку.
+     * Записать взаимодействие студента с вопросом, выставить за него оценку попытки
+     * и, если все этапы упражнения пройдены, закрыть попытку.
      */
     private @NotNull GradedInteraction recordAndGrade(@NotNull QuestionData question,
                                                       @Nullable QuestionAttemptContextData context,
@@ -311,8 +312,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         val decision = context == null
                 ? new StrategyDecision(1f, Decision.CONTINUE)
-                : strategyFactory.getStrategy(context.strategyId())
-                        .gradeAndDecide(context.attemptId());
+                : attemptStageService.gradeAndDecide(context.attemptId());
         questionService.gradeInteraction(recorded.getId(), decision.grade());
         if (context != null) {
             exerciseAttemptService.ensureAttemptStatus(context.attemptId(), decision.decision());
@@ -470,14 +470,10 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
     @SneakyThrows
     private @NotNull ExerciseAttemptDto generateQuestions(AttemptSummaryData ea) {
-        var exercise = exerciseService.getExercise(ea.exerciseId());
-        var strategy = strategyFactory.getStrategy(exercise.strategyId());
-        var targetQuestionCount = strategy.getOptions().isMultiStagesEnabled()
-                ? exercise.stages().stream()
-                    .map(ExerciseStageData::getNumberOfQuestions)
-                    .reduce(Integer::sum)
-                    .orElse(1)
-                : 1;
+        var exercise = exerciseAttemptService.getAttemptWithQuestions(ea.attemptId()).exercise();
+        var targetQuestionCount = exercise.stages().stream()
+                .mapToInt(ExerciseStageData::getNumberOfQuestions)
+                .sum();
 
         for (int idx = 0; idx < targetQuestionCount; ++idx) {
             var currentQuestion = generateQuestion(ea.attemptId());

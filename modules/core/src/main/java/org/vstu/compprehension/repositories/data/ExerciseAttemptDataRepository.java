@@ -57,9 +57,9 @@ public class ExerciseAttemptDataRepository {
 
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
-        var attempt = exerciseAttemptRepository.findByIdFetchingExercise(attemptId)
+        var attempt = exerciseAttemptRepository.findById(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
-        var exerciseData = attemptExerciseMapper.map(attempt.getExercise());
+        var exerciseData = attempt.getExerciseSnapshot();
 
         var questions = questionRepository.findAllByAttemptIdFetchingMetadata(attemptId);
         var questionIds = questions.stream().map(QuestionEntity::getId).toList();
@@ -86,24 +86,24 @@ public class ExerciseAttemptDataRepository {
     public @NotNull AttemptGenerationContextData getGenerationContext(long attemptId) {
         var attempt = exerciseAttemptRepository.findByIdFetchingExerciseAndUser(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
+        // Генератор банка настраивают для упражнения, а не для попытки: опции берутся из самого упражнения.
         var exercise = attempt.getExercise();
         return new AttemptGenerationContextData(
                 attempt.getId(),
-                exercise.getDomainId(),
-                exercise.getStrategyId(),
+                attempt.getExerciseSnapshot().domainId(),
                 exercise.getOptions(),
                 attempt.getUser().getPreferred_language());
     }
 
     @Transactional(readOnly = true)
     public @NotNull Optional<ExerciseAttemptContextData> findAttemptContextByQuestionId(long questionId) {
-        return exerciseAttemptRepository.findByQuestionIdFetchingExerciseAndUser(questionId)
+        return exerciseAttemptRepository.findByQuestionIdFetchingUser(questionId)
                 .map(attemptContextMapper::map);
     }
 
     @Transactional(readOnly = true)
-    public long countQuestionsUpTo(long attemptId, long questionId) {
-        return questionRepository.countUpToQuestionInAttempt(attemptId, questionId);
+    public @NotNull Optional<Integer> findQuestionStageIndex(long questionId) {
+        return questionRepository.findStageIndex(questionId);
     }
 
     /** Владелец попытки; пусто, если попытки нет. */
@@ -155,7 +155,10 @@ public class ExerciseAttemptDataRepository {
         }
 
         var attempt = new ExerciseAttemptEntity();
-        attempt.setExercise(exerciseRepository.getReferenceById(exerciseId));
+        var exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NoSuchElementException("Exercise " + exerciseId + " not found"));
+        attempt.setExercise(exercise);
+        attempt.setExerciseSnapshot(attemptExerciseMapper.map(exercise));
         attempt.setUser(userRepository.getReferenceById(userId));
         attempt.setCourse(courseId == null ? null : courseRepository.getReferenceById(courseId));
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);

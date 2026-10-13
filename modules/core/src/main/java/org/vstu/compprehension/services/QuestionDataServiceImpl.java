@@ -48,6 +48,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
     private final QuestionDataRepository questionDataRepository;
     private final InteractionDataRepository interactionDataRepository;
     private final ExerciseAttemptDataService exerciseAttemptService;
+    private final AttemptStageService attemptStageService;
     private final DomainFactory domainFactory;
     private final QuestionBank questionStorage;
     private final Mapper<QuestionRequest, QuestionRequestLogData> questionRequestLogMapper;
@@ -57,14 +58,16 @@ class QuestionDataServiceImpl implements QuestionDataService {
     public QuestionData generateQuestion(long exerciseAttemptId) {
         var context = exerciseAttemptService.getGenerationContext(exerciseAttemptId);
         Domain domain = domainFactory.getDomain(context.domainId());
-        AbstractStrategy strategy = strategyFactory.getStrategy(context.strategyId());
+        var stage = attemptStageService.findCurrentStage(exerciseAttemptId);
+        AbstractStrategy strategy = strategyFactory.getStrategy(stage.getStage().getStrategyId());
 
-        QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttemptId);
+        QuestionRequest qr = strategy.generateQuestionRequest(stage);
         qr = domain.ensureQuestionRequestValid(qr);
 
         GeneratedQuestionData generated = domain.makeQuestion(qr, context.exerciseOptions(), context.userLanguage());
 
-        return saveQuestion(QuestionData.of(generated.getContent()), questionRequestLogMapper.map(qr), exerciseAttemptId);
+        return questionDataRepository.save(QuestionData.of(generated.getContent()), questionRequestLogMapper.map(qr),
+                exerciseAttemptId, stage.getIndex());
     }
 
     public QuestionData generateQuestion(int questionMetadataId, Language lang) {
@@ -191,6 +194,6 @@ class QuestionDataServiceImpl implements QuestionDataService {
     public @NotNull QuestionData saveQuestion(@NotNull QuestionData question,
                                               @Nullable QuestionRequestLogData questionRequestLog,
                                               @Nullable Long exerciseAttemptId) {
-        return questionDataRepository.save(question, questionRequestLog, exerciseAttemptId);
+        return questionDataRepository.save(question, questionRequestLog, exerciseAttemptId, null);
     }
 }

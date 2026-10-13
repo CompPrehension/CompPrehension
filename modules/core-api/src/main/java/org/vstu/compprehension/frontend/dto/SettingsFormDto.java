@@ -7,8 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-/** Форма настроек стратегии в упражнении и значения, которыми её заполнить для нового упражнения. */
-public record StrategySettingsDto(@NotNull List<Field> fields, @NotNull Map<String, Object> defaults) {
+/** Форма настроек в упражнении и значения, которыми её заполнить, пока они не заданы. */
+public record SettingsFormDto(@NotNull List<Field> fields, @NotNull Map<String, Object> defaults) {
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
     @JsonSubTypes({

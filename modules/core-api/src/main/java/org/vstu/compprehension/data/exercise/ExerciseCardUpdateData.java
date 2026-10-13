@@ -9,7 +9,6 @@ public record ExerciseCardUpdateData(
         @NotNull String name,
         @NotNull String domainId,
         @NotNull String backendId,
-        @NotNull String strategyId,
         @NotNull ExerciseOptionsData options,
         @NotNull List<ExerciseStageData> stages,
         @NotNull List<String> tags) {

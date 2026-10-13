@@ -1,33 +1,36 @@
-package org.vstu.compprehension.businesslogic.strategies.settings;
+package org.vstu.compprehension.businesslogic.settings;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsSchema.Choice;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsSchema.Flag;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsSchema.Group;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsSchema.Label;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsSchema.Numeric;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsSchema.Option;
+import org.vstu.compprehension.businesslogic.settings.SettingsSchema.Choice;
+import org.vstu.compprehension.businesslogic.settings.SettingsSchema.Flag;
+import org.vstu.compprehension.businesslogic.settings.SettingsSchema.Group;
+import org.vstu.compprehension.businesslogic.settings.SettingsSchema.Label;
+import org.vstu.compprehension.businesslogic.settings.SettingsSchema.Numeric;
+import org.vstu.compprehension.businesslogic.settings.SettingsSchema.Option;
 
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/** Тип настроек стратегии: значения по умолчанию, форма для преподавателя и чтение настроек упражнения. */
-public final class StrategySettingsType<S extends Record & StrategySettings> {
+/** Тип настроек: значения по умолчанию, форма для преподавателя и чтение сохранённых в упражнении настроек. */
+public final class SettingsType<S extends Record> {
 
     // Неизвестное поле — опечатка или настройка другой стратегии: такие настройки не принимаются.
+    // Настроек может не быть вовсе: рекорд без полей пишется как пустой объект.
     private static final ObjectMapper MAPPER = JsonMapper.builder()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
             .build();
     private static final TypeReference<Map<String, Object>> VALUES = new TypeReference<>() {
     };
@@ -35,12 +38,12 @@ public final class StrategySettingsType<S extends Record & StrategySettings> {
     private final @NotNull Class<S> type;
     private final @NotNull ObjectNode defaults;
     @Getter
-    private final @NotNull StrategySettingsSchema schema;
+    private final @NotNull SettingsSchema schema;
 
-    public StrategySettingsType(@NotNull Class<S> type, @NotNull S defaults) {
+    public SettingsType(@NotNull Class<S> type, @NotNull S defaults) {
         this.type = type;
         this.defaults = MAPPER.valueToTree(defaults);
-        this.schema = new StrategySettingsSchema(describeComponents(type));
+        this.schema = new SettingsSchema(describeComponents(type));
     }
 
     /** Значения по умолчанию в том виде, в каком настройки хранятся в упражнении. */
@@ -58,7 +61,7 @@ public final class StrategySettingsType<S extends Record & StrategySettings> {
         try {
             return MAPPER.treeToValue(merged, type);
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Invalid strategy settings: " + e.getOriginalMessage(), e);
+            throw new IllegalArgumentException("Invalid settings: " + e.getOriginalMessage(), e);
         }
     }
 
@@ -77,13 +80,13 @@ public final class StrategySettingsType<S extends Record & StrategySettings> {
         });
     }
 
-    private static void checkRanges(@NotNull List<StrategySettingsSchema.Field> fields, @NotNull ObjectNode values) {
+    private static void checkRanges(@NotNull List<SettingsSchema.Field> fields, @NotNull ObjectNode values) {
         for (var field : fields) {
             var value = values.get(field.name());
             switch (field) {
                 case Numeric numeric when value != null && value.isInt()
                         && (value.intValue() < numeric.min() || value.intValue() > numeric.max()) ->
-                        throw new IllegalArgumentException("Strategy setting '" + field.name() + "' must be within ["
+                        throw new IllegalArgumentException("Setting '" + field.name() + "' must be within ["
                                 + numeric.min() + ", " + numeric.max() + "], got: " + value);
                 case Group group when value instanceof ObjectNode groupValues -> checkRanges(group.fields(), groupValues);
                 default -> {
@@ -92,13 +95,13 @@ public final class StrategySettingsType<S extends Record & StrategySettings> {
         }
     }
 
-    private static @NotNull List<StrategySettingsSchema.Field> describeComponents(@NotNull Class<?> recordType) {
+    private static @NotNull List<SettingsSchema.Field> describeComponents(@NotNull Class<?> recordType) {
         return Arrays.stream(recordType.getRecordComponents())
-                .map(StrategySettingsType::describeComponent)
+                .map(SettingsType::describeComponent)
                 .toList();
     }
 
-    private static @NotNull StrategySettingsSchema.Field describeComponent(@NotNull RecordComponent component) {
+    private static @NotNull SettingsSchema.Field describeComponent(@NotNull RecordComponent component) {
         var label = requireLabel(component.getAnnotation(Setting.class), component);
         var name = component.getName();
         var valueType = component.getType();
@@ -115,7 +118,7 @@ public final class StrategySettingsType<S extends Record & StrategySettings> {
         if (valueType.isRecord()) {
             return new Group(name, label, describeComponents(valueType));
         }
-        throw new IllegalStateException("Strategy setting " + component + " has unsupported type " + valueType);
+        throw new IllegalStateException("Setting " + component + " has unsupported type " + valueType);
     }
 
     private static @NotNull List<Option> describeConstants(@NotNull Class<?> enumType) {
@@ -127,7 +130,7 @@ public final class StrategySettingsType<S extends Record & StrategySettings> {
 
     private static @NotNull Label requireLabel(@Nullable Setting setting, @NotNull Object annotated) {
         if (setting == null) {
-            throw new IllegalStateException("Strategy setting " + annotated + " has no @Setting label");
+            throw new IllegalStateException("Setting " + annotated + " has no @Setting label");
         }
         return new Label(setting.ru(), setting.en());
     }

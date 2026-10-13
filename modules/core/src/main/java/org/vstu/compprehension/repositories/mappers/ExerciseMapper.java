@@ -21,7 +21,6 @@ class ExerciseMapper implements Mapper<ExerciseEntity, ExerciseData> {
                 Strict.required(source.getName(), "name", owner),
                 Strict.required(source.getDomainId(), "domainId", owner),
                 Strict.required(source.getBackendId(), "backendId", owner),
-                Strict.required(source.getStrategyId(), "strategyId", owner),
                 Strict.required(source.getOptions(), "options", owner),
                 List.copyOf(Strict.required(source.getStages(), "stages", owner)),
                 List.copyOf(source.getTags()),

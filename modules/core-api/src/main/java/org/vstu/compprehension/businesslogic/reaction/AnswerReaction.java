@@ -1,4 +1,4 @@
-package org.vstu.compprehension.businesslogic.strategies;
+package org.vstu.compprehension.businesslogic.reaction;
 
 import org.jetbrains.annotations.NotNull;
 

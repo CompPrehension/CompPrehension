@@ -3,8 +3,8 @@ package org.vstu.compprehension.businesslogic.strategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
-import org.vstu.compprehension.businesslogic.domains.Judgement;
-import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsType;
+import org.vstu.compprehension.businesslogic.settings.SettingsType;
+import org.vstu.compprehension.data.exerciseattempt.AttemptStageData;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 
@@ -18,22 +18,14 @@ public interface AbstractStrategy {
 
     @NotNull StrategyOptions getOptions();
 
-    /** Настройки, которые преподаватель задаёт стратегии в упражнении. */
-    @NotNull StrategySettingsType<?> getSettingsType();
+    /** Настройки, которые преподаватель задаёт стратегии в этапе упражнения. */
+    @NotNull SettingsType<?> getSettingsType();
 
-    /** Как тренажёр реагирует на ответ студента, который объясняют рассуждения; ответ ещё не записан в попытку. */
-    @NotNull AnswerReaction reactToAnswer(long exerciseAttemptId, @NotNull Judgement.Reasoned judgement);
+    QuestionRequest generateQuestionRequest(@NotNull AttemptStageData stage);
 
-    QuestionRequest generateQuestionRequest(long exerciseAttemptId);
+    /** Оценка этапа после последнего записанного ответа: доля от вопросов, запланированных на этап. */
+    float grade(@NotNull AttemptStageData stage);
 
-    /** Оценка попытки после последнего записанного ответа. */
-    float grade(long exerciseAttemptId);
-
-    Decision decide(long exerciseAttemptId);
-    
-    default StrategyDecision gradeAndDecide(long exerciseAttemptId) {
-        var grade = grade(exerciseAttemptId);
-        var decision = decide(exerciseAttemptId);
-        return new StrategyDecision(grade, decision);
-    }
+    /** {@link Decision#FINISH}, если этап пройден раньше, чем заданы все запланированные на него вопросы. */
+    Decision decide(@NotNull AttemptStageData stage);
 }

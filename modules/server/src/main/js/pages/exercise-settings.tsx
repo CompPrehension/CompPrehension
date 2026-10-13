@@ -25,7 +25,7 @@ import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
 import { ImportFromGlobalModal } from "../components/exercise/import-from-global-modal";
-import { StrategySettingsForm } from "../components/exercise/strategy-settings-form";
+import { SettingsForm } from "../components/exercise/settings-form";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => new ExerciseSettingsStore());
@@ -164,7 +164,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const sharedDomainConcepts = currentDomain?.concepts
         .filter(c => !c.targetEnabled);
     const sharedDomainSkills : DomainSkill[] = []; // TODO: temporarily disabled due to missing flags in domain skills
-    const currentStrategy = strategies.find(s => s.id === card.strategyId);
+    const answerReactionSettings = store.answerReactionSettings;
     const linkType = store.cardLinkType;
     const canEdit = card.permissions.canEdit;
 
@@ -184,20 +184,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     </Form.Select>
                     <small id="domainDescription" className="form-text text-muted">{currentDomain?.description ?? ""}</small>
                 </div>
-                <div className="mb-3">
-                    <label className="fw-bold">{t('exercisesettings_strategy')}</label>
-                    <Form.Select id="strategyId" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
-                        {strategies?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
-                    </Form.Select>
-                    <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
-                    {currentStrategy && currentStrategy.settings.fields.length > 0 &&
+                {answerReactionSettings &&
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_answerReaction')}</label>
                         <div className="mt-2 ps-3 border-start">
-                            <StrategySettingsForm fields={currentStrategy.settings.fields}
-                                                  values={card.options.strategySettings ?? {}}
-                                                  defaults={currentStrategy.settings.defaults}
-                                                  onChange={(path, value) => store.setCardStrategySetting(path, value)} />
-                        </div>}
-                </div>
+                            <SettingsForm id="answer-reaction"
+                                          fields={answerReactionSettings.fields}
+                                          values={card.options.answerReaction ?? {}}
+                                          defaults={answerReactionSettings.defaults}
+                                          onChange={(path, value) => store.setCardAnswerReactionSetting(path, value)} />
+                        </div>
+                    </div>}
 
                 <div className="mb-3">
                     <label className="fw-bold">{t('exercisesettings_qopt')}</label>
@@ -344,26 +341,23 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                 stage={stage} 
                                 stageIdx={stageIdx}
                                 showDeleteBtn={stages.length > 1}
-                                strategy={currentStrategy}
+                                strategies={strategies}
                                 stageDomainConcepts={stageDomainConcepts}
                                 stageDomainSkills={stageDomainSkills}
                                 stageDomainLaws={stageDomainLaws} />)
                         }
                     </div>
                 </div>
-                {currentStrategy?.options.multiStagesEnabled
-                    ? <div style={{marginTop: "-1rem"}}>
-                        <Button variant="success" onClick={() => store.addStage()}>{t('exercisesettings_addStage')}</Button>
-                      </div>
-                    : null
-                }
+                <div style={{marginTop: "-1rem"}}>
+                    <Button variant="success" onClick={() => store.addStage()}>{t('exercisesettings_addStage')}</Button>
+                </div>
             </form >
             </fieldset>
             <div className="mt-5">
                 {canEdit && <Button variant="primary" className="me-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</Button>}
                 {canEdit && <Button variant="primary" className="me-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</Button>}
                 <Button variant="primary" className="me-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</Button>
-                {canEdit && currentStrategy?.options.multiStagesEnabled &&
+                {canEdit &&
                     <Button variant="primary" className="me-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</Button>
                 }
             </div>
@@ -474,14 +468,15 @@ type ExerciseStageProps = {
     stage: ExerciseStageStore,    
     stageIdx: number,
     showDeleteBtn?: boolean,
-    strategy?: Strategy,
+    strategies: Strategy[],
     stageDomainConcepts?: DomainConcept[],
     stageDomainLaws?: DomainLaw[],
     stageDomainSkills?: DomainSkill[],
 }
 const ExerciseStage = observer((props: ExerciseStageProps) => {
     const { t } = useTranslation();
-    const { store, stage, strategy, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws, stageDomainSkills } = props;
+    const { store, stage, strategies, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws, stageDomainSkills } = props;
+    const strategy = strategies.find(s => s.id === stage.strategyId);
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
@@ -503,16 +498,32 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                         }
                     </div>
                 </div>
-                {strategy?.options.multiStagesEnabled
-                    && <div className="mb-3">
-                            <label className="fw-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
-                            <Form.Control type="text"
-                                id={`numberOfQuestions_stage${stageIdx}`}
-                                value={stage.numberOfQuestions}
-                                onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
-                        </div>
-                    || null
-                }
+                <div className="mb-3">
+                    <label className="fw-bold" htmlFor={`strategyId_stage${stageIdx}`}>{t('exercisesettings_strategy')}</label>
+                    <Form.Select id={`strategyId_stage${stageIdx}`} aria-describedby={`strategyDescription_stage${stageIdx}`}
+                                 value={stage.strategyId} title={strategy?.displayName}
+                                 onChange={e => store.setStageStrategy(stageIdx, e.target.value)}>
+                        {strategies.map(s => <option key={s.id} value={s.id} title={s.description ?? s.displayName}>{s.displayName}</option>)}
+                    </Form.Select>
+                    <small id={`strategyDescription_stage${stageIdx}`} className="form-text text-muted">{strategy?.description ?? ""}</small>
+                    {strategy && strategy.settings.fields.length > 0 &&
+                        <div className="mt-2 ps-3 border-start">
+                            <SettingsForm id={`strategy-setting-stage${stageIdx}`}
+                                          fields={strategy.settings.fields}
+                                          values={stage.strategySettings}
+                                          defaults={strategy.settings.defaults}
+                                          onChange={(path, value) => store.setStageStrategySetting(stageIdx, path, value)} />
+                        </div>}
+                </div>
+                <div className="mb-3">
+                    <label className="fw-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
+                    <Form.Control type="text"
+                        id={`numberOfQuestions_stage${stageIdx}`}
+                        aria-describedby={`numberOfQuestionsHint_stage${stageIdx}`}
+                        value={stage.numberOfQuestions}
+                        onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
+                    <small id={`numberOfQuestionsHint_stage${stageIdx}`} className="form-text text-muted">{t('exercisesettings_stageN_qnumberHint')}</small>
+                </div>
                 <div className="mb-3">
                     <label className="fw-bold">{t('exercisesettings_qcomplexity')}</label>
                     <div className="d-flex">

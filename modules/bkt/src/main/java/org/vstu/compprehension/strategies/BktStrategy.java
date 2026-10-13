@@ -1,22 +1,19 @@
 package org.vstu.compprehension.strategies;
 
-import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
-import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vstu.compprehension.businesslogic.strategies.NoStrategySettings;
+import org.vstu.compprehension.data.exerciseattempt.AttemptStageData;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.RoleInExercise;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
-import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
-import org.vstu.compprehension.businesslogic.Concept;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.SkillMasteryState;
@@ -32,20 +29,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Log4j2
-public class BktStrategy extends StrategyBase<CommonStrategySettings> {
+public class BktStrategy extends StrategyBase {
 
     private final BktService bktService;
     private final DomainFactory domainFactory;
     private final StrategyOptions options;
 
     @Autowired
-    public BktStrategy(BktService bktService, DomainFactory domainFactory,
-                       ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService, CommonStrategySettings.TYPE);
+    public BktStrategy(BktService bktService, DomainFactory domainFactory) {
+        super(NoStrategySettings.TYPE);
         this.bktService = bktService;
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
-                .multiStagesEnabled(true)
                 .visibleToUser(true)
                 .build();
     }
@@ -83,17 +78,11 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
     }
 
     @Override
-    public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
-        var attempt = getAttempt(exerciseAttemptId);
-        val exercise = attempt.exercise();
-        val domain = domainFactory.getDomain(exercise.domainId());
+    public QuestionRequest generateQuestionRequest(@NotNull AttemptStageData stage) {
+        val attempt = stage.getAttempt();
+        val domain = domainFactory.getDomain(attempt.exercise().domainId());
 
-        val stageTargetSkills = getStageForNextQuestion(attempt).getSkills()
-                .stream()
-                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
-                .map(ExerciseSkillDto::getName)
-                .distinct()
-                .toList();
+        val stageTargetSkills = getTargetSkills(stage);
 
         val userId = attempt.userId();
 
@@ -103,8 +92,7 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
                 .map(domain::getSkill)
                 .toList();
 
-        ExerciseStageData exerciseStage = getStageForNextQuestion(attempt);
-        QuestionRequest qr = initQuestionRequest(attempt, exerciseStage, domain);
+        QuestionRequest qr = initQuestionRequest(stage, domain);
 
         if (!questionTargetSkills.isEmpty()) {
 
@@ -112,7 +100,7 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
             val denied = new HashSet<>(qr.getDeniedSkills());
             Set<Skill> allowed = new HashSet<>();
             allowed.addAll(qr.getAllowedSkills());
-            allowed.addAll(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.TARGETED));
+            allowed.addAll(getExerciseStageSkillsWithImplied(stage.getStage().getSkills(), domain, RoleInExercise.TARGETED));
             questionTargetSkills.forEach(allowed::remove);
             denied.forEach(allowed::remove);
 
@@ -122,31 +110,25 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
                     .build();
         }
 
-        return adjustQuestionRequest(qr, attempt);
+        return adjustQuestionRequest(qr, stage);
     }
 
     @Override
-    public float grade(long exerciseAttemptId) {
-        var attempt = getAttempt(exerciseAttemptId);
-        updateUserKnowledgeModel(attempt);
+    public float grade(@NotNull AttemptStageData stage) {
+        updateUserKnowledgeModel(stage);
 
-        val exercise = attempt.exercise();
-        val domain = (DomainBase) domainFactory.getDomain(exercise.domainId());
+        val attempt = stage.getAttempt();
+        val domain = (DomainBase) domainFactory.getDomain(attempt.exercise().domainId());
 
-        val targetSkills = getTargetSkills(attempt);
+        val targetSkills = getTargetSkills(stage);
 
         val userId = attempt.userId();
 
-        // Сколько вопросов планировалось в упражнении
-        val nQuestionsExpected = attempt.exercise()
-                .stages()
-                .stream()
-                .mapToInt(ExerciseStageData::getNumberOfQuestions)
-                .reduce(Integer::sum)
-                .orElse(1);
+        // Сколько вопросов планировалось на этапе
+        val nQuestionsExpected = stage.getStage().getNumberOfQuestions();
 
         // Собираем все навыки, встречавшиеся в уже отвеченных вопросах
-        val targetSkillsInAnswers = attempt.questions().stream()
+        val targetSkillsInAnswers = stage.getQuestions().stream()
                 .flatMap(q -> {
                     if (q.metadata() == null) return Stream.empty();
                     return domain.skillsFromBitmask(q.metadata().skillBits()).stream()
@@ -164,7 +146,7 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
         float cumulative = 0f;
 
         // Подсчитываем оценку за уже выполненные вопросы
-        for (AttemptQuestionData q : attempt.questions()) {
+        for (AttemptQuestionData q : stage.getQuestions()) {
 
             // Ожидаемая корректность по target-навыкам вопроса
             List<String> qTargets;
@@ -204,8 +186,9 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
         }
 
         // Если стратегия уже решила FINISH, назначаем полный балл за оставшиеся вопросы
-        if (decide(exerciseAttemptId) == Decision.FINISH) {
-            val remaining = nQuestionsExpected - attempt.questions().size();
+        // Этап заканчивается только на завершённом вопросе.
+        if (stage.getQuestions().getLast().isCompleted() && decide(stage) == Decision.FINISH) {
+            val remaining = nQuestionsExpected - stage.getQuestions().size();
             cumulative += remaining; // Считаем, что все не выданные вопросы решены верно
         }
 
@@ -214,28 +197,17 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
     }
 
     @Override
-    public Decision decide(long exerciseAttemptId) {
-        var exerciseAttempt = getAttempt(exerciseAttemptId);
-        val exercise = exerciseAttempt.exercise();
-        val domain = domainFactory.getDomain(exercise.domainId());
-
-        val targetSkills = getTargetSkills(exerciseAttempt);
+    public Decision decide(@NotNull AttemptStageData stage) {
+        val attempt = stage.getAttempt();
+        val domain = domainFactory.getDomain(attempt.exercise().domainId());
 
         val skillStates = bktService.getSkillStates(
                 domain.getDomainId(),
-                exerciseAttempt.userId(),
-                targetSkills
+                attempt.userId(),
+                getTargetSkills(stage)
         );
 
-        List<AttemptQuestionData> questions = exerciseAttempt.questions();
-
-        // Последний вопрос должен быть завершен
-        AttemptQuestionData lastQuestion = questions.getLast();
-        if (!isQuestionCompleted(lastQuestion)) {
-            return Decision.CONTINUE;
-        }
-
-        // Быстрый выход: все целевые навыки уже освоены
+        // Все целевые навыки уже освоены
         if (skillStates != null && !skillStates.isEmpty()) {
             boolean allMastered = skillStates
                     .stream()
@@ -246,29 +218,22 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
                 return Decision.FINISH;
             }
         }
-
-        // Проверка на минимальное число завершённых вопросов (как в static strategy)
-        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.exercise());
-
-        long completedQuestions = questions.stream()
-                .filter(this::isQuestionCompleted)
-                .count();
-
-        if (completedQuestions < minimumQuestionsToAsk) {
-            return Decision.CONTINUE;
-        }
-
-        return Decision.FINISH;
+        return Decision.CONTINUE;
     }
 
     // Оценивается только что записанный ответ — последнее взаимодействие попытки. Уточнения по нему ещё не было,
     // поэтому у неверного ответа засчитано только то, что верно при любом рассуждении.
-    private void updateUserKnowledgeModel(ExerciseAttemptWithQuestionsData exerciseAttempt) {
+    // Ответ на вопрос другого этапа не учитывается: иначе его учёл бы каждый этап с этой стратегией.
+    private void updateUserKnowledgeModel(AttemptStageData stage) {
+        val exerciseAttempt = stage.getAttempt();
         val domain = domainFactory.getDomain(exerciseAttempt.exercise().domainId());
         val answered = exerciseAttempt.questions().stream()
                 .flatMap(question -> question.interactions().stream())
                 .max(Comparator.comparingLong(AttemptQuestionInteractionData::interactionId))
                 .orElseThrow(() -> new IllegalStateException("Attempt " + exerciseAttempt.id() + " has no answers to grade"));
+        if (stage.getQuestions().stream().noneMatch(question -> question.interactions().contains(answered))) {
+            return;
+        }
         Set<String> observedSkills = new HashSet<>(answered.isCorrect() ? answered.appliedKnowledge() : answered.violatedKnowledge());
         val engagedSkills = calculateEngagedSkills(domain, observedSkills, answered.isCorrect())
                 .stream()
@@ -282,26 +247,14 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
         );
     }
 
-    private List<String> getTargetSkills(ExerciseAttemptWithQuestionsData attempt) {
-        return attempt
-                .exercise()
-                .stages()
+    private List<String> getTargetSkills(AttemptStageData stage) {
+        return stage.getStage()
+                .getSkills()
                 .stream()
-                .flatMap(stage -> stage.getSkills().stream())
                 .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
                 .map(ExerciseSkillDto::getName)
                 .distinct()
                 .toList();
-    }
-
-    private boolean isQuestionCompleted(AttemptQuestionData q) {
-        // Вопрос считается завершенным, когда в последнем взаимодействии
-        // feedback.interactionsLeft == 0.
-        if (q.interactions().isEmpty()) {
-            return false;
-        }
-        AttemptQuestionInteractionData last = q.interactions().getLast();
-        return last.interactionsLeft() == 0;
     }
 
     /**

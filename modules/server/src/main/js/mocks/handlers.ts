@@ -1,7 +1,7 @@
 import { HttpResponse, delay, http } from 'msw';
 import { ExerciseCard } from '../types/exercise-settings';
 import { Interaction } from '../types/interaction';
-import { mockBackends, mockCard, mockDomains, mockStrategies, saveMockCard } from './exercise-settings';
+import { mockAnswerReactionSettings, mockBackends, mockCard, mockDomains, mockStrategies, saveMockCard } from './exercise-settings';
 import { ClarificationAnswer } from '../types/feedback';
 import { Grade, answerClarification, gradeAnswers, mockAttempt, mockQuestions, nextCorrectAnswer, recordAnswers, resetAnswers } from './questions';
 
@@ -53,6 +53,7 @@ export const handlers = [
 
     http.get('/api/refTables/domains', () => HttpResponse.json(mockDomains)),
     http.get('/api/refTables/strategies', () => HttpResponse.json(mockStrategies)),
+    http.get('/api/refTables/answerReactionSettings', () => HttpResponse.json(mockAnswerReactionSettings)),
     http.get('/api/refTables/backends', () => HttpResponse.json(mockBackends)),
     http.get('/api/refTables/domainLaws', () => HttpResponse.json(mockDomains[0].laws.map(l => l.name))),
     http.get('/api/refTables/domainConcepts', () => HttpResponse.json(mockDomains[0].concepts.map(c => c.name))),

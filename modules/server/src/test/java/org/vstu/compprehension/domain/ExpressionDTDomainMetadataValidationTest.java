@@ -3,6 +3,7 @@ package org.vstu.compprehension.domain;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -79,13 +80,13 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 true, true, true,
                 true, 7, null, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
-        exercise.setStrategyId("StaticStrategy");
+        exercise.setStages(Collections.singletonList(ExerciseStageData.builder().strategyId("StaticStrategy").build()));
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
         attempt = new ExerciseAttemptEntity();
         attempt.setQuestions(List.of());
         attempt.setExercise(exercise);
+        attempt.setExerciseSnapshot(new AttemptExerciseData(exercise.getDomainId(), exercise.getStages(), List.of(), null));
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setUser(userRepository.findAll().iterator().next());
         exerciseAttemptRepository.save(attempt);

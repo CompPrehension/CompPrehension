@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Вопрос попытки помнит этап, для которого задан. Раньше этап вычислялся по счёту вопросов: вопрос относится к
+        этапу, на который пришёлся его номер среди вопросов попытки, после последнего этапа — к последнему. Стратегии,
+        которые не знали этапов, задавали все вопросы для первого. Наводящие вопросы задаются не для этапа.
+    -->
+    <changeSet id="2026-10-13-01-question-stage" author="Artem Prokudin">
+        <sql>
+            alter table question
+                add column stage_index int null;
+
+            create temporary table tmp_question_stages as
+            select nq.id,
+                   if(e.strategy_id in ('StaticStrategy', 'BktStrategy'), least(
+                           (select count(*)
+                            from json_table(e.stages_json, '$[*]' columns (
+                                idx for ordinality,
+                                n int path '$.numberOfQuestions')) st
+                            where (select sum(st2.n)
+                                   from json_table(e.stages_json, '$[*]' columns (
+                                       idx for ordinality,
+                                       n int path '$.numberOfQuestions')) st2
+                                   where st2.idx &lt;= st.idx) &lt; nq.num),
+                           json_length(e.stages_json) - 1), 0) as stage_index
+            from (select q.id, q.exercise_attempt_id,
+                         row_number() over (partition by q.exercise_attempt_id order by q.id) as num
+                  from question q
+                  where q.exercise_attempt_id is not null
+                    and q.question_domain_type not like '%Supplementary%') nq
+                     join exercise_attempt a on a.id = nq.exercise_attempt_id
+                     join exercise e on e.id = a.exercise_id
+            where json_length(e.stages_json) > 0;
+
+            update question q
+                join tmp_question_stages s on s.id = q.id
+            set q.stage_index = s.stage_index;
+
+            drop temporary table tmp_question_stages;
+        </sql>
+        <rollback>
+            <sql>
+                alter table question
+                    drop column stage_index;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!--
+        Стратегия выбирается для этапа, а не для упражнения: каждый этап получает стратегию упражнения. Собственных
+        настроек у стратегий нет; прежние настройки стратегии упражнения — это настройки реакции на ответы.
+        Откат возвращает упражнению стратегию первого этапа.
+    -->
+    <changeSet id="2026-10-13-01-stage-strategy" author="Artem Prokudin">
+        <sql>
+            create temporary table tmp_exercise_stages as
+            select distinct st.exercise_id,
+                            json_arrayagg(json_set(st.stage, '$.strategyId', st.strategy_id,
+                                                   '$.strategySettings', json_object()))
+                                over (partition by st.exercise_id order by st.idx
+                                    rows between unbounded preceding and unbounded following) as stages
+            from (select e.id as exercise_id, e.strategy_id, s.idx, s.stage
+                  from exercise e,
+                       json_table(e.stages_json, '$[*]' columns (
+                           idx for ordinality,
+                           stage json path '$')) s) st;
+
+            update exercise e
+                join tmp_exercise_stages t on t.exercise_id = e.id
+            set e.stages_json = t.stages;
+
+            drop temporary table tmp_exercise_stages;
+
+            update exercise
+            set options_json = json_remove(json_set(options_json,
+                    '$.answerReaction', json_extract(options_json, '$.strategySettings')), '$.strategySettings')
+            where json_contains_path(options_json, 'one', '$.strategySettings');
+
+            alter table exercise
+                drop column strategy_id;
+        </sql>
+        <rollback>
+            <sql>
+                alter table exercise
+                    add column strategy_id varchar(100) null;
+
+                update exercise
+                set strategy_id = coalesce(json_unquote(json_extract(stages_json, '$[0].strategyId')), 'StaticStrategy');
+
+                alter table exercise
+                    modify column strategy_id varchar(100) not null;
+
+                update exercise
+                set options_json = json_remove(json_set(options_json,
+                        '$.strategySettings', json_extract(options_json, '$.answerReaction')), '$.answerReaction')
+                where json_contains_path(options_json, 'one', '$.answerReaction');
+
+                create temporary table tmp_exercise_stages as
+                select distinct st.exercise_id,
+                                json_arrayagg(json_remove(st.stage, '$.strategyId', '$.strategySettings'))
+                                    over (partition by st.exercise_id order by st.idx
+                                        rows between unbounded preceding and unbounded following) as stages
+                from (select e.id as exercise_id, s.idx, s.stage
+                      from exercise e,
+                           json_table(e.stages_json, '$[*]' columns (
+                               idx for ordinality,
+                               stage json path '$')) s) st;
+
+                update exercise e
+                    join tmp_exercise_stages t on t.exercise_id = e.id
+                set e.stages_json = t.stages;
+
+                drop temporary table tmp_exercise_stages;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

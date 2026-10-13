@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.frontend.dto.ExerciseCardDto;
 import org.vstu.compprehension.frontend.dto.ExerciseDto;
+import org.vstu.compprehension.frontend.dto.ExerciseStageDto;
+import org.vstu.compprehension.businesslogic.reaction.AnswerReactionSettings;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.data.exercise.ExerciseCardUpdateData;
@@ -18,7 +20,6 @@ import org.vstu.compprehension.data.exercise.ExerciseSummaryData;
 import org.vstu.compprehension.data.exercise.NewExerciseData;
 import org.vstu.compprehension.repositories.data.ExerciseDataRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -55,12 +56,12 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
     @Transactional
     public long createExerciseAndGetId(@NotNull String name, @NotNull String domainId, @NotNull String strategyId, @Nullable Long courseId) {
         var backendId = domainFactory.getDomain(domainId).getBackendId();
+        var strategySettings = strategyFactory.getStrategy(strategyId).getSettingsType().getDefaults();
 
         long exerciseId = exercises.create(new NewExerciseData(
                 name,
                 domainId,
                 backendId,
-                strategyId,
                 ExerciseOptionsData.builder()
                         .forceNewAttemptCreationEnabled(true)
                         .correctAnswerGenerationEnabled(true)
@@ -68,7 +69,7 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
                         .supplementaryQuestionsEnabled(true)
                         .debugButtonEnabled(false)
                         .build(),
-                List.of(new ExerciseStageData(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>())),
+                List.of(ExerciseStageData.builder().strategyId(strategyId).strategySettings(strategySettings).build()),
                 List.of(),
                 courseId == null));
 
@@ -115,20 +116,28 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
     @Transactional
     public void saveExerciseCard(@NotNull ExerciseCardDto card) {
         var backendId = domainFactory.getDomain(card.getDomainId()).getBackendId();
-        var options = card.getOptions().withStrategySettings(strategyFactory.getStrategy(card.getStrategyId())
-                .getSettingsType().normalize(card.getOptions().getStrategySettings()));
+        var options = card.getOptions().withAnswerReaction(
+                AnswerReactionSettings.TYPE.normalize(card.getOptions().getAnswerReaction()));
+        if (card.getStages().isEmpty()) {
+            throw new IllegalArgumentException("Exercise " + card.getId() + " has no stages");
+        }
 
         exercises.updateCard(new ExerciseCardUpdateData(
                 card.getId(),
                 card.getName(),
                 card.getDomainId(),
                 backendId,
-                card.getStrategyId(),
                 options,
-                card.getStages().stream()
-                        .map(s -> new ExerciseStageData(s.getNumberOfQuestions(), s.getComplexity(),
-                                s.getLaws(), s.getConcepts(), s.getSkills()))
-                        .toList(),
+                card.getStages().stream().map(this::toStageData).toList(),
                 card.getTags()));
+    }
+
+    private @NotNull ExerciseStageData toStageData(@NotNull ExerciseStageDto stage) {
+        if (stage.getNumberOfQuestions() < 1) {
+            throw new IllegalArgumentException("A stage plans at least one question, got: " + stage.getNumberOfQuestions());
+        }
+        var settingsType = strategyFactory.getStrategy(stage.getStrategyId()).getSettingsType();
+        return new ExerciseStageData(stage.getStrategyId(), settingsType.normalize(stage.getStrategySettings()),
+                stage.getNumberOfQuestions(), stage.getComplexity(), stage.getLaws(), stage.getConcepts(), stage.getSkills());
     }
 }

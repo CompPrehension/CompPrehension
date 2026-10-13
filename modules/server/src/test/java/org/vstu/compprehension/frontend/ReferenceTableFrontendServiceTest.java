@@ -6,7 +6,7 @@ import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.DomainDto;
 import org.vstu.compprehension.frontend.dto.StrategyDto;
-import org.vstu.compprehension.frontend.dto.StrategySettingsDto;
+import org.vstu.compprehension.frontend.dto.SettingsFormDto;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 
@@ -86,31 +86,31 @@ class ReferenceTableFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(backendIds.isEmpty());
     }
 
-    /** Стратегия описывает форму своих настроек на языке пользователя и значения для нового упражнения. */
+    /** Форма реакции на ответы описана на языке пользователя вместе со значениями для нового упражнения. */
     @Test
-    void getStrategiesDescribeSettingsForm() {
+    void getAnswerReactionSettingsDescribesForm() {
         // Act.
-        var strategy = find(service.getStrategies(Language.RUSSIAN), TestData.Exercises.STRATEGY_ID);
+        var form = service.getAnswerReactionSettings(Language.RUSSIAN);
 
         // Assert.
         assertEquals(List.of(
-                        new StrategySettingsDto.Choice("reasoningSelection", "Какие рассуждения допускать", List.of(
-                                new StrategySettingsDto.Option("FEWEST_ERRORS", "Самые вероятные — с наименьшим числом ошибок"),
-                                new StrategySettingsDto.Option("ALL", "Все"))),
-                        new StrategySettingsDto.Choice("wrongAnswerClarification", "Уточнять рассуждение при неверном ответе", List.of(
-                                new StrategySettingsDto.Option("WHEN_AMBIGUOUS", "Если причин несколько"),
-                                new StrategySettingsDto.Option("ALWAYS", "Всегда, если есть причина"))),
-                        new StrategySettingsDto.Group("correctAnswerClarification", "Уточнять рассуждение при верном ответе",
-                                List.of(new StrategySettingsDto.Choice("mode", "Режим", List.of(
-                                                new StrategySettingsDto.Option("NEVER", "Никогда"),
-                                                new StrategySettingsDto.Option("ALWAYS", "Всегда"),
-                                                new StrategySettingsDto.Option("UNTIL_STREAK", "До серии верных ответов"))),
-                                        new StrategySettingsDto.Numeric("streakLength", "Длина серии верных ответов", 1, Integer.MAX_VALUE)))),
-                strategy.getSettings().fields());
+                        new SettingsFormDto.Choice("reasoningSelection", "Какие рассуждения допускать", List.of(
+                                new SettingsFormDto.Option("FEWEST_ERRORS", "Самые вероятные — с наименьшим числом ошибок"),
+                                new SettingsFormDto.Option("ALL", "Все"))),
+                        new SettingsFormDto.Choice("wrongAnswerClarification", "Уточнять рассуждение при неверном ответе", List.of(
+                                new SettingsFormDto.Option("WHEN_AMBIGUOUS", "Если причин несколько"),
+                                new SettingsFormDto.Option("ALWAYS", "Всегда, если есть причина"))),
+                        new SettingsFormDto.Group("correctAnswerClarification", "Уточнять рассуждение при верном ответе",
+                                List.of(new SettingsFormDto.Choice("mode", "Режим", List.of(
+                                                new SettingsFormDto.Option("NEVER", "Никогда"),
+                                                new SettingsFormDto.Option("ALWAYS", "Всегда"),
+                                                new SettingsFormDto.Option("UNTIL_STREAK", "До серии верных ответов"))),
+                                        new SettingsFormDto.Numeric("streakLength", "Длина серии верных ответов", 1, Integer.MAX_VALUE)))),
+                form.fields());
         assertEquals(Map.of("reasoningSelection", "FEWEST_ERRORS",
                         "wrongAnswerClarification", "WHEN_AMBIGUOUS",
                         "correctAnswerClarification", Map.of("mode", "NEVER", "streakLength", 7)),
-                strategy.getSettings().defaults());
+                form.defaults());
     }
 
     private static StrategyDto find(List<StrategyDto> strategies, String id) {

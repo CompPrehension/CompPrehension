@@ -14,10 +14,9 @@ class AttemptExerciseMapper implements Mapper<ExerciseEntity, AttemptExerciseDat
     @Override
     public @NotNull AttemptExerciseData map(@NotNull ExerciseEntity source) {
         return new AttemptExerciseData(
-                source.getId(),
                 source.getDomainId(),
                 source.getStages() == null ? List.of() : List.copyOf(source.getStages()),
                 source.getTags(),
-                source.getOptions().getStrategySettings());
+                source.getOptions().getAnswerReaction());
     }
 }

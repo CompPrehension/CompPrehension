@@ -76,7 +76,8 @@ public class QuestionDataRepository {
     @Transactional
     public @NotNull QuestionData save(@NotNull QuestionData data,
                                       @Nullable QuestionRequestLogData questionRequestLog,
-                                      @Nullable Long exerciseAttemptId) {
+                                      @Nullable Long exerciseAttemptId,
+                                      @Nullable Integer stageIndex) {
         var content = data.getContent();
 
         var metadata = content.getMetadata() == null || content.getMetadata().getId() == null
@@ -97,6 +98,9 @@ public class QuestionDataRepository {
         }
         if (exerciseAttemptId != null) {
             entity.setExerciseAttempt(exerciseAttemptRepository.getReferenceById(exerciseAttemptId));
+        }
+        if (stageIndex != null) {
+            entity.setStageIndex(stageIndex);
         }
 
         questionRepository.saveAndFlush(entity);
