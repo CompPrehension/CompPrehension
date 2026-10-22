@@ -33,6 +33,9 @@ public class QuestionBankSearchRequest implements Serializable {
 
     private String domainShortname;
 
+    /** Версия формата вопроса; null — любая. */
+    private @Nullable Integer questionVersion;
+
     /**
      * Сложность задания [0..1]
      */
@@ -81,6 +84,7 @@ public class QuestionBankSearchRequest implements Serializable {
                 .deniedQuestionTemplateIds(qr.getDeniedQuestionTemplateIds())
                 .deniedQuestionMetaIds(qr.getDeniedQuestionMetaIds())
                 .domainShortname(qr.getDomainShortname())
+                .questionVersion(qr.getQuestionVersion())
                 .complexity(normalizedComplexity)
                 .stepsMin(qr.getStepsMin())
                 .stepsMax(qr.getStepsMax())
