@@ -32,6 +32,8 @@ public final class DomainSolvingModelLoader {
     private static final Pattern TAG_FILE = Pattern.compile("tag_(\\S+)\\.loqi");
     private static final Pattern TREE_XML_FILE = Pattern.compile("tree(_\\S+|)\\.xml");
     private static final Pattern TREE_LOQI_FILE = Pattern.compile("tree(_\\S+|)\\.loqi");
+    private static final Pattern TPG_FILE = Pattern.compile("(\\S+)\\.tpg");
+    private static final String MAIN_TPG_NAME = "main";
 
     private DomainSolvingModelLoader() {
     }
@@ -81,6 +83,11 @@ public final class DomainSolvingModelLoader {
             var loqiMatch = TREE_LOQI_FILE.matcher(fileName);
             if (loqiMatch.matches()) {
                 trees.put(treeName(loqiMatch), readLoqiTree(directory, fileName));
+                continue;
+            }
+            var tpgMatch = TPG_FILE.matcher(fileName);
+            if (tpgMatch.matches()) {
+                trees.put(tpgName(tpgMatch), readLoqiTree(directory, fileName));
             }
         }
         return trees;
@@ -113,6 +120,11 @@ public final class DomainSolvingModelLoader {
     private static String treeName(Matcher match) {
         var name = match.group(1);
         return name.startsWith("_") ? name.substring(1) : name;
+    }
+
+    private static String tpgName(Matcher match) {
+        var name = match.group(1);
+        return name.equals(MAIN_TPG_NAME) ? "" : name;
     }
 
     private static List<String> listFileNames(URL directory) {
