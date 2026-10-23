@@ -1,0 +1,653 @@
+package org.vstu.compprehension.businesslogic.domains;
+
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.SupplementaryStepData;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
+import org.vstu.compprehension.data.question.ViolationData;
+import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
+import org.vstu.compprehension.data.question.BackendFactData;
+import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
+import org.vstu.compprehension.businesslogic.domains.helpers.GenerateErrorTextForScopeObjects;
+import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
+import its.model.DomainSolvingModel;
+import its.model.definition.DomainModel;
+import its.model.definition.ObjectDef;
+import its.model.definition.ObjectRef;
+import its.model.definition.rdf.DomainRDFFiller;
+import its.model.nodes.BranchResult;
+import its.reasoner.LearningSituation;
+import its.reasoner.nodes.DecisionTreeReasoner;
+import its.reasoner.nodes.DecisionTreeTrace;
+import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
+import lombok.val;
+import org.apache.commons.lang3.NotImplementedException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.services.RandomProvider;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
+import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.services.LocalizationService;
+import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.businesslogic.*;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.businesslogic.backend.Fact;
+import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.enums.InteractionType;
+import org.vstu.compprehension.enums.FeedbackType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.QuestionType;
+import org.vstu.compprehension.enums.SearchDirections;
+import org.vstu.compprehension.businesslogic.HyperText;
+
+import java.util.*;
+
+import static its.model.definition.build.DomainBuilderUtils.newVariable;
+import static its.model.definition.build.DomainBuilderUtils.setBoolProperty;
+import static org.vstu.compprehension.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
+
+@Log4j2
+public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
+
+    public static final String DOMAIN_ID = "data_flow";
+    static final String DATA_FLOW = "DataFlow";
+
+    static final String RESOURCES_LOCATION = "domains/";
+
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "data-flow";
+
+    protected final LocalizationService localizationService;
+
+    protected final QuestionBank qMetaStorage;
+
+    static final String MESSAGE_PREFIX = "dataflow_";
+
+    private static final HashMap<String, Tag> tags = new HashMap<>() {{
+        put("C++", new Tag("C++", 2L));  	// (2 ^ 1)
+    }};
+
+    private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "data-flow-domain-model/";
+
+    private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            DOMAIN_MODEL_LOCATION,
+            DomainSolvingModel.BuildMethod.DICT_RDF
+    ).validate(false);
+
+    @Getter
+    private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
+
+    public DataFlowDTDomain(
+            LocalizationService localizationService,
+            RandomProvider randomProvider,
+            QuestionBank qMetaStorage
+    ) {
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
+
+        this.localizationService = localizationService;
+        this.qMetaStorage = qMetaStorage;
+    }
+
+    private static Map<String, Concept> buildConcepts() {
+        var b = new ConceptsBuilder();
+
+        var flagsAll = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED); //для конкретных задач в одном стейдже
+        b.add("pointer", 0x1L, List.of(), flagsAll);
+        b.add("index_access", 0x2L, List.of(), flagsAll);
+        b.add("assignment", 0x4L, List.of(), flagsAll);
+        b.add("assignment_with_modification", 0x8L, List.of(), flagsAll);
+        b.add("prefix_increment_decrement", 0x10L, List.of(), flagsAll);
+        b.add("postfix_increment_decrement", 0x20L, List.of(), flagsAll);
+        b.add("ternary_operator", 0x40L, List.of(), flagsAll);
+        b.add("arithmetic_operator", 0x80L, List.of(), flagsAll);
+        b.add("logic_operator", 0x100L, List.of(), flagsAll);
+        b.add("comparison_operator", 0x200L, List.of(), flagsAll);
+        b.add("function_with_input_data", 0x400L, List.of(), flagsAll);
+        b.add("function_with_output_data", 0x800L, List.of(), flagsAll);
+        b.add("function_with_mutable_data", 0x1000L, List.of(), flagsAll);
+
+        return b.build();
+    }
+
+    private static Map<String, Skill> buildSkills() {
+        var b = new SkillsBuilder();
+        var visible = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);
+
+        b.add("input_variable_is_at_operator", 0x1L, visible);
+        b.add("output_variable_is_at_operator", 0x2L, visible);
+        b.add("mutable_variable_is_at_operator", 0x4L, visible);
+        b.add("input_variable_is_in_function_call", 0x8L, visible);
+        b.add("output_variable_is_in_function_call", 0x10L, visible);
+        b.add("mutable_variable_is_in_function_call", 0x20L, visible);
+        b.add("mutable_variable_appears_multiple_times", 0x40L, visible);
+        b.add("input_output_variable_appears_multiple_times", 0x80L, visible);
+
+        return b.build();
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        return localizationService.getMessage("dataflow_text.display_name", language);
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        return localizationService.getMessage("dataflow_text.description", language);
+    }
+
+    @Override
+    public Collection<Fact> responseToFacts(QuestionData question, List<? extends AnswerData> responses) {
+        var questionDomainType = question.getContent().getQuestionDomainType();
+        if (questionDomainType.equals(DATA_FLOW)) {
+            List<Fact> result = new ArrayList<>();
+            for (AnswerData response : responses) {
+                result.add(new Fact(
+                        "owl:NamedIndividual",
+                        response.left().getDomainInfo(),
+                        "var...",
+                        "xsd:string",
+                        response.right().getDomainInfo()
+                ));
+            }
+            return result;
+        }
+        return new ArrayList<>();
+    }
+
+    @Override
+    public Collection<Fact> getQuestionStatementFactsWithSchema(QuestionContentData q) {
+        throw new NotImplementedException();
+    }
+
+    @NotNull
+    @Override
+    public GeneratedQuestionData makeQuestion(@NotNull QuestionRequest questionRequest,
+                                              @Nullable ExerciseOptionsData exerciseOptions,
+                                              @NotNull Language userLanguage) {
+        HashSet<String> conceptNames = new HashSet<>();
+        for (Concept concept : questionRequest.getTargetConcepts()) {
+            conceptNames.add(concept.getName());
+        }
+
+        List<QuestionMetadataWithData> foundQuestions = null;
+        try {
+            
+            int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null
+                    ? exerciseOptions.getGeneratorThreshold()
+                    : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
+            int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
+                    ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
+                    : 3;
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+
+            // search again if nothing found with "TO_COMPLEX"
+            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                questionRequest = questionRequest.toBuilder().lawsSearchDirection(SearchDirections.TO_SIMPLE).build();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+            }
+        } catch (Exception e) {
+            // file storage was not configured properly...
+            log.error("Error searching questions - {}", e.getMessage(), e);
+            foundQuestions = new ArrayList<>();
+        }
+
+        if (foundQuestions == null || foundQuestions.isEmpty()) {
+            throw new IllegalStateException("No valid questions found");
+        }
+
+        var res = foundQuestions.getFirst();
+        return makeQuestion(res, questionRequest.getTargetTags(), userLanguage);
+    }
+
+    @NotNull
+    @Override
+    public GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
+                                              @NotNull List<Tag> tags,
+                                              @NotNull Language userLang) {
+        var questionData = metadata.getData();
+        return makeQuestion(questionData.toQuestion(this, metadata), tags, userLang);
+    }
+
+    protected GeneratedQuestionData makeQuestion(GeneratedQuestionData q, List<Tag> tags, Language userLanguage) {
+        QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
+                .requireContext(true)
+                .showTrace(true)
+                .multipleSelectionEnabled(false)
+                .showSupplementaryQuestions(false)
+                .requireAllAnswers(true)
+                .orderNumberOptions(new OrderQuestionOptionsData.OrderNumberOptions("", OrderQuestionOptionsData.OrderNumberPosition.NONE, null))
+                .build();
+
+        var source = q.getContent();
+        if (Objects.requireNonNull(source.getQuestionType()) != QuestionType.ORDER) {
+            throw new UnsupportedOperationException("Unknown type in DataFlowDTDomain::makeQuestion: " + source.getQuestionType());
+        }
+
+        // DON'T: add schema facts
+        // statement facts are already prepared in the Question's JSON
+        List<BackendFactData> facts = new ArrayList<>(factsListDeepCopy(source.getStatementFacts()));
+
+        return q.withContent(QuestionContentData.builder()
+                .domainId(getDomainId())
+                .answerObjects(source.getAnswerObjects())
+                .questionDomainType(source.getQuestionDomainType())
+                .questionName(source.getQuestionName())
+                .metadata(source.getMetadata())
+                .tags(tags.stream().map(Tag::getName).toList())
+                .statementFacts(facts)
+                .questionType(source.getQuestionType())
+                .questionText(getLocalizedQuestionText(source.getQuestionText(), userLanguage)
+                        + this.ExpressionToHtml(source.getAnswerObjects(), userLanguage))
+                .options(orderQuestionOptions)
+                .build());
+    }
+
+    private static String getLocalizedQuestionText(String input, Language language) {
+        String search = language.toLocaleString() + "{";
+        int start = input.indexOf(search);
+        if (start == -1) return "";
+
+        start += search.length();
+        int braceCount = 1;
+        int i = start;
+
+        while (i < input.length() && braceCount > 0) {
+            char c = input.charAt(i);
+            if (c == '{') braceCount++;
+            else if (c == '}') braceCount--;
+            i++;
+        }
+
+        if (braceCount == 0) {
+            return input.substring(start, i - 1);
+        } else {
+            return "";
+        }
+    }
+
+    public String ExpressionToHtml(List<AnswerObjectData> answers, Language userLanguage) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<p class='comp-ph-expr'>");
+        for (AnswerObjectData answer : answers) {
+            if(answer.getDomainInfo().isEmpty()) {
+                sb.append("<span ")
+                        .append("class='comp-ph-expr-const'")
+                        .append(">")
+                        .append(getMessage("text.variable", userLanguage))
+                        .append(" ")
+                        .append(answer.getHyperText())
+                        .append("</span><br/>");
+            } else {
+                sb.append("<span ")
+                        .append("id='answer_")
+                        .append(answer.getAnswerId())
+                        .append("' class='comp-ph-expr-op-btn'")
+                        .append(">")
+                        .append(answer.getHyperText())
+                        .append("</span><br/>");
+            }
+        }
+        sb.append("</p>");
+        return QuestionTextToHtml(sb.toString(), userLanguage);
+    }
+
+    public String QuestionTextToHtml(String text, Language language) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div class='comp-ph-question'>").append(text);
+        StringHelper.replaceAll(sb, "\\*", "&#8727");
+        StringHelper.replaceAll(sb, "\\n", "<br>");
+        StringHelper.replaceAll(sb, "\\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+        StringHelper.replaceAll(sb, "text.input", getMessage("text.input", language));
+        StringHelper.replaceAll(sb, "text.output", getMessage("text.output", language));
+        StringHelper.replaceAll(sb, "text.mutable", getMessage("text.mutable", language));
+        sb.append("</div>");
+        return sb.toString();
+    }
+
+    @Override
+    public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
+
+        List<AnswerData> responses = q.findLatestCorrectAnswers();
+
+        var solvingModel = getDomainSolvingModels().getFirst();
+        DomainModel situationModel = factsToDomainModel(solvingModel, q.getContent().getStatementFacts());
+        for (AnswerData response : responses) {
+            String[] objects = response.left().getDomainInfo().split(":");
+            LearningSituation learningSituation = new LearningSituation(
+                    situationModel.copy(),
+                    new HashMap<>(Map.of(
+                            "answer", new ObjectRef(objects[1]),
+                            "var", new ObjectRef(objects[0])
+                    ))
+            );
+            DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
+                    domainSolvingModel.getDecisionTree(),
+                    learningSituation
+            );
+            if(decisionTreeTrace.getBranchResult().equals(BranchResult.CORRECT)) {
+                val var = situationModel.getDomainModel().getObjects().get(objects[0]);
+                setBoolProperty(var, "isEvaluated", true);
+            }
+        }
+        List<ObjectDef> objects = situationModel.getDomainModel().getObjects()
+                .stream().filter(objectDef ->
+                        objectDef.isInstanceOf("Variable") && !((Boolean) objectDef.getPropertyValue("isEvaluated", Map.of()))
+                ).toList();
+        // Проверить в ризонере все возможные варианты интеракций и понять, какая из них правильная и выдать подсказку
+        String[] listAnswers = {"answerInput", "answerOutput", "answerMutable"};
+        for(ObjectDef object : objects) {
+            for(String answerVar : listAnswers) {
+                newVariable(situationModel, "var", object.getName());
+                newVariable(situationModel, "answer", answerVar);
+
+                LearningSituation learningSituation = new LearningSituation(
+                        situationModel,
+                        LearningSituation.collectDecisionTreeVariables(situationModel)
+                );
+
+                DecisionTreeTrace result = DecisionTreeReasoner.solve(
+                        domainSolvingModel.getDecisionTree(),
+                        learningSituation
+                );
+                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanationDataFlow(result, learningSituation.getDomainModel(), language);
+
+                if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
+                    AnswerObjectData answer = q.getContent().getAnswerObjects().stream()
+                            .filter(entity -> (object.getName()+":"+answerVar).equals(entity.getDomainInfo()))
+                            .findFirst()
+                            .orElse(null);
+                    CorrectAnswer correctAnswer = new CorrectAnswer();
+                    correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
+                    correctAnswer.question = q;
+                    correctAnswer.lawName = null;
+                    correctAnswer.skillName = null;
+
+                    Explanation newHintExplanation = replaceEnumInExplanation(hintExplanation.getChildren().getFirst(), language);
+                    correctAnswer.explanation = hintExplanation;
+                    correctAnswer.explanation.getChildren().removeFirst();
+                    correctAnswer.explanation.getChildren().addFirst(newHintExplanation);
+                    return correctAnswer;
+                }
+                situationModel.getVariables().remove("var");
+                situationModel.getVariables().remove("answer");
+            }
+        }
+        AnswerObjectData answer = q.getContent().getAnswerObjects().stream()
+                .findFirst()
+                .orElse(null);
+
+        CorrectAnswer correctAnswer = new CorrectAnswer();
+        correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
+        correctAnswer.question = q;
+        correctAnswer.lawName = null;
+        correctAnswer.skillName = null;
+        Explanation explanation = new Explanation(
+                Explanation.Type.HINT,
+                ""
+        );
+        explanation.getChildren().add(new Explanation(Explanation.Type.HINT, getMessage("hint_all", language)));
+        correctAnswer.explanation = explanation;
+        return correctAnswer;
+    }
+
+    private Explanation replaceEnumInExplanation(Explanation explanation, Language language) {
+        explanation.setRawMessage(new HyperText(explanation.getRawMessage().getText()
+                .replace("text.right", getMessage("text.right", language))
+                .replace("text.left", getMessage("text.left", language))
+                .replace("text.center", getMessage("text.center", language))
+                .replace("text.inputR", getMessage("text.inputR", language))
+                .replace("text.outputR", getMessage("text.outputR", language))
+                .replace("text.mutableR", getMessage("text.mutableR", language))
+                .replace("text.inputI", getMessage("text.inputI", language))
+                .replace("text.outputI", getMessage("text.outputI", language))
+                .replace("text.mutableI", getMessage("text.mutableI", language))));
+        return explanation;
+    }
+
+    @NotNull
+    @Override
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
+        return List.of();
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Tag> getTags() {
+        return tags;
+    }
+
+    @Override
+    public String getMessage(String messageKey, Language preferredLanguage) {
+        return localizationService.getMessage(MESSAGE_PREFIX + messageKey, Language.getLocale(preferredLanguage));
+    }
+
+    @Override
+    protected List<GeneratedQuestionData> getQuestionTemplates() {
+        throw new NotImplementedException();
+    }
+
+
+    //-----Суждение вопросов и подобное ------
+
+    @Override
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Collection<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
+        throw new UnsupportedOperationException("no Laws are used for " + this.getClass().getSimpleName());
+    }
+
+    @Override
+    public Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
+        throw new NotImplementedException();
+    }
+
+
+    //-----------Объяснения---------------
+    @Override
+    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
+        throw new NotImplementedException();
+    }
+
+
+    @Override
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest.toBuilder()
+                .stepsMin(1)
+                .stepsMax(30)
+                .build();
+    }
+
+    private static DomainModel factsToDomainModel(DomainSolvingModel domainSolvingModel, Collection<BackendFactData> factEntities) {
+        JenaBackend jenaBackend = new JenaBackend();
+        JenaFactList jenaFactList = jenaBackend.convertFactEntities(factEntities);
+        DomainModel situationModel = domainSolvingModel.getDomainModel().copy();
+        DomainRDFFiller.fillDomain(situationModel,
+                jenaFactList.getModel(),
+                Set.of(DomainRDFFiller.Option.NARY_RELATIONSHIPS_OLD_COMPAT),
+                null);
+        return situationModel;
+    }
+
+
+    //------ Наводящие вопросы --------
+    @Override
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, @Nullable SupplementaryStepData latestStep, ViolationData violation, Language lang) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData mainQuestion, SupplementaryStepContext step, List<? extends AnswerData> responses, Language language) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+        return false;
+    }
+
+    @Override
+    public List<DomainSolvingModel> getDomainSolvingModels() {
+        return List.of(domainSolvingModel);
+    }
+
+    private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
+
+        @Override
+        public DecisionTreeReasoningDomain getDomain() {
+            return DataFlowDTDomain.this;
+        }
+
+        @Override
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
+                QuestionData question,
+                List<? extends AnswerData> responses,
+                List<Tag> tags
+        ) {
+            var realDomain = DataFlowDTDomain.this;
+            
+            var domainSolvingModel = realDomain.getDomainSolvingModels().getFirst();
+            DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getContent().getStatementFacts());
+            AnswerData lastResponse = responses.getLast();
+            for (AnswerData response : responses) {
+                if(response != lastResponse) {
+                    String[] objects = response.left().getDomainInfo().split(":");
+                    LearningSituation learningSituation = new LearningSituation(
+                            situationModel.copy(),
+                            new HashMap<>(Map.of(
+                                    "answer", new ObjectRef(objects[1]),
+                                    "var", new ObjectRef(objects[0])
+                            ))
+                    );
+                    DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
+                            domainSolvingModel.getDecisionTree(),
+                            learningSituation
+                    );
+                    if(decisionTreeTrace.getBranchResult().equals(BranchResult.CORRECT)) {
+                        val var = situationModel.getDomainModel().getObjects().get(objects[0]);
+                        setBoolProperty(var, "isEvaluated", true);
+                    }
+                }
+            }
+            String[] objects = lastResponse.left().getDomainInfo().split(":");
+            newVariable(situationModel, "var", objects[0]);
+            newVariable(situationModel, "answer", objects[1]);
+
+            return new DecisionTreeReasonerBackend.Input(
+                    situationModel,
+                    domainSolvingModel.getDecisionTree()
+            );
+        }
+
+        @Override
+        public InterpretSentenceResult interpretJudgeOutput(QuestionData judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
+            var realDomain = DataFlowDTDomain.this;
+
+            if(!backendOutput.isReasoningDone()){
+                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation(), language);
+            }
+            InterpretSentenceResult result = new InterpretSentenceResult();
+            updateJudgeInterpretationResult(result, backendOutput);
+
+            result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
+                    backendOutput.results(),
+                    backendOutput.situation().getDomainModel(),
+                    language
+            );
+            result.explanation = realDomain.replaceEnumInExplanation(result.explanation, language);
+            result.explanation.setCurrentDomainLawName("incorrectAnswer");
+
+            result.violations = new ArrayList<>();
+            result.correctlyAppliedLaws = new ArrayList<>();
+            result.isAnswerCorrect = result.explanation.getRawMessage().isEmpty();
+            if(!result.isAnswerCorrect) {
+                ViolationData v = new ViolationData();
+                v.setLawName("incorrectAnswer");
+                v.setViolationFacts(new ArrayList<>());
+                result.violations.add(v);
+            } else {
+                result.IterationsLeft--;
+            }
+            return result;
+        }
+
+        @Override
+        public InterpretSentenceResult interpretJudgeNotPerformed(
+                QuestionData judgedQuestion,
+                LearningSituation preparedSituation,
+                Language language
+        ) {
+            InterpretSentenceResult result = new InterpretSentenceResult();
+            result.violations = new ArrayList<>();
+            result.explanation = new Explanation(
+                    Explanation.Type.ERROR,
+                    ""
+            );
+            return result;
+        }
+
+        @Override
+        public void updateJudgeInterpretationResult(
+                InterpretSentenceResult interpretationResult,
+                DecisionTreeReasonerBackend.Output backendOutput
+        ) {
+            updateInterpretationResult(interpretationResult, backendOutput.situation());
+        }
+
+        private void updateInterpretationResult(
+                InterpretSentenceResult interpretationResult,
+                LearningSituation situation
+        ) {
+            interpretationResult.CountCorrectOptions = 1;
+            interpretationResult.IterationsLeft = calculateLeftInteractions(situation);
+
+            if (interpretationResult.IterationsLeft == 0) {
+                // Достигли полного завершения задачи.
+                // Ошибок уже быть не может — сбросим их все.
+                interpretationResult.isAnswerCorrect = true;
+                interpretationResult.violations = List.of();
+                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
+            }
+        }
+
+        public int calculateLeftInteractions(LearningSituation situation) {
+            int unevaluatedCount = (int) situation.getDomainModel().getObjects()
+                    .stream().filter(objectDef -> hasState(objectDef))
+                    .count();
+            return unevaluatedCount;
+        }
+
+        private boolean hasState(ObjectDef object) {
+            if (!object.isInstanceOf("Variable")) {
+                return false;
+            }
+            return !((Boolean) object.getPropertyValue("isEvaluated", Map.of()));
+        }
+
+        @Override
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(QuestionContentData question, List<Tag> tags) {
+            return null; //Solve not used in DecisionTreeReasonerBackend
+        }
+    }
+}

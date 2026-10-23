@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-16-01-drop-domain-foreign-keys" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="domain"/>
+        </preConditions>
+        <dropForeignKeyConstraint baseTableName="exercise" constraintName="FK_EXERCISE_ON_DOMAIN"/>
+        <dropForeignKeyConstraint baseTableName="question" constraintName="FK_QUESTION_ON_DOMAIN_NAME"/>
+        <dropForeignKeyConstraint baseTableName="bkt_domain_data" constraintName="fk_bkt_domain_data_domain"/>
+        <dropForeignKeyConstraint baseTableName="bkt_user_data" constraintName="fk_bkt_data_domain"/>
+        <rollback>
+            <addForeignKeyConstraint baseColumnNames="domain_id" baseTableName="exercise"
+                                     constraintName="FK_EXERCISE_ON_DOMAIN" referencedColumnNames="name"
+                                     referencedTableName="domain"/>
+            <addForeignKeyConstraint baseColumnNames="domain_name" baseTableName="question"
+                                     constraintName="FK_QUESTION_ON_DOMAIN_NAME" referencedColumnNames="name"
+                                     referencedTableName="domain"/>
+            <addForeignKeyConstraint baseColumnNames="domain_name" baseTableName="bkt_domain_data"
+                                     constraintName="fk_bkt_domain_data_domain" referencedColumnNames="name"
+                                     referencedTableName="domain"/>
+            <addForeignKeyConstraint baseColumnNames="domain_name" baseTableName="bkt_user_data"
+                                     constraintName="fk_bkt_data_domain" referencedColumnNames="name"
+                                     referencedTableName="domain"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-16-02-replace-domain-names-with-short-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="domain"/>
+        </preConditions>
+        <sql>
+            update exercise e join domain d on d.name = e.domain_id set e.domain_id = d.short_name;
+            update question q join domain d on d.name = q.domain_name set q.domain_name = d.short_name;
+            update bkt_domain_data b join domain d on d.name = b.domain_name set b.domain_name = d.short_name;
+            update bkt_user_data b join domain d on d.name = b.domain_name set b.domain_name = d.short_name;
+        </sql>
+        <rollback>
+            update exercise e join domain d on d.short_name = e.domain_id set e.domain_id = d.name;
+            update question q join domain d on d.short_name = q.domain_name set q.domain_name = d.name;
+            update bkt_domain_data b join domain d on d.short_name = b.domain_name set b.domain_name = d.name;
+            update bkt_user_data b join domain d on d.short_name = b.domain_name set b.domain_name = d.name;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-16-03-drop-domain" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="domain"/>
+        </preConditions>
+        <dropTable tableName="domain"/>
+        <rollback>
+            <createTable tableName="domain">
+                <column name="name" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true"/>
+                </column>
+                <column name="version" type="VARCHAR(255)">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="short_name" type="VARCHAR(255)">
+                    <constraints nullable="false" unique="true" uniqueConstraintName="uc_domain_shortname"/>
+                </column>
+                <column name="options_json" type="JSON">
+                    <constraints nullable="false"/>
+                </column>
+            </createTable>
+            <sql>
+                insert into domain (name, version, short_name, options_json) values
+                    ('ControlFlowDTDomain', '2', 'ctrl_flow_dt25', '{}'),
+                    ('ControlFlowStatementsDomain', '1', 'ctrl_flow', '{}'),
+                    ('ControlFlowStatementsDTDomain', '1', 'ctrl_flow_dt', '{}'),
+                    ('DataFlowDTDomain', '1', 'data_flow', '{}'),
+                    ('ObjectsScopeDTDomain', '1', 'obj_scope', '{}'),
+                    ('ProgrammingLanguageExpressionDomain', '1', 'expression', '{}'),
+                    ('ProgrammingLanguageExpressionDTDomain', '1', 'expression_dt', '{}');
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

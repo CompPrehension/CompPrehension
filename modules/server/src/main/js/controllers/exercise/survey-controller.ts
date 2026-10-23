@@ -1,4 +1,3 @@
-import { injectable } from "tsyringe";
 import { Survey, SurveyResultItem, TSurvey, TSurveyResultItem } from "../../types/survey";
 import { ajaxGet, ajaxPost, PromiseEither } from "../../utils/ajax";
 import * as E from "fp-ts/lib/Either";
@@ -7,7 +6,6 @@ import * as io from 'io-ts';
 import { API_URL } from "../../appconfig";
 
 
-@injectable()
 export class SurveyController {
     private surveyCache: Record<string, Survey> = {};
     
@@ -15,7 +13,7 @@ export class SurveyController {
     async getSurvey(suerveyId: string): PromiseEither<RequestError, Survey> {
         if (this.surveyCache[suerveyId])
             return E.right(this.surveyCache[suerveyId]);
-        var result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
+        const result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
         if (E.isRight(result))
             this.surveyCache[suerveyId] = result.right;
         return result;

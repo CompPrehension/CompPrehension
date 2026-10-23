@@ -64,7 +64,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                   <>
                     <Badge
                       className='comp-ph-feedback-grade'
-                      variant='primary'
+                      bg='primary'
                     >
                       {t('grade_feeback')}: {feedback.grade}
                     </Badge>{' '}
@@ -72,7 +72,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                 )}
                 {feedback.correctSteps !== null && (
                   <>
-                    <Badge variant='success'>
+                    <Badge bg='success'>
                       {t('correctsteps_feeback')}: {feedback.correctSteps}
                     </Badge>{' '}
                   </>
@@ -82,7 +82,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                     <>
                       <Badge
                         className='comp-ph-feedback-error-steps'
-                        variant='danger'
+                        bg='danger'
                       >
                         {t('stepswitherrors_feeback')}:{' '}
                         {feedback.stepsWithErrors}
@@ -93,7 +93,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                   feedback.stepsLeft > 0 && (
                     <>
                       <Badge className='comp-ph-feedback-remaining-steps'
-                      variant='info'>
+                      bg='info'>
                         {t('stepsleft_feeback')}: {feedback.stepsLeft}
                       </Badge>{' '}
                     </>
@@ -112,8 +112,8 @@ type FeedbackAlertProps = {
     supQuestionStore?: SupplementaryQuestionStore,
 }
 export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
-    let { supQuestionStore, message, showGenerateSupQuestion } = props;    
-    showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
+    const { supQuestionStore, message } = props;
+    const showGenerateSupQuestion = props.showGenerateSupQuestion && supQuestionStore != undefined;
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return (

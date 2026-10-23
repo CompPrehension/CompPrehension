@@ -1,0 +1,317 @@
+package org.vstu.compprehension.authorization;
+
+import org.vstu.compprehension.controllers.CourseController;
+import org.vstu.compprehension.infrastructure.TestData;
+
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
+
+class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
+
+    /** Администратор видит все курсы системы. */
+    @Test
+    void myCoursesReturnsAllCoursesForGlobalAdmin() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.ADMIN_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    /** Преподаватель видит только свой курс. */
+    @Test
+    void myCoursesReturnsOnlyOwnCourseForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(TestData.Courses.MAIN_ID));
+    }
+
+    /** Глобальная роль членства в курсе не даёт. */
+    @Test
+    void myCoursesIsEmptyForGlobalExerciseAuthor() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    /** Без ролей курсов не видно. */
+    @Test
+    void myCoursesIsEmptyForUserWithoutRoles() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.WITHOUT_ROLES_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    /** У студента нет VIEW_COURSE. */
+    @Test
+    void myCoursesIsEmptyForCourseStudent() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    /** У ассистента VIEW_COURSE есть. */
+    @Test
+    void myCoursesReturnsOwnCourseForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(TestData.Courses.MAIN_ID));
+    }
+
+    /** Роль в образовательном ресурсе действует во всех его курсах. */
+    @Test
+    void myCoursesReturnsAllLmsCoursesForEducationResourceAdmin() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    /** Список курсов упражнения требует VIEW_EXERCISE_USAGE в GLOBAL-области. */
+    @Test
+    void membershipsAllowedForGlobalExerciseAuthor() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getExerciseMemberships(TestData.Exercises.INHERITED_ID)).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** Прав преподавателя в курсе для глобальной проверки не хватает. */
+    @Test
+    void membershipsForbiddenForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getExerciseMemberships(TestData.Exercises.INHERITED_ID)).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Студенту список курсов упражнения закрыт. */
+    @Test
+    void membershipsForbiddenForGlobalStudent() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getExerciseMemberships(TestData.Exercises.INHERITED_ID)).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Наследование упражнения из пула требует LINK_POOL_EXERCISE_TO_COURSE. */
+    @Test
+    void addExerciseToCourseAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/course/exercise/add")
+                .param("exerciseId", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** У ассистента LINK_POOL_EXERCISE_TO_COURSE нет. */
+    @Test
+    void addExerciseToCourseForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/course/exercise/add")
+                .param("exerciseId", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** LINK_POOL_EXERCISE_TO_COURSE действует только в своём курсе. */
+    @Test
+    void addExerciseToCourseForbiddenForTeacherOfAnotherCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/course/exercise/add")
+                .param("exerciseId", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Наследовать можно только упражнение из пула: отказ по состоянию, не по правам. */
+    @Test
+    void addExerciseToCourseRejectedForPrivateExerciseOfAnotherCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/course/exercise/add")
+                .param("exerciseId", String.valueOf(TestData.Exercises.OTHER_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isConflict());
+    }
+
+    /** Отвязка упражнения тоже требует LINK_POOL_EXERCISE_TO_COURSE. */
+    @Test
+    void removeExerciseFromCourseAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.INHERITED_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** Ассистент упражнения от курса не отвязывает. */
+    @Test
+    void removeExerciseFromCourseForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.INHERITED_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Отвязка не проходит через границу курса. */
+    @Test
+    void removeExerciseFromCourseForbiddenForTeacherOfAnotherCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.INHERITED_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Собственное упражнение курса удаляется из курса по DELETE_EXERCISE. */
+    @Test
+    void removeOwnExerciseFromCourseAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** У ассистента DELETE_EXERCISE нет. */
+    @Test
+    void removeOwnExerciseFromCourseForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Свой courseId не открывает удаление упражнения чужого курса. */
+    @Test
+    void removeOwnExerciseOfAnotherCourseRejectedForTeacherActingInOwnCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.OTHER_ID)));
+
+        // Assert.
+        result.andExpect(status().isConflict());
+    }
+}

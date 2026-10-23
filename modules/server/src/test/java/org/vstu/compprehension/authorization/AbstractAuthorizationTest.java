@@ -1,0 +1,156 @@
+package org.vstu.compprehension.authorization;
+
+import org.vstu.compprehension.data.question.BackendFactData;
+import org.vstu.compprehension.infrastructure.TestData;
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.entities.AnswerObjectEntity;
+import org.vstu.compprehension.enums.AttemptStatus;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.QuestionEntity;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.repositories.entity.AnswerObjectRepository;
+import org.vstu.compprehension.repositories.entity.CourseRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
+import org.vstu.compprehension.repositories.entity.QuestionRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
+@Transactional
+public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest {
+
+    @Autowired private WebApplicationContext webApplicationContext;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ExerciseRepository exerciseRepository;
+    @Autowired private CourseRepository courseRepository;
+    @Autowired private ExerciseAttemptRepository exerciseAttemptRepository;
+    @Autowired private QuestionRepository questionRepository;
+    @Autowired private QuestionMetadataRepository questionMetadataRepository;
+    @Autowired private AnswerObjectRepository answerObjectRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @PersistenceContext private EntityManager entityManager;
+
+    protected MockMvc mockMvc;
+
+    @BeforeEach
+    void setUpMockMvc() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .defaultRequest(get("/").with(user("integration-test")))
+                .build();
+    }
+
+    @AfterEach
+    void resetCurrentUser() {
+        TestUserService.reset();
+    }
+
+    protected void actingAs(long userId) {
+        TestUserService.actAs(userId);
+    }
+
+    protected String toJson(Object body) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(body);
+    }
+
+    protected ExerciseAttemptEntity createAttempt(long userId, long exerciseId, Long courseId) {
+        var attempt = new ExerciseAttemptEntity();
+        attempt.setUser(userRepository.findById(userId).orElseThrow());
+        attempt.setExercise(exerciseRepository.findById(exerciseId).orElseThrow());
+        attempt.setCourse(courseId == null ? null : courseRepository.findById(courseId).orElseThrow());
+        attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
+        attempt.setQuestions(new ArrayList<>());
+
+        exerciseAttemptRepository.save(attempt);
+        entityManager.flush();
+        return attempt;
+    }
+
+    /** Незавершённая попытка студента в главном курсе. */
+    protected ExerciseAttemptEntity createMainCourseAttempt() {
+        return createAttempt(TestData.Users.MAIN_COURSE_STUDENT_ID, TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID);
+    }
+
+    /** Попытка вне курса. */
+    protected ExerciseAttemptEntity createGlobalPoolAttempt() {
+        return createAttempt(TestData.Users.GLOBAL_STUDENT_ID, TestData.Exercises.GLOBAL_POOL_ID, null);
+    }
+
+    protected QuestionEntity createQuestion(@Nullable ExerciseAttemptEntity attempt) {
+        var metadata = questionMetadataRepository
+                .findById(TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId())
+                .orElseThrow(() -> new IllegalStateException("Не найден questions_meta с id " + TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId()));
+        var bankQuestion = bankDataOf(metadata);
+
+        var question = new QuestionEntity();
+        question.setExerciseAttempt(attempt);
+        question.setDomainId(TestData.Exercises.DOMAIN_ID);
+        question.setMetadata(metadata);
+        question.setQuestionType(bankQuestion.getQuestionType());
+        question.setQuestionText(bankQuestion.getQuestionText());
+        question.setQuestionName(bankQuestion.getQuestionName());
+        question.setQuestionDomainType(bankQuestion.getQuestionDomainType());
+        question.setOptions(bankQuestion.getOptions());
+        question.setTags(new ArrayList<>(metadata.getQuestionData().getData().getTags()));
+        question.setStatementFacts(bankQuestion.getStatementFacts().stream()
+                .map(f -> new BackendFactData(
+                        f.getSubjectType(), f.getSubject(), f.getVerb(), f.getObjectType(), f.getObject()))
+                .collect(Collectors.toCollection(ArrayList::new)));
+        question.setSolutionFacts(new ArrayList<>());
+        question.setInteractions(new ArrayList<>());
+        question.setAnswerObjects(new ArrayList<>());
+
+        questionRepository.save(question);
+        entityManager.flush();
+
+        for (SerializableQuestion.AnswerObject source : bankQuestion.getAnswerObjects()) {
+            var answer = new AnswerObjectEntity();
+            answer.setQuestion(question);
+            answer.setAnswerId(source.getAnswerId());
+            answer.setHyperText(source.getHyperText());
+            answer.setDomainInfo(source.getDomainInfo());
+            answer.setRightCol(source.isRightCol());
+            answer.setConcept(source.getConcept());
+            answerObjectRepository.save(answer);
+            question.getAnswerObjects().add(answer);
+        }
+        entityManager.flush();
+
+        return question;
+    }
+
+    protected QuestionEntity createQuestionWithoutAttempt() {
+        return createQuestion(null);
+    }
+
+    private SerializableQuestion.QuestionData bankDataOf(QuestionMetadataEntity metadata) {
+        var questionData = metadata.getQuestionData();
+        if (questionData == null || questionData.getData() == null) {
+            throw new IllegalStateException(
+                    "questions_data для метаданных " + metadata.getId() + " не найдены, проверьте data.sql");
+        }
+        return questionData.getData().getQuestionData();
+    }
+}

@@ -1,19 +1,12 @@
-import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
-import { inject, injectable } from "tsyringe";
-import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
+import { IReactionDisposer, autorun, makeAutoObservable, observable, untracked } from "mobx";
+import { courseController, exerciseSettingsController } from "../controllers";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
-import { KeysWithValsOfType } from "../types/utils";
-import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
-import { UserInfo } from "../types/user-info";
-import { Language } from "../types/language";
-import i18next from "i18next";
+import { RequestError } from "../types/request-error";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
-import { RequestError } from "../types/request-error";
-import { useCallback } from "react";
-import { IUserController, UserController } from "../controllers/exercise/user-controller";
+import {NonEmptyArray} from "fp-ts/lib/NonEmptyArray";
 
 export type ExerciseCardViewModel = {
     id: number,
@@ -24,7 +17,11 @@ export type ExerciseCardViewModel = {
     tags: string[],
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
     options: ExerciseOptions,
+    isPublic: boolean,
+    permissions: ExerciseCardPermissions,
 }
+
+export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
 
 export class ExerciseStageStore implements Disposable {
     card: ExerciseCardViewModel
@@ -38,7 +35,8 @@ export class ExerciseStageStore implements Disposable {
     autorunner?: IReactionDisposer
     private abortController: AbortController | null = null
 
-    constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
+    constructor(private readonly courseId: number | null,
+                card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
         this.skills     = stage.skills;
@@ -48,16 +46,21 @@ export class ExerciseStageStore implements Disposable {
 
         makeAutoObservable(this);
 
-        this.autorunner = autorun(async () => {
+        this.autorunner = autorun(() => {
             const complexity = this.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
             const skills = this.skills.slice()
-            this.updateBankStats(concepts, laws, skills, card.tags, complexity);
+            const tags = card.tags.slice()
+            // the search itself is a side effect, not an input: `makeAutoObservable` marks
+            // plain methods as `autoAction`, which keeps tracking when called from inside a
+            // derivation, so without `untracked` this autorun would also subscribe to what
+            // updateBankStats reads - including the abortController it writes to itself
+            untracked(() => this.updateBankStats(concepts, laws, skills, tags, complexity));
         }, { delay: 1000 });
     }
     
-    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
+    async updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
         const { card } = this;
 
         // Cancel previous request
@@ -69,16 +72,14 @@ export class ExerciseStageStore implements Disposable {
         // Create new controller for this request
         const currentAbortController = new AbortController();
         this.abortController = currentAbortController;
-        runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
+        this.bankLoadingState = 'IN_PROGRESS';
 
-        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, currentAbortController.signal);
+        const newData = await exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
         if (E.isRight(newData)) {
-            runInAction(() => {
-                this.bankSearchResult = newData.right;
-            });
+            this.bankSearchResult = newData.right;
 
             // TODO handle AbortError properly
-            runInAction(() => this.bankLoadingState = 'COMPLETED');
+            this.bankLoadingState = 'COMPLETED';
         }
 
         // Cleanup if this is still the active request
@@ -98,36 +99,47 @@ export class ExerciseStageStore implements Disposable {
     }
 }
 
-@injectable()
 export class ExerciseSettingsStore {
     exercisesLoadStatus: 'NONE' | 'LOADING' | 'LOADED' | 'EXERCISELOADING' = 'NONE';
     exercises: ExerciseListItem[] | null = null;
+    permissions: ExerciseListPermissions = noExerciseListPermissions;
     domains: Domain[] | null = null;
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
     currentCard: ExerciseCardViewModel | null = null;
+    courseId: number | null = null;
+    storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError } = { tag: 'VALID' };
+    private loadToken = 0;
 
-    constructor(
-        @inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController,
-        @inject(UserController) private readonly userController: IUserController,
-        @inject(ExerciseController) private readonly exerciseController: IExerciseController) {
-        
+    constructor() {
         makeAutoObservable(this);
+    }
+
+    private applyExerciseList(list: ExerciseList) {
+        this.exercises = list.exercises;
+        this.permissions = list.permissions;
+    }
+
+    get cardLinkType(): ExerciseLinkType {
+        const card = this.currentCard;
+        if (!card) return 'global';
+        if (this.courseId == null) return card.isPublic ? 'global' : 'original';
+        return card.isPublic ? 'inherited' : 'original';
     }
 
     private toCardViewModel(card: ExerciseCard): ExerciseCardViewModel {
         const cardDomain = this.domains?.find(x => x.id === card.domainId);
         if (!cardDomain)
-            throw new Error(`не найден домен ${card.domainId}`);    
+            throw new Error(`The exercise is bound to domain '${card.domainId}', which the server does not list`);
 
         const result: ExerciseCardViewModel = observable({
             ...card,
             tags: card.tags.filter(t => cardDomain.tags.some(tt => tt === t)),
-            stages: [] as any,
+            stages: [] as unknown as NonEmptyArray<ExerciseStageStore>,
         });
         result.stages = pipe(
             card.stages,
-            NEA.map(stage => new ExerciseStageStore(this.exerciseSettingsController, result, stage))
+            NEA.map(stage => new ExerciseStageStore(this.courseId, result, stage))
         );
 
         return result;
@@ -144,63 +156,138 @@ export class ExerciseSettingsStore {
     }
 
 
-    async loadExercises() {
+    async loadExercises(courseId: number | null = null) {
         if (this.exercisesLoadStatus === 'LOADED' || this.exercisesLoadStatus === 'LOADING')
             return;
 
-        runInAction(() => this.exercisesLoadStatus = 'LOADING');
+        this.storeState = { tag: 'VALID' };
+        this.exercisesLoadStatus = 'LOADING';
+        this.courseId = courseId;
         const [rawExercises, domains, backends, strategies] = await Promise.all([
-            this.exerciseSettingsController.getAllExercises(),
-            this.exerciseSettingsController.getDomains(),
-            this.exerciseSettingsController.getBackends(),
-            this.exerciseSettingsController.getStrategies()
+            exerciseSettingsController.listExercises(courseId),
+            exerciseSettingsController.getDomains(),
+            exerciseSettingsController.getBackends(),
+            exerciseSettingsController.getStrategies()
         ])
-        if (E.isRight(rawExercises) && E.isRight(domains) &&
-            E.isRight(backends) && E.isRight(strategies)) {
-            runInAction(() => {
-                this.exercises = rawExercises.right;
-                this.domains = domains.right;
-                this.backends = backends.right;
-                this.strategies = strategies.right;
-            });
+        const failed = [rawExercises, domains, backends, strategies].find(E.isLeft);
+        if (failed) {
+            this.storeState = { tag: 'ERROR', error: failed.left };
+            this.exercisesLoadStatus = 'NONE';
+            return;
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+
+        this.applyExerciseList((rawExercises as E.Right<ExerciseList>).right);
+        this.domains = (domains as E.Right<Domain[]>).right;
+        this.backends = (backends as E.Right<string[]>).right;
+        this.strategies = (strategies as E.Right<Strategy[]>).right;
+        this.exercisesLoadStatus = 'LOADED';
     }
 
     async loadExercise(exerciseId: number) {
-        if (this.exercisesLoadStatus !== 'LOADED')
+        if (this.exercisesLoadStatus === 'NONE' || this.exercisesLoadStatus === 'LOADING')
             throw new Error("Exercises must be loaded first");
 
-        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId);
-        if (E.isRight(rawExercise)) {
-            runInAction(() => {
-                this.currentCard = this.toCardViewModel(rawExercise.right);
-            });
+        const token = ++this.loadToken;
+        this.storeState = { tag: 'VALID' };
+        this.exercisesLoadStatus = 'EXERCISELOADING';
+        try {
+            const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
+            if (token !== this.loadToken)
+                return;
+            if (E.isLeft(rawExercise)) {
+                this.storeState = { tag: 'ERROR', error: rawExercise.left };
+                return;
+            }
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+        } catch (error) {
+            this.currentCard = null;
+            this.storeState = { tag: 'ERROR', error: { message: error instanceof Error ? error.message : String(error) } };
+        } finally {
+            if (token === this.loadToken)
+                this.exercisesLoadStatus = 'LOADED';
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
     }
 
     async createNewExecise() {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
-        const newExerciseId = await this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]!.id);
+        const newExerciseId = await exerciseSettingsController.createExercise(
+            "(empty)", this.domains![0].id, this.strategies![0]!.id, this.courseId);
         if (!E.isRight(newExerciseId))
             return;
 
-        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
+        this.exercisesLoadStatus = 'EXERCISELOADING';
         const [rawExercise, newExercisesList] = await Promise.all([
-            this.exerciseSettingsController.getExercise(newExerciseId.right),
-            this.exerciseSettingsController.getAllExercises(),
+            exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
+            exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
-            runInAction(() => {
-                this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.exercises = newExercisesList.right;
-            });
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+            this.applyExerciseList(newExercisesList.right);
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+        this.exercisesLoadStatus = 'LOADED';
+    }
+
+    /** After an exercise was imported into the course elsewhere: refresh the list and open the imported card. */
+    async loadImportedExercise(exerciseId: number) {
+        if (this.exercisesLoadStatus !== 'LOADED')
+            throw new Error("Exercises must be loaded first");
+
+        this.exercisesLoadStatus = 'EXERCISELOADING';
+        const [rawExercise, newExercisesList] = await Promise.all([
+            exerciseSettingsController.getExercise(exerciseId, this.courseId),
+            exerciseSettingsController.listExercises(this.courseId),
+        ]);
+        if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+            this.applyExerciseList(newExercisesList.right);
+        }
+        this.exercisesLoadStatus = 'LOADED';
+    }
+
+    async cloneCurrentToCourse(targetCourseId: number) {
+        if (!this.currentCard) return;
+        const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
+        if (!E.isRight(result)) return;
+        const newId = result.right;
+        // Reload list and load the new clone
+        const [rawExercise, newExercisesList] = await Promise.all([
+            exerciseSettingsController.getExercise(newId, this.courseId),
+            exerciseSettingsController.listExercises(this.courseId),
+        ]);
+        if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+            this.applyExerciseList(newExercisesList.right);
+        }
+    }
+
+    async copyCurrentToPool(): Promise<number | null> {
+        if (!this.currentCard) return null;
+        const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, null);
+        return E.isRight(result) ? result.right : null;
+    }
+
+    async unlinkFromCourse(courseId: number) {
+        if (!this.currentCard) return;
+        await courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
+        // After unlink the exercise no longer belongs to this course; reload list and clear card.
+        const refreshed = await exerciseSettingsController.listExercises(this.courseId);
+        if (E.isRight(refreshed)) {
+            this.applyExerciseList(refreshed.right);
+            this.currentCard = null;
+        }
+    }
+
+    async deleteCurrentExercise() {
+        if (!this.currentCard) return;
+        const id = this.currentCard.id;
+        await exerciseSettingsController.deleteExercise(id, this.courseId);
+        const refreshed = await exerciseSettingsController.listExercises(this.courseId);
+        if (E.isRight(refreshed)) {
+            this.applyExerciseList(refreshed.right);
+            this.currentCard = null;
+        }
     }
 
 
@@ -208,15 +295,13 @@ export class ExerciseSettingsStore {
         if (!this.currentCard)
             return;
 
-        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard));
-        const newExercisesList = await this.exerciseSettingsController.getAllExercises();
+        this.exercisesLoadStatus = 'EXERCISELOADING';
+        await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
+        const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(newExercisesList)) {
-            runInAction(() => {
-                this.exercises = newExercisesList.right;
-            })
+            this.applyExerciseList(newExercisesList.right);
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+        this.exercisesLoadStatus = 'LOADED';
     }
 
     setCardName(name: string) {
@@ -470,10 +555,10 @@ export class ExerciseSettingsStore {
 
         /*
         const sharedDomainLaws = this.domains.find(z => z.id === card.domainId)?.laws
-            .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+            .filter(l => !l.targetEnabled) ?? [];
         const sharedDomainConcepts = this.domains.find(z => z.id === card.domainId)?.concepts
             .flatMap(c => [c, ...c.childs])
-            .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+            .filter(c => !c.targetEnabled) ?? [];
         const sharedDomainSkills = this.domains.find(z => z.id === card.domainId)?.skills
             .flatMap(c => [c, ...c.childs]) ?? [];
         var stageConcepts = card.stages[0].concepts
@@ -485,7 +570,7 @@ export class ExerciseSettingsStore {
         */
 
         const newStage = new ExerciseStageStore(
-            this.exerciseSettingsController,
+            this.courseId,
             card,
             {
                 numberOfQuestions: 10,

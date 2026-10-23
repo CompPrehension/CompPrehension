@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-24-01-rbac-revision" author="Artem Prokudin">
+        <sql>
+            update role set name = 'ADMIN' where name = 'GLOBAL_ADMIN';
+
+            update permission set name = 'LINK_POOL_EXERCISE_TO_COURSE' where name = 'MANAGE_COURSE_CONTENT';
+            update permission set name = 'VIEW_EXERCISE_CARD' where name = 'VIEW_EXERCISE';
+
+            delete rp from role_permission rp
+            join role r       on r.id = rp.role_id
+            join permission p on p.id = rp.permission_id
+            where r.name = 'GLOBAL_EXERCISE_AUTHOR' and p.name = 'VIEW_EXERCISE_CARD';
+
+            insert into permission (name) values
+                ('VIEW_EXERCISE_LIST'),
+                ('SEARCH_QUESTION_BANK'),
+                ('CREATE_LMS_ACTIVITY'),
+                ('CREATE_DEBUG_ATTEMPT'),
+                ('VIEW_OTHER_ATTEMPTS'),
+                ('COPY_EXERCISE_TO_GLOBAL_POOL'),
+                ('VIEW_EXERCISE_USAGE'),
+                ('VIEW_GLOBAL_POOL'),
+                ('DEBUG_BANK_QUESTION');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id
+            from role r
+            join permission p on
+                   (p.name in ('VIEW_EXERCISE_LIST', 'SEARCH_QUESTION_BANK')
+                        and r.name in ('ADMIN', 'EDUCATION_RESOURCE_ADMIN', 'TEACHER', 'ASSISTANT'))
+                or (p.name = 'CREATE_LMS_ACTIVITY'
+                        and r.name in ('ADMIN', 'EDUCATION_RESOURCE_ADMIN', 'TEACHER'))
+                or (p.name = 'CREATE_DEBUG_ATTEMPT'
+                        and r.name in ('ADMIN', 'GLOBAL_EXERCISE_AUTHOR', 'EDUCATION_RESOURCE_ADMIN', 'TEACHER'))
+                or (p.name = 'VIEW_OTHER_ATTEMPTS'
+                        and r.name in ('ADMIN', 'GLOBAL_EXERCISE_AUTHOR', 'EDUCATION_RESOURCE_ADMIN', 'TEACHER', 'ASSISTANT'))
+                or (p.name in ('COPY_EXERCISE_TO_GLOBAL_POOL', 'VIEW_EXERCISE_USAGE')
+                        and r.name in ('ADMIN', 'GLOBAL_EXERCISE_AUTHOR'))
+                or (p.name in ('VIEW_GLOBAL_POOL', 'DEBUG_BANK_QUESTION')
+                        and r.name in ('ADMIN', 'GLOBAL_EXERCISE_AUTHOR', 'EDUCATION_RESOURCE_ADMIN', 'TEACHER'));
+
+            insert into permission_scope (kind, scope_item_id) values ('ROOT', null);
+
+            update role_user_assignment rua
+            join role r             on r.id = rua.role_id
+            join permission_scope g on g.id = rua.permission_scope_id and g.kind = 'GLOBAL'
+            join permission_scope t on t.kind = 'ROOT'
+            set rua.permission_scope_id = t.id
+            where r.name = 'ADMIN';
+        </sql>
+        <rollback>
+            <sql>
+                update role_user_assignment rua
+                join permission_scope t on t.id = rua.permission_scope_id and t.kind = 'ROOT'
+                join permission_scope g on g.kind = 'GLOBAL'
+                set rua.permission_scope_id = g.id;
+
+                delete from permission_scope where kind = 'ROOT';
+
+                delete rp from role_permission rp
+                join permission p on p.id = rp.permission_id
+                where p.name in ('VIEW_EXERCISE_LIST', 'SEARCH_QUESTION_BANK', 'CREATE_LMS_ACTIVITY',
+                                 'CREATE_DEBUG_ATTEMPT', 'VIEW_OTHER_ATTEMPTS', 'COPY_EXERCISE_TO_GLOBAL_POOL',
+                                 'VIEW_EXERCISE_USAGE', 'VIEW_GLOBAL_POOL', 'DEBUG_BANK_QUESTION');
+                delete from permission
+                where name in ('VIEW_EXERCISE_LIST', 'SEARCH_QUESTION_BANK', 'CREATE_LMS_ACTIVITY',
+                               'CREATE_DEBUG_ATTEMPT', 'VIEW_OTHER_ATTEMPTS', 'COPY_EXERCISE_TO_GLOBAL_POOL',
+                               'VIEW_EXERCISE_USAGE', 'VIEW_GLOBAL_POOL', 'DEBUG_BANK_QUESTION');
+
+                insert into role_permission (role_id, permission_id)
+                select r.id, p.id from role r, permission p
+                where r.name = 'GLOBAL_EXERCISE_AUTHOR' and p.name = 'VIEW_EXERCISE_CARD';
+
+                update permission set name = 'VIEW_EXERCISE' where name = 'VIEW_EXERCISE_CARD';
+                update permission set name = 'MANAGE_COURSE_CONTENT' where name = 'LINK_POOL_EXERCISE_TO_COURSE';
+                update role set name = 'GLOBAL_ADMIN' where name = 'ADMIN';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

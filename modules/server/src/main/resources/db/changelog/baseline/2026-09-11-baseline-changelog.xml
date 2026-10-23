@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Baseline: schema and seed data squashed from all migrations up to 2026-09-11 (inclusive).
+        On databases that already exist the precondition fails and the changeset is marked as ran.
+    -->
+    <changeSet id="2026-09-11-baseline" author="Artem Prokudin" runInTransaction="false">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="exercise"/></not>
+        </preConditions>
+        <sqlFile path="db/changelog/baseline/schema.sql" stripComments="false"/>
+        <sqlFile path="db/changelog/baseline/data.sql" stripComments="false"/>
+        <rollback/>
+    </changeSet>
+
+</databaseChangeLog>

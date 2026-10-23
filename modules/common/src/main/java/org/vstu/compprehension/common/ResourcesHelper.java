@@ -113,7 +113,7 @@ public class ResourcesHelper {
         var folderPathInJar = Optional.ofNullable(packageMarkerType.getClassLoader().getResource(folderName))
                 .map(URL::getPath)
                 .orElseThrow(() -> new RuntimeException(String.format("Невозможно найти папку %s в ресурсах сборки", folderName)));
-        folderPathInJar = jarPath.startsWith("/") ? folderPathInJar.replaceAll("file:", "") : folderPathInJar.replaceAll("file:/", "");
+        folderPathInJar = jarPath.startsWith("/") ? folderPathInJar.replace("file:", "") : folderPathInJar.replace("file:/", "");
         if (folderPathInJar.startsWith("/")) {
             folderPathInJar = folderPathInJar.substring(1);
         }

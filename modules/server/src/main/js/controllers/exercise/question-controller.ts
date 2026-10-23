@@ -1,4 +1,3 @@
-import { injectable } from "tsyringe";
 import { API_URL } from "../../appconfig";
 import { Feedback, TFeedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
@@ -7,18 +6,7 @@ import { RequestError } from "../../types/request-error";
 import { SupplementaryQuestionRequest, SupplementaryQuestion, SupplementaryFeedback, TSupplementaryQuestion, TSupplementaryFeedback } from "../../types/supplementary-question";
 import { ajaxGet, ajaxPost, PromiseEither } from "../../utils/ajax";
 
-export interface IQuestionController {
-    generateQuestionByAttempt(attemptId: number): PromiseEither<RequestError, Question>;
-    generateQuestionByMetadata(metadataId: number): PromiseEither<RequestError, Question>;
-    getQuestion(questionId: number): PromiseEither<RequestError, Question>;
-    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, SupplementaryQuestion>;
-    generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback>;
-    addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> ;
-    addSupplementaryQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, SupplementaryFeedback> ;
-}
-
-@injectable()
-export class QuestionController implements IQuestionController {
+export class QuestionController {
 
     generateQuestionByAttempt(attemptId: number): PromiseEither<RequestError, Question> {
         return ajaxGet(`${API_URL}/api/question/generate?attemptId=${attemptId}`, TQuestion); 

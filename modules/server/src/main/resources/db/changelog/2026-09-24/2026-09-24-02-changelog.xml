@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-24-02-response-answer-value" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="response" columnName="answer_value"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="response">
+            <column name="answer_value" type="INT"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="response" columnName="answer_value"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-24-02-response-right-object-id-nullable" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'response'
+                  and column_name = 'right_object_id' and is_nullable = 'NO'
+            </sqlCheck>
+        </preConditions>
+        <dropNotNullConstraint tableName="response" columnName="right_object_id" columnDataType="BIGINT"/>
+        <rollback>
+            <addNotNullConstraint tableName="response" columnName="right_object_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-24-02-response-multi-choice-values" author="Artem Prokudin">
+        <sql>
+            update response r
+                join answer_object ao on ao.id = r.right_object_id
+                join question q on q.id = ao.question_id
+            set r.answer_value = ao.answer_id, r.right_object_id = null
+            where q.question_type = 1
+        </sql>
+        <rollback>
+            <sql>
+                update response r
+                    join answer_object lo on lo.id = r.left_object_id
+                    join answer_object ao on ao.question_id = lo.question_id and ao.answer_id = r.answer_value
+                set r.right_object_id = ao.id, r.answer_value = null
+                where r.right_object_id is null
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

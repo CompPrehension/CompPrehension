@@ -1,6 +1,6 @@
+import parse, { domToReact, Element } from "html-react-parser";
+import { answerSlotId } from "./answer-slot";
 import { observer } from "mobx-react";
-import React, { useEffect } from "react";
-import ReactDOM from "react-dom";
 import { Answer } from "../../../types/answer";
 import { SingleChoiceQuestion } from "../../../types/question";
 
@@ -29,8 +29,8 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
     }
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }])
-        }        
+            onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }])
+        }
     }
 
     return (
@@ -44,12 +44,13 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
         <div className='d-flex flex-column'>
           {question.answers.map((a, idx) => (
             <label
+              key={a.id}
               htmlFor={`question_${question.questionId}_answer_${a.id}`}
               className={`comp-ph-singlechoice-label d-flex flex-row ${
                 (idx !== question.answers.length - 1 && 'mb-3') || ''
               }`}
             >
-              <div className='mr-2 mt-1'>
+              <div className='me-2 mt-1'>
                 <input
                   id={`question_${question.questionId}_answer_${a.id}`}
                   name={`switch_${question.questionId}`}
@@ -73,57 +74,38 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     if (question.options.displayMode !== 'radio') {
         return null;
     }
-    const { options } = question;
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }])
-        }        
+            onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }])
+        }
     }
 
-    // on First Render 
-    useEffect(() => {    
-        // add button click event handlers
-        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
-            const id = e.getAttribute('data-answer-id') ?? -1;
-            const component = (<label htmlFor={`question_${question.questionId}_answer_${id}`}
-                                      className={"comp-ph-singlechoice-label"}>
-                                 <input id={`question_${question.questionId}_answer_${id}`} 
-                                        name={`switch_${question.questionId}`}
-                                        data-answer-id={id}
-                                        type="radio" 
-                                        checked={getAnswers().some(h => h.answer[0] === +id)}
-                                        onChange={(e) => selfOnChange(+id, e.target.checked)} 
-                                        readOnly={true} />
-                                 <span dangerouslySetInnerHTML={{ __html: e.innerHTML }} />
-                               </label>)
-            ReactDOM.render(component, e);
-            e.id = "";   
-        })
-    }, [question.questionId]);
-
-    // apply history changes
-    useEffect(() => {
-        // drop all changes
-        document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e: any) => {
-            e.checked = undefined;
-        });
-
-        // apply history changes    
-        getAnswers().forEach(({ answer }) => {
-            const id = answer[0];
-            const answr: any = document.querySelector(`#question_${question.questionId} input[data-answer-id='${id}']`);
-            if (!answr) {
+    const content = parse(question.text, {
+        replace: (node) => {
+            const id = answerSlotId(node);
+            if (id === null) {
                 return;
             }
-            setTimeout(() => answr.checked = true, 10)
-        });
-    }, [question.questionId, getAnswers()])
+
+            return (
+                <label htmlFor={`question_${question.questionId}_answer_${id}`}
+                       className="comp-ph-singlechoice-label">
+                    <input id={`question_${question.questionId}_answer_${id}`}
+                           name={`switch_${question.questionId}`}
+                           data-answer-id={id}
+                           type="radio"
+                           checked={getAnswers().some(h => h.answer[0] === id)}
+                           onChange={(e) => selfOnChange(id, e.target.checked)}
+                           readOnly={true} />
+                    <span>{domToReact((node as Element).children as never)}</span>
+                </label>
+            );
+        },
+    });
 
     return (
         <div id={`question_${question.questionId}`}>
-            <p>
-                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
-            </p>            
+            <div className="comp-ph-question-text">{content}</div>
         </div>
     );
 })

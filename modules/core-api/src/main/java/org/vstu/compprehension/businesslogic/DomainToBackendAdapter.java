@@ -1,0 +1,54 @@
+package org.vstu.compprehension.businesslogic;
+
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.QuestionContentData;
+import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.businesslogic.backend.Backend;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.enums.Language;
+
+import java.util.List;
+
+/**
+ * An "interface" between a {@link Domain} and a {@link Backend},
+ * defining the behaviour of their interaction and the format of the data used in it.
+ * This interface should be considered a part of a {@link Domain},
+ * which defines the possibilities of its interaction with a number of {@link Backend}s
+ */
+public interface DomainToBackendAdapter<BackendInput, BackendOutput, Back extends Backend<BackendInput, BackendOutput>> {
+    /**
+     * Prepare data needed for the {@link Backend#judge} method using the necessary format
+     */
+    BackendInput prepareBackendInfoForJudge(
+        QuestionData question,
+        List<? extends AnswerData> responses,
+        List<Tag> tags
+    );
+
+    /**
+     * Interpret the results of the {@link Backend#judge} method
+     * to provide user with the information on their responses
+     */
+    Domain.InterpretSentenceResult interpretJudgeOutput(
+        QuestionData judgedQuestion,
+        BackendOutput backendOutput,
+        Language language
+    );
+
+
+    /**
+     * Prepare data needed for the {@link Backend#solve} method using the necessary format
+     */
+    BackendInput prepareBackendInfoForSolve(
+        QuestionContentData question,
+        List<Tag> tags
+    );
+
+    /**
+     * Insert the results of the {@link Backend#solve} method into the solved question
+     */
+    QuestionContentData updateQuestionAfterSolve(
+        QuestionContentData question,
+        BackendOutput backendOutput
+    );
+}

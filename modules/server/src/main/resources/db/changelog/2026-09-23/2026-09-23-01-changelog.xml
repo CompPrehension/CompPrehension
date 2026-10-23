@@ -1,0 +1,971 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-23-01-qrl-denied-question-template-ids" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'denied_question_template_ids' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="denied_question_template_ids" columnDataType="JSON" defaultNullValue="[]"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="denied_question_template_ids" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-email-backfill" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="user" columnName="email"/>
+        </preConditions>
+        <sql>
+            update user set email = concat(replace(first_name, ' ', ''), '@vstu.ru')
+            where email is null and first_name is not null
+        </sql>
+        <rollback/>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-external-user-id-backfill" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="user" columnName="external_user_id"/>
+        </preConditions>
+        <sql>
+            update user set external_user_id = substring_index(external_id, '_', -1)
+            where external_user_id is null and instr(external_id, '_') > 0
+        </sql>
+        <rollback/>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-email" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'user'
+                  and column_name = 'email' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="user" columnName="email" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="user" columnName="email" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-preferred-language" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'user'
+                  and column_name = 'preferred_language' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="user" columnName="preferred_language" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="user" columnName="preferred_language" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-drop-login" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="user" columnName="login"/>
+        </preConditions>
+        <dropColumn tableName="user" columnName="login"/>
+        <rollback>
+            <addColumn tableName="user">
+                <column name="login" type="VARCHAR(255)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-drop-last-name" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="user" columnName="last_name"/>
+        </preConditions>
+        <dropColumn tableName="user" columnName="last_name"/>
+        <rollback>
+            <addColumn tableName="user">
+                <column name="last_name" type="VARCHAR(255)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-drop-password" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="user" columnName="password"/>
+        </preConditions>
+        <dropColumn tableName="user" columnName="password"/>
+        <rollback>
+            <addColumn tableName="user">
+                <column name="password" type="VARCHAR(255)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-user-drop-birthdate" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="user" columnName="birthdate"/>
+        </preConditions>
+        <dropColumn tableName="user" columnName="birthdate"/>
+        <rollback>
+            <addColumn tableName="user">
+                <column name="birthdate" type="DATETIME"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-name" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'exercise'
+                  and column_name = 'name' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="exercise" columnName="name" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="exercise" columnName="name" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-drop-max-retries" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="exercise" columnName="max_retries"/>
+        </preConditions>
+        <dropColumn tableName="exercise" columnName="max_retries"/>
+        <rollback>
+            <addColumn tableName="exercise">
+                <column name="max_retries" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-drop-use-guiding-questions" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="exercise" columnName="use_guiding_questions"/>
+        </preConditions>
+        <dropColumn tableName="exercise" columnName="use_guiding_questions"/>
+        <rollback>
+            <addColumn tableName="exercise">
+                <column name="use_guiding_questions" type="TINYINT(1)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-drop-hidden" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="exercise" columnName="hidden"/>
+        </preConditions>
+        <dropColumn tableName="exercise" columnName="hidden"/>
+        <rollback>
+            <addColumn tableName="exercise">
+                <column name="hidden" type="TINYINT(1)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-drop-exercise-type" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="exercise" columnName="exercise_type"/>
+        </preConditions>
+        <dropColumn tableName="exercise" columnName="exercise_type"/>
+        <rollback>
+            <addColumn tableName="exercise">
+                <column name="exercise_type" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-drop-language-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="exercise" columnName="language_id"/>
+        </preConditions>
+        <dropColumn tableName="exercise" columnName="language_id"/>
+        <rollback>
+            <addColumn tableName="exercise">
+                <column name="language_id" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-exercise-attempt-status" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'exercise_attempt'
+                  and column_name = 'attempt_status' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="exercise_attempt" columnName="attempt_status" columnDataType="INT" defaultNullValue="1"/>
+        <rollback>
+            <dropNotNullConstraint tableName="exercise_attempt" columnName="attempt_status" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-question-type" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question'
+                  and column_name = 'question_type' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question" columnName="question_type" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question" columnName="question_type" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-question-text" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question'
+                  and column_name = 'question_text' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question" columnName="question_text" columnDataType="TEXT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question" columnName="question_text" columnDataType="TEXT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-question-domain-type" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question'
+                  and column_name = 'question_domain_type' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question" columnName="question_domain_type" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question" columnName="question_domain_type" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-question-options-json" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question'
+                  and column_name = 'options_json' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question" columnName="options_json" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question" columnName="options_json" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-question-drop-question-status" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="question" columnName="question_status"/>
+        </preConditions>
+        <dropColumn tableName="question" columnName="question_status"/>
+        <rollback>
+            <addColumn tableName="question">
+                <column name="question_status" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-interaction-order-number" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'interaction'
+                  and column_name = 'order_number' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="interaction" columnName="order_number" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="interaction" columnName="order_number" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-interaction-type" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'interaction'
+                  and column_name = 'interaction_type' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="interaction" columnName="interaction_type" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="interaction" columnName="interaction_type" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-interaction-feedback-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'interaction'
+                  and column_name = 'feedback_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="interaction" columnName="feedback_id" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="interaction" columnName="feedback_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-interaction-drop-last-supplementary-question" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="interaction" columnName="last_supplementary_question"/>
+        </preConditions>
+        <dropColumn tableName="interaction" columnName="last_supplementary_question"/>
+        <rollback>
+            <addColumn tableName="interaction">
+                <column name="last_supplementary_question" type="VARCHAR(255)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-response-delete-orphans" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'response'
+                  and column_name = 'interaction_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            delete from response where interaction_id is null and created_by_interaction_id is null
+        </sql>
+        <rollback/>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-response-left-object-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'response'
+                  and column_name = 'left_object_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="response" columnName="left_object_id" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="response" columnName="left_object_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-response-right-object-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'response'
+                  and column_name = 'right_object_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="response" columnName="right_object_id" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="response" columnName="right_object_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-response-interaction-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'response'
+                  and column_name = 'interaction_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="response" columnName="interaction_id" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="response" columnName="interaction_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-response-created-by-interaction-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'response'
+                  and column_name = 'created_by_interaction_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="response" columnName="created_by_interaction_id" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="response" columnName="created_by_interaction_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-response-drop-left-spec-value" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="response" columnName="left_spec_value"/>
+        </preConditions>
+        <dropColumn tableName="response" columnName="left_spec_value"/>
+        <rollback>
+            <addColumn tableName="response">
+                <column name="left_spec_value" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-answer-object-hyper-text" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'answer_object'
+                  and column_name = 'hyper_text' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="answer_object" columnName="hyper_text" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="answer_object" columnName="hyper_text" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-answer-object-is-right-col" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'answer_object'
+                  and column_name = 'is_right_col' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="answer_object" columnName="is_right_col" columnDataType="TINYINT(1)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="answer_object" columnName="is_right_col" columnDataType="TINYINT(1)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-answer-object-question-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'answer_object'
+                  and column_name = 'question_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="answer_object" columnName="question_id" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="answer_object" columnName="question_id" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-feedback-grade" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'feedback'
+                  and column_name = 'grade' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="feedback" columnName="grade" columnDataType="FLOAT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="feedback" columnName="grade" columnDataType="FLOAT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-feedback-interactions-left" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'feedback'
+                  and column_name = 'interactions_left' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="feedback" columnName="interactions_left" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="feedback" columnName="interactions_left" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-violation-drop-detailed-law-name" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="violation" columnName="detailed_law_name"/>
+        </preConditions>
+        <dropColumn tableName="violation" columnName="detailed_law_name"/>
+        <rollback>
+            <addColumn tableName="violation">
+                <column name="detailed_law_name" type="VARCHAR(255)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-name" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'name' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="name" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="name" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-template-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'template_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="template_id" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="template_id" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-tag-bits" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'tag_bits' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="tag_bits" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="tag_bits" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-concept-bits" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'concept_bits' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="concept_bits" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="concept_bits" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-law-bits" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'law_bits' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="law_bits" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="law_bits" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-violation-bits" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'violation_bits' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="violation_bits" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="violation_bits" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-trace-concept-bits" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'trace_concept_bits' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="trace_concept_bits" columnDataType="BIGINT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="trace_concept_bits" columnDataType="BIGINT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-solution-structural-complexity" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'solution_structural_complexity' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="solution_structural_complexity" columnDataType="DOUBLE"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="solution_structural_complexity" columnDataType="DOUBLE"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-integral-complexity" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'integral_complexity' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="integral_complexity" columnDataType="DOUBLE"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="integral_complexity" columnDataType="DOUBLE"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-solution-steps" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'solution_steps' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="solution_steps" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="solution_steps" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-distinct-errors-count" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'distinct_errors_count' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="distinct_errors_count" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="distinct_errors_count" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-version" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = '_version' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="questions_meta" columnName="_version" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="questions_meta" columnName="_version" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-drop-q-data-graph" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="questions_meta" columnName="q_data_graph"/>
+        </preConditions>
+        <dropColumn tableName="questions_meta" columnName="q_data_graph"/>
+        <rollback>
+            <addColumn tableName="questions_meta">
+                <column name="q_data_graph" type="TEXT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-questions-meta-drop-structure-hash" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="questions_meta" columnName="structure_hash"/>
+        </preConditions>
+        <dropColumn tableName="questions_meta" columnName="structure_hash"/>
+        <rollback>
+            <addColumn tableName="questions_meta">
+                <column name="structure_hash" type="VARCHAR(1023)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-target-skill-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'target_skill_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="target_skill_names" columnDataType="JSON" defaultNullValue="[]"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="target_skill_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-denied-skill-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'denied_skill_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="denied_skill_names" columnDataType="JSON" defaultNullValue="[]"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="denied_skill_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-allowed-skill-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'allowed_skill_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="allowed_skill_names" columnDataType="JSON" defaultNullValue="[]"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="allowed_skill_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-domain-shortname" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'domain_shortname' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="domain_shortname" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="domain_shortname" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-target-concept-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'target_concept_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="target_concept_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="target_concept_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-denied-concept-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'denied_concept_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="denied_concept_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="denied_concept_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-allowed-concept-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'allowed_concept_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="allowed_concept_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="allowed_concept_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-target-law-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'target_law_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="target_law_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="target_law_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-denied-law-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'denied_law_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="denied_law_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="denied_law_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-allowed-law-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'allowed_law_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="allowed_law_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="allowed_law_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-target-tags" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'target_tags' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="target_tags" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="target_tags" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-denied-question-names" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'denied_question_names' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="denied_question_names" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="denied_question_names" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-denied-question-meta-ids" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'denied_question_meta_ids' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="denied_question_meta_ids" columnDataType="JSON"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="denied_question_meta_ids" columnDataType="JSON"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-solving-duration" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'solving_duration' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="solving_duration" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="solving_duration" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-complexity" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'complexity' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="complexity" columnDataType="DOUBLE"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="complexity" columnDataType="DOUBLE"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-complexity-search-direction" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'complexity_search_direction' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="complexity_search_direction" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="complexity_search_direction" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-laws-search-direction" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'laws_search_direction' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="question_request_log" columnName="laws_search_direction" columnDataType="INT"/>
+        <rollback>
+            <dropNotNullConstraint tableName="question_request_log" columnName="laws_search_direction" columnDataType="INT"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-qrl-chance-to-pick-autogenerated-question" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'question_request_log'
+                  and column_name = 'chance_to_pick_autogenerated_question' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            alter table question_request_log
+                modify chance_to_pick_autogenerated_question double not null default 1
+        </sql>
+        <rollback>
+            <sql>
+                alter table question_request_log
+                    modify chance_to_pick_autogenerated_question double null default 1
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-survey-questions-survey-id" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'survey_questions'
+                  and column_name = 'survey_id' and is_nullable = 'YES'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint tableName="survey_questions" columnName="survey_id" columnDataType="VARCHAR(255)"/>
+        <rollback>
+            <dropNotNullConstraint tableName="survey_questions" columnName="survey_id" columnDataType="VARCHAR(255)"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-23-01-drop-question-attempt" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="question_attempt"/>
+        </preConditions>
+        <dropTable tableName="question_attempt"/>
+        <rollback>
+            <createTable tableName="question_attempt">
+                <column name="id" type="BIGINT" autoIncrement="true">
+                    <constraints nullable="false" primaryKey="true"/>
+                </column>
+            </createTable>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,11 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { container } from "tsyringe";
-import { SurveyController } from "../../controllers/exercise/survey-controller";
-import { OpenEndedSurveyQuestion, SingleChoiceSurveyQuestion, Survey, SurveyQuestion, YesNoSurveyQuestion } from "../../types/survey";
-import * as E from "fp-ts/lib/Either";
+import React, { useState } from "react";
+import { surveyController } from "../../controllers";
+import { OpenEndedSurveyQuestion, SingleChoiceSurveyQuestion, Survey, YesNoSurveyQuestion } from "../../types/survey";
 import { Loader } from "../common/loader";
 import { Button, Form } from "react-bootstrap";
-import { Optional } from "../common/optional";
 import { useTranslation } from "react-i18next";
 
 export type SurveyComponentProps = {
@@ -18,13 +15,13 @@ export type SurveyComponentProps = {
 }
 export const SurveyComponent = (props: SurveyComponentProps) => {
     const { survey, enabledSurveyQuestions, isCompleted } = props;
-    const [endpoint] = useState(() => container.resolve(SurveyController));
+    
     const [surveyState, setSurveyState] = useState<'INITAL' | 'VALIDATION_ERROR' | 'SENDING_RESULTS' | 'COMPLETED'>(isCompleted ? 'COMPLETED' : 'INITAL');
     const [surveyAnswers, setSurveyAnswers] = useState<Record<number, string>>(props.value || {});    
     const { t } = useTranslation();
     const surveyQuestions = props.survey.questions.filter(q => enabledSurveyQuestions.includes(q.id))
 
-    var onAnswered = (questionId: number, answer: string) => {        
+    const onAnswered = (questionId: number, answer: string) => {        
         const newAnswers = { ...surveyAnswers, [questionId]: answer };
         setSurveyAnswers(newAnswers);
         console.log(newAnswers);
@@ -36,7 +33,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
             if (requiredQuestionIds.every(id => surveyAnswers[id])) {
                 setSurveyState('SENDING_RESULTS');
                 await Promise.all(surveyQuestions
-                    .map(q => endpoint.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
+                    .map(q => surveyController.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
                 setSurveyState('COMPLETED');
                 props.onAnswersSended(survey, props.questionId, surveyAnswers);
             } else {
@@ -88,25 +85,26 @@ type SurveyYesNoQuestionProps = {
     onAnswered: (questionId: number, answer: string) => void,
 }
 const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
-    const { question, onAnswered, value, isCompleted } = props;
+    const { question, onAnswered, value, } = props;
     return (
         <div>
             <div className="mb-1">
                 {question.text}
             </div>
             <div className="d-flex flex-row mt-2">
-                <button type="button"
-                    className={`btn btn-secondary mr-2 ${question.options.yesValue === value ? "active" : ""}`}
+                <Button variant="secondary"
+                    className="me-2"
+                    active={question.options.yesValue === value}
                     onClick={() => onAnswered(question.id, question.options.yesValue)}
                     disabled={value !== undefined}>
                     {question.options.yesText}
-                </button>
-                <button type="button"
-                    className={`btn btn-secondary ${question.options.noValue === value ? "active" : ""}`}
+                </Button>
+                <Button variant="secondary"
+                    active={question.options.noValue === value}
                     onClick={() => onAnswered(question.id, question.options.noValue)}
                     disabled={value !== undefined}>
                     {question.options.noText}
-                </button>
+                </Button>
             </div>
         </div>
     )
@@ -128,7 +126,7 @@ export const SingleChoiceSurveyQuestionComponent = (props: SurveySigleChoiceQues
             </div>
             <div className="d-flex mt-2">
                 <div>
-                    {question.options.map((o, idx, opts) =>
+                    {question.options.map((o) =>
                         <div key={o.id}>
                             <Form.Check
                                 disabled={isCompleted}

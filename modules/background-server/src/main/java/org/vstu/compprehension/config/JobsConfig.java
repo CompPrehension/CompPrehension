@@ -1,12 +1,15 @@
 package org.vstu.compprehension.config;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jobrunr.scheduling.JobScheduler;
 import org.springframework.context.annotation.Configuration;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJob;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobBatchConfig;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobConfig;
+import org.vstu.compprehension.jobs.ltimembership.LtiMembershipSyncJob;
+import org.vstu.compprehension.jobs.ltimembership.LtiMembershipSyncJobConfig;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJob;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJobConfig;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
@@ -14,20 +17,14 @@ import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJobConfig;
 
 @Log4j2
 @Configuration
+@RequiredArgsConstructor
 public class JobsConfig {
     private final JobScheduler jobScheduler;
     private final TaskGenerationJobConfig taskGenerationJobConfig;
     private final MetadataHealthJobConfig metadataHealthJobConfig;
     private final BankLoadTestingJobConfig bankLoadTestingJobConfig;
     private final BankLoadTestingJobBatchConfig bankLoadTestingJobBatchConfig;
-
-    public JobsConfig(JobScheduler jobScheduler, TaskGenerationJobConfig taskGenerationJobConfig, MetadataHealthJobConfig metadataHealthJobConfig, BankLoadTestingJobConfig bankLoadTestingJobConfig, BankLoadTestingJobBatchConfig bankLoadTestingJobBatchConfig) {
-        this.jobScheduler            = jobScheduler;
-        this.taskGenerationJobConfig = taskGenerationJobConfig;
-        this.metadataHealthJobConfig = metadataHealthJobConfig;
-        this.bankLoadTestingJobConfig = bankLoadTestingJobConfig;
-        this.bankLoadTestingJobBatchConfig = bankLoadTestingJobBatchConfig;
-    }
+    private final LtiMembershipSyncJobConfig ltiMembershipSyncJobConfig;
 
     @PostConstruct
     public void jobsConfig() {
@@ -58,10 +55,17 @@ public class JobsConfig {
             var schedule = bankLoadTestingJobBatchConfig.getCronSchedule();
             scheduleJob(jobId, schedule, BankLoadTestingJob::runBatch);
         }
+
+        // LtiMembershipSyncJob
+        {
+            var jobId = "LtiMembershipSyncJob";
+            var schedule = ltiMembershipSyncJobConfig.getCronSchedule();
+            scheduleJob(jobId, schedule, LtiMembershipSyncJob::run);
+        }
     }
     
     private <S> void scheduleJob(String jobId, String schedule, org.jobrunr.jobs.lambdas.IocJobLambda<S> iocJob) {
-        jobScheduler.delete(jobId);
+        jobScheduler.deleteRecurringJob(jobId);
         
         if (schedule == null) {
             schedule = "never";
@@ -73,6 +77,8 @@ public class JobsConfig {
         } else if (!"never".equalsIgnoreCase(schedule)) {
             jobScheduler.scheduleRecurrently(jobId, schedule, iocJob);
             log.info("{} scheduled with schedule: {}", jobId, schedule);
+        } else {
+            log.info("{} disabled", jobId);
         }
     }
 }

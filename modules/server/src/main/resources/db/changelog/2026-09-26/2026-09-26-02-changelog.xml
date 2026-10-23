@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-26-02-lti-registration" author="Artem Prokudin">
+        <sql>
+            create table lti_registration (
+                id                     bigint        not null auto_increment,
+                education_resource_id  bigint        not null,
+                issuer                 varchar(512)  not null,
+                client_id              varchar(255)  not null,
+                deployment_id          varchar(255)  null,
+                authorization_endpoint varchar(1024) not null,
+                token_endpoint         varchar(1024) not null,
+                jwks_uri               varchar(1024) not null,
+                created_at             datetime(6)   not null,
+                primary key (id),
+                unique key ux_lti_registration_education_resource (education_resource_id),
+                unique key ux_lti_registration_issuer (issuer),
+                constraint fk_lti_registration_education_resource
+                    foreign key (education_resource_id) references education_resource (id)
+            ) engine = InnoDB default charset = utf8mb4 collate = utf8mb4_0900_ai_ci;
+
+            create table lti_registration_invite (
+                id                  bigint      not null auto_increment,
+                token_hash          char(64)    not null,
+                created_by_user_id  bigint      not null,
+                created_at          datetime(6) not null,
+                expires_at          datetime(6) not null,
+                used_at             datetime(6) null,
+                lti_registration_id bigint      null,
+                primary key (id),
+                unique key ux_lti_registration_invite_token_hash (token_hash),
+                constraint fk_lti_registration_invite_user
+                    foreign key (created_by_user_id) references user (id),
+                constraint fk_lti_registration_invite_registration
+                    foreign key (lti_registration_id) references lti_registration (id)
+            ) engine = InnoDB default charset = utf8mb4 collate = utf8mb4_0900_ai_ci;
+        </sql>
+        <rollback>
+            <sql>
+                drop table lti_registration_invite;
+                drop table lti_registration;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-26-02-register-lms-permission" author="Artem Prokudin">
+        <sql>
+            insert into permission (name) values ('REGISTER_LMS');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id
+            from role r
+            join permission p on p.name = 'REGISTER_LMS'
+            where r.name = 'ADMIN';
+        </sql>
+        <rollback>
+            <sql>
+                delete rp from role_permission rp
+                join permission p on p.id = rp.permission_id
+                where p.name = 'REGISTER_LMS';
+
+                delete from permission where name = 'REGISTER_LMS';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

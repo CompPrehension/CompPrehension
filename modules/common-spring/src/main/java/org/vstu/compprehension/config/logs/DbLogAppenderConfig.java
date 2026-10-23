@@ -7,7 +7,6 @@ import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.db.jdbc.ColumnConfig;
 import org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender;
 import org.apache.logging.log4j.core.filter.ThresholdFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -15,8 +14,11 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class DbLogAppenderConfig
 {
-    @Autowired
-    private Environment env;
+    private final Environment env;
+
+    public DbLogAppenderConfig(Environment env) {
+        this.env = env;
+    }
 
     @Value("${config.property.db-logging.enabled:false}")
     private boolean useDbLogging;

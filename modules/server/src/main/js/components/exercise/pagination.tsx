@@ -1,13 +1,11 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useState } from 'react';
 import { Pagination as BootstrapPagination } from "react-bootstrap"
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../stores/exercise-store";
+import { getExerciseStore } from "../../stores/exercise-store";
 import { Optional } from '../common/optional';
 
 export const Pagination = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     if (!exerciseStore.currentQuestion.question || !exerciseStore.currentAttempt) {
         return null;
     }

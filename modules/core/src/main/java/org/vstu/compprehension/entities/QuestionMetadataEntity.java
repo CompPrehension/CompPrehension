@@ -1,0 +1,158 @@
+package org.vstu.compprehension.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import java.util.Date;
+
+@Getter @Setter
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "questions_meta", indexes = {
+    @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
+    @Index(name = "idx_questions_meta_domainshortname_name", columnList = "domain_shortname, name"),
+    @Index(name = "idx_questions_meta_domainshortname_templateid", columnList = "domain_shortname, template_id"),
+    @Index(name = "idx_domain_name", columnList = "domain_shortname"),
+})
+public class QuestionMetadataEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    // @Lob
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "domain_shortname", nullable = false, length = 45)
+    private String domainShortname;
+
+    @Column(name = "template_id", nullable = false)
+    private String templateId;
+
+    @Column(name = "tag_bits", nullable = false)
+    private Long tagBits;
+
+    @Column(name = "concept_bits", nullable = false)
+    private Long conceptBits;
+
+    @Column(name = "law_bits", nullable = false)
+    private Long lawBits;
+
+    @Column(name = "skill_bits", nullable = false)
+    private Long skillBits;
+
+    @Column(name = "violation_bits", nullable = false)
+    private Long violationBits;
+
+    @Column(name = "trace_concept_bits", nullable = false)
+    private Long traceConceptBits;
+
+    @Column(name = "solution_structural_complexity", nullable = false)
+    private Double solutionStructuralComplexity;
+
+    @Column(name = "integral_complexity", nullable = false)
+    private Double integralComplexity;
+
+    @Column(name = "solution_steps", nullable = false)
+    private Integer solutionSteps;
+
+    @Column(name = "distinct_errors_count", nullable = false)
+    private Integer distinctErrorsCount;
+
+    @Column(name = "_version", nullable = false)
+    private Integer version;
+
+    /**
+     * URL or name of GitHub repository from which this question was created
+     */
+    @Builder.Default
+    @Column(name = "origin", length = 1023)
+    private String origin = "";
+
+    /**
+     * License type of GitHub repository from which this question was created
+     */
+    @Builder.Default
+    @Column(name = "origin_license", length = 128)
+    private String originLicense = null;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "generation_request_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private QuestionGenerationRequestEntity generatedBy;
+    
+    @Column(name = "generation_request_id")
+    private Integer generationRequestId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_data_id", referencedColumnName = "id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private QuestionDataEntity questionData;
+
+    @Transient
+    @Builder.Default
+    private Long conceptBitsInPlan = 0L; // planned by exercise
+    @Transient
+    @Builder.Default
+    private Long conceptBitsInRequest = 0L; // actually requested
+
+    @Transient
+    @Builder.Default
+    private Long violationBitsInPlan = 0L; // planned by exercise
+
+
+    @Transient
+    @Builder.Default
+    private Long violationBitsInRequest = 0L; // actually requested
+
+    @Transient
+    @Builder.Default
+    private Long skillBitsInPlan = 0L; // planned by exercise
+
+
+    public double complexityAbsDiff(double complexity) {
+        return Math.abs(getIntegralComplexity() - complexity);
+    }
+    public double getSolutionStepsAbsDiff(double steps) {
+        return Math.abs(getSolutionSteps() - steps);
+
+    }
+
+    /** Common bits of concepts in plan and concepts (or trace concepts) in question */
+    public Long traceConceptsSatisfiedFromPlan() {
+        return (traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInPlan;  // traceConceptBits are not applicable to all domains...
+    }
+    /** Concepts from plan absent in question's concepts (or trace concepts) */
+    public Long traceConceptsUnsatisfiedFromPlan() {
+        return ~(traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInPlan;
+    }
+
+    /** Common bits of violations in plan and violations in question */
+    public Long violationsSatisfiedFromPlan() {
+        return violationBits & violationBitsInPlan;
+    }
+    /** Violations from plan absent in question's violations */
+    public Long violationsUnsatisfiedFromPlan() {
+        return ~violationBits & violationBitsInPlan;
+    }
+
+    /** Common bits of concepts in request and concepts (or trace concepts) in question */
+    public Long traceConceptsSatisfiedFromRequest() {
+        return (traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInRequest;  // traceConceptBits are not applicable to all domains...
+    }
+
+    /** Common bits of violations in request and violations in question */
+    public Long violationsSatisfiedFromRequest() {
+        return violationBits & violationBitsInRequest;
+    }
+}

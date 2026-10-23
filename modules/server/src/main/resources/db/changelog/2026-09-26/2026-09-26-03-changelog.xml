@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-26-03-outbox-event" author="Artem Prokudin">
+        <sql>
+            create table outbox_event (
+                id              bigint       not null auto_increment,
+                event_type      varchar(100) not null,
+                payload         json         not null,
+                ordering_key    varchar(255) null,
+                status          int          not null,
+                attempts        int          not null default 0,
+                next_attempt_at datetime(6)  not null,
+                last_error      text         null,
+                created_at      datetime(6)  not null,
+                processed_at    datetime(6)  null,
+                primary key (id),
+                key ix_outbox_event_due (status, next_attempt_at),
+                key ix_outbox_event_ordering (ordering_key, status, id)
+            ) engine = InnoDB default charset = utf8mb4 collate = utf8mb4_0900_ai_ci;
+        </sql>
+        <rollback>
+            <sql>
+                drop table outbox_event;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

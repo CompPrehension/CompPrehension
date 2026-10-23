@@ -1,0 +1,111 @@
+package org.vstu.compprehension.adapters;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.service.lti.LtiContextInitializer;
+import org.vstu.compprehension.service.lti.LtiPlatform;
+import org.vstu.compprehension.services.LtiContextProvider;
+import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@Component
+@SessionScope
+public class LtiContextHolder implements LtiContextProvider, LtiContextInitializer, Serializable {
+
+    private static final String LTI_CLAIM_CONTEXT       = "https://purl.imsglobal.org/spec/lti/claim/context";
+    private static final String LTI_CLAIM_AGS           = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
+    private static final String LTI_CLAIM_CUSTOM        = "https://purl.imsglobal.org/spec/lti/claim/custom";
+    private static final String LTI_CLAIM_DEEP_LINKING  = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
+    private static final String LTI_CLAIM_DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
+    private static final String LTI_CLAIM_NRPS          = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
+
+    private LtiContext context;
+    private LtiDeepLinkingContext deepLinkingContext;
+
+    @Override
+    public Optional<LtiContext> getCurrentLtiContext() {
+        return Optional.ofNullable(context);
+    }
+
+    @Override
+    public Optional<LtiDeepLinkingContext> getCurrentDeepLinkingContext() {
+        return Optional.ofNullable(deepLinkingContext);
+    }
+
+    @Override
+    public void init(Map<String, Object> claims, LtiPlatform platform) {
+
+        LtiCourseContext course = null;
+        Map<?, ?> ltiContext = (Map<?, ?>) claims.get(LTI_CLAIM_CONTEXT);
+        if (ltiContext != null) {
+            Object id = ltiContext.get("id");
+            Object title = ltiContext.get("title");
+            if (id != null) {
+                course = new LtiCourseContext(String.valueOf(id), title != null ? String.valueOf(title) : null);
+            }
+        }
+
+        String lineitemUrl = null;
+        Map<?, ?> agsEndpoint = (Map<?, ?>) claims.get(LTI_CLAIM_AGS);
+        if (agsEndpoint != null && agsEndpoint.get("lineitem") != null) {
+            lineitemUrl = String.valueOf(agsEndpoint.get("lineitem"));
+        }
+
+        Long exerciseId = null;
+        Map<?, ?> customClaims = (Map<?, ?>) claims.get(LTI_CLAIM_CUSTOM);
+        if (customClaims != null) {
+            Object exerciseIdRaw = customClaims.get("exercise_id");
+            if (exerciseIdRaw != null) {
+                exerciseId = Long.parseLong(String.valueOf(exerciseIdRaw));
+            }
+        }
+
+        Map<?, ?> nrps = (Map<?, ?>) claims.get(LTI_CLAIM_NRPS);
+        String membershipsUrl = nrps == null ? null : asString(nrps.get("context_memberships_url"));
+
+        this.context = new LtiContext(lineitemUrl, platform.issuer(), platform.clientId(), platform.educationResourceId(),
+                course, exerciseId, membershipsUrl);
+
+        this.deepLinkingContext = parseDeepLinkingContext(claims, platform.issuer(), platform.clientId(), agsEndpoint);
+    }
+
+    @Override
+    public void clear() {
+        this.context = null;
+        this.deepLinkingContext = null;
+    }
+
+    private static LtiDeepLinkingContext parseDeepLinkingContext(Map<String, Object> claims, String issuer, String clientId,
+                                                                 Map<?, ?> agsEndpoint) {
+        Map<?, ?> settings = (Map<?, ?>) claims.get(LTI_CLAIM_DEEP_LINKING);
+        if (settings == null) {
+            return null;
+        }
+
+        String deepLinkReturnUrl = asString(settings.get("deep_link_return_url"));
+        String data = asString(settings.get("data"));
+        String deploymentId = asString(claims.get(LTI_CLAIM_DEPLOYMENT_ID));
+
+        String lineitemsUrl = null;
+        List<String> scopes = null;
+        if (agsEndpoint != null) {
+            lineitemsUrl = asString(agsEndpoint.get("lineitems"));
+            Object scope = agsEndpoint.get("scope");
+            if (scope instanceof List<?> list) {
+                scopes = list.stream().map(String::valueOf).toList();
+            }
+        }
+
+        return new LtiDeepLinkingContext(issuer, clientId, deploymentId, deepLinkReturnUrl, data, lineitemsUrl, scopes);
+    }
+
+    private static String asString(Object value) {
+        return value != null ? String.valueOf(value) : null;
+    }
+}

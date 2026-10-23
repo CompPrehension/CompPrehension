@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.utils.TaskQueue;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Component @Singleton
 public class BackendTaskQueue extends TaskQueue {

@@ -1,7 +1,7 @@
-import { t } from 'i18next';
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -26,7 +26,7 @@ type TourProviderProps = {
 };
 
 export const TourProvider = ({ steps, children }: TourProviderProps) => {
-  const tourRef = useRef<InstanceType<typeof Shepherd.Tour>>();
+  const tourRef = useRef<InstanceType<typeof Shepherd.Tour>>(undefined);
   const [isReady, setIsReady] = useState(false);
   const isTourCompletedRef = useRef(false);
   const { t } = useTranslation();
@@ -45,7 +45,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
       };
 
       const buttons = step.buttons?.map((button) => {
-        let text =
+        const text =
           typeof button.text === 'function' ? button.text() : button.text || '';
 
         if (text === 'next') {
@@ -91,13 +91,13 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
     tourRef.current = tour;
 
     tour.start = async () => {
-      tour.cancel();
+      await tour.cancel();
       (tour.steps as Array<{ destroy: () => void }>).forEach((step) =>
         step.destroy()
       );
 
       const stepsWithActions = bindActions(tour, steps);
-      let pendingSteps = [...stepsWithActions];
+      const pendingSteps = [...stepsWithActions];
 
       const showNextStep = async (): Promise<void> => {
         if (isTourCompletedRef.current) return; // Если тур завершён, прерываем
@@ -118,7 +118,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
           if (typeof selector === 'string') {
             const element = document.querySelector(selector);
             if (element) {
-              let completedSteps = new Set(
+              const completedSteps = new Set(
                 JSON.parse(localStorage.getItem('tour_completed_steps') ?? '[]')
               );
               if (
@@ -162,16 +162,18 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
         }
       };
 
-      showNextStep();
+      await showNextStep();
     };
 
     setIsReady(true);
-  }, [steps]);
+  }, [steps, t]);
+
+  const start = useCallback(() => tourRef.current?.start?.(), []);
 
   return (
     <TourContext.Provider
       value={{
-        start: () => tourRef.current?.start?.(),
+        start,
         tour: tourRef.current,
         isReady,
       }}

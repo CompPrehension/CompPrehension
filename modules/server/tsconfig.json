@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
     "lib": ["dom", "esnext", "es2018.promise"],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "types": ["vite/client"],
     "strict": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "module": "esnext",
     "target": "es6",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "useDefineForClassFields": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "sourceMap": true,
     "skipLibCheck": true
   },

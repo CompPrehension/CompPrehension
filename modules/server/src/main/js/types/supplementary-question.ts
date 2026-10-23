@@ -2,7 +2,6 @@ import { NonEmptyArray } from 'fp-ts/lib/NonEmptyArray'
 import * as io from 'io-ts'
 import { FeedbackMessage, TFeedbackMessage } from './feedback';
 import { TQuestion } from './question';
-import { MergeIntersections, MergeIntersectionsDeep } from './utils';
 
 export type SupplementaryQuestionRequest = {
     questionId: number,
@@ -25,9 +24,15 @@ export const TSupplementaryFeedback: io.Type<SupplementaryFeedback> = io.type({
     action: TSupplementaryFeedbackAction,
 });
 
-export const TSupplementaryQuestion = io.partial({
-    question: io.union([TQuestion, io.null]),
-    message: io.union([TSupplementaryFeedback, io.null]),
-});
+export const TSupplementaryQuestion = io.union([
+    io.type({
+        kind: io.literal("QUESTION"),
+        question: TQuestion,
+    }),
+    io.type({
+        kind: io.literal("FEEDBACK"),
+        feedback: TSupplementaryFeedback,
+    }),
+]);
 export type SupplementaryQuestion = io.TypeOf<typeof TSupplementaryQuestion>;
 

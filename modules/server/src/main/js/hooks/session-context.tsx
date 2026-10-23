@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ReactNode } from 'react';
 import { SessionStore } from '../stores/session-store';
 import { observer } from 'mobx-react';
+import { LoadFailure } from '../components/common/errors';
 
 const SessionContext = createContext<SessionStore | null>(null);
 
@@ -15,7 +16,11 @@ export const SessionProvider = observer(({ children }: { children: ReactNode }) 
 
   return (
     <SessionContext.Provider value={session}>
-      {children}
+      {session.error && !session.user
+        ? <div className="container pt-3">
+            <LoadFailure error={session.error} onRetry={() => session.loadSessionInfo()} />
+          </div>
+        : children}
     </SessionContext.Provider>
   );
 });

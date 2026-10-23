@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import React, { useEffect, useState } from "react";
 import { ListGroup } from "react-bootstrap";
-import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
-import { container } from "tsyringe";
+import { LoadingWrapper } from "../components/common/loader";
+import { exerciseController } from "../controllers";
 import * as E from "fp-ts/lib/Either";
 
 export const ExercisesList = observer(() => {
@@ -11,8 +11,7 @@ export const ExercisesList = observer(() => {
     useEffect(() => {
         (async() => {
             setIsLoading(true);
-            const controller = container.resolve<IExerciseController>(ExerciseController);
-            const dataEither = await controller.getExercises();
+            const dataEither = await exerciseController.getExercises();
             if (E.isRight(dataEither)) {
                 setData(dataEither.right);
             }
@@ -22,9 +21,11 @@ export const ExercisesList = observer(() => {
 
     return(
         <div>
-            <ListGroup>
-                {data.map(i => <ListGroup.Item><a href={`exercise?exerciseId=${i}`}>{i}</a></ListGroup.Item>)}
-            </ListGroup>
+            <LoadingWrapper isLoading={isLoading}>
+                <ListGroup>
+                    {data.map(i => <ListGroup.Item key={i}><a href={`exercise?exerciseId=${i}`}>{i}</a></ListGroup.Item>)}
+                </ListGroup>
+            </LoadingWrapper>
         </div>
     )
 })

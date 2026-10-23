@@ -55,7 +55,7 @@ export function DomainTerm({
         {/* Кнопка закрытия в правом верхнем углу */}
         <button
           type='button'
-          className='close position-absolute'
+          className='btn btn-link p-0 border-0 text-muted position-absolute'
           style={{ top: '0.5rem', 
             right: '0.5rem',
             outline: "none",

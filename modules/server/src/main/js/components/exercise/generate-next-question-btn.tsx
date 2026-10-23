@@ -1,15 +1,14 @@
 
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../stores/exercise-store";
+import { getExerciseStore } from "../../stores/exercise-store";
 import { useTranslation } from "react-i18next";
 import { Modal } from '../common/modal';
 
 export const GenerateNextQuestionBtn = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
     
@@ -20,18 +19,6 @@ export const GenerateNextQuestionBtn = observer(() => {
     if (!question || !exercise || !currentAttempt || isQuestionLoading || isFeedbackLoading) {
         return null;
     }
-    
-    /*
-    const { user } = sessionInfo;
-    const { questionIds } = currentAttempt;
-
-    
-    // show btn if user is admin or if he is on the last question and has finished it
-    if (!user.roles.includes('ADMIN') && !user.roles.includes('TEACHER') &&
-        (questionIds[questionIds.length - 1] !== question.questionId || exerciseStore.currentQuestion.feedback?.stepsLeft !== 0)) {
-        return null;
-    }
-    */
 
     const onModalClosed = () => {
         setIsModalVisible(false);

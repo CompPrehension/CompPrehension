@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import {Button} from "react-bootstrap";
 import {Bug} from "lucide-react";
 import {Optional} from "./optional";
 
@@ -20,9 +21,9 @@ const DebugButton: React.FC<DebugButtonProps> = ({ metadataId, attemptId }) => {
         style={{ bottom: '0.5rem', right: '0.5rem', zIndex: 1050 }}
       >
         {!clicked ? (
-          <button
-            type="button"
-            className="btn btn-light border-0"
+          <Button
+            variant="light"
+            className="border-0"
             style={{
               backgroundColor: "transparent",
               color: "transparent",
@@ -40,7 +41,7 @@ const DebugButton: React.FC<DebugButtonProps> = ({ metadataId, attemptId }) => {
             onClick={() => setClicked(true)}
           >
             <Bug size={18} />
-          </button>
+          </Button>
         ) : (
           <div className="alert alert-danger p-2 mb-0" role="alert">
             <div><small><strong>Metadata ID:</strong> {metadataId}</small></div>

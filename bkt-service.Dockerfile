@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1
+# docker build --platform linux/amd64 -t prokudintema/compprehension-bkt:dev -f bkt-service.Dockerfile .
+# docker push prokudintema/compprehension-bkt:dev
 FROM python:3.11-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential g++ libopenblas-dev liblapack-dev libomp-dev \

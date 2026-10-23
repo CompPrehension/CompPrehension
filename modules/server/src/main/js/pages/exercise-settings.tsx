@@ -1,9 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {container} from "tsyringe";
 import {
     Domain,
     DomainConcept,
-    DomainConceptFlag,
     DomainLaw,
     DomainSkill,
     ExerciseCardConcept,
@@ -15,40 +13,50 @@ import {
 import {ExerciseCardViewModel, ExerciseSettingsStore, ExerciseStageStore} from "../stores/exercise-settings-store";
 import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
-import {Link} from "react-router-dom";
+import {Button, Dropdown, Form} from "react-bootstrap";
+import {Link, useNavigate} from 'react-router';
+import { LoadFailure } from "../components/common/errors";
 import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
-import {Header} from "../components/common/header";
+import {PageLayout} from "../components/common/page-layout";
 import { API_URL } from "../appconfig";
-import { useCurrentUser, useSession } from "../hooks/session-context";
+import { useCurrentUser } from "../hooks/session-context";
+import { useCourseId } from "../hooks/use-course-id";
+import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
+import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
+import { ImportFromGlobalModal } from "../components/exercise/import-from-global-modal";
 
 export const ExerciseSettings = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
+    const [exerciseStore] = useState(() => new ExerciseSettingsStore());
     const { t } = useTranslation();
     const user = useCurrentUser();
-    const session = useSession();
+    const courseId = useCourseId();
+    const navigate = useNavigate();
+    const [showImportModal, setShowImportModal] = useState(false);
+    const canCreate = exerciseStore.permissions.canCreateExercise;
+    const { canImportInherit, canImportClone } = exerciseStore.permissions;
+    const canImport = courseId != null && (canImportInherit || canImportClone);
     useEffect(() => {
         (async () => {
-            await exerciseStore.loadExercises();
+            await exerciseStore.loadExercises(courseId);
 
             const currentExercise = new URL(window.location.href).searchParams.get("exerciseId");
             if (currentExercise) {
                 await exerciseStore.loadExercise(Number.parseInt(currentExercise));
             }
         })()
-    }, []);
+    }, [courseId, exerciseStore]);
 
     const onNewExerciseClicked = useCallback(() => {
         (async () => {
             await exerciseStore.createNewExecise();
         })()
-    }, [exerciseStore.exercises?.length]);
+    }, [exerciseStore]);
 
-    const onLangClicked = useCallback(() => {
-        const currentLang = user?.language;
-        const newLang = currentLang === "RU" ? "EN" : "RU";
-        session.changeLanguage(newLang);
-    }, [session, user]);
+    const onExerciseImported = async (importedExerciseId: number) => {
+        navigate(`?exerciseId=${importedExerciseId}&courseId=${courseId}`);
+        await exerciseStore.loadImportedExercise(importedExerciseId);
+    };
 
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
@@ -57,33 +65,51 @@ export const ExerciseSettings = observer(() => {
     if (!user)
         return <Loader />;
 
+    const canOpenGlobalPool = user.permissions.canViewGlobalPool && courseId != null;
+
+    const parent = courseId != null
+        ? { label: t('course_page_title', { id: courseId }), to: `/pages/course?courseId=${courseId}` }
+        : { label: t('globalPool_page_title'), to: '/pages/global-pool' };
+
     return (
-        <div className="container-fluid">
-            <div className="pt-1 pb-3">
-                <Header text={t('exercisesettings_title')}
-                        languageHint={t('language_header')}
-                        language={user?.language ?? "EN"}
-                        onLanguageClicked={onLangClicked}
-                        userHint={t('signedin_as_header')}
-                        user={user.displayName} 
-                        userHref={/*`${window.location.origin}/logout`*/null} />
-            </div>
+        <PageLayout title={t('exercisesettings_title')} parent={parent}>
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
-                    <button type="button" className="btn btn-primary mb-3" onClick={onNewExerciseClicked}>Create new</button>
-                    <ul className="list-group">
+                    {canCreate && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>{t('exercisesettings_createNew')}</Button>}
+                    {(canImport || canOpenGlobalPool) && (
+                        <Dropdown className="mb-3">
+                            <Dropdown.Toggle variant="outline-secondary" className="w-100">
+                                {t('exercisesettings_globalPoolMenu')}
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="w-100">
+                                {canImport && (
+                                    <Dropdown.Item className="text-wrap" onClick={() => setShowImportModal(true)}>
+                                        {t('course_page_importBtn')}
+                                    </Dropdown.Item>
+                                )}
+                                {canOpenGlobalPool && (
+                                    <Dropdown.Item className="text-wrap" onClick={() => window.open(`${window.location.origin}/pages/global-pool`, '_blank')?.focus()}>
+                                        {t('exercisesettings_openGlobalPool')}
+                                    </Dropdown.Item>
+                                )}
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    )}
+                    <div className="list-group">
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
-                                className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`}
-                                to={`?exerciseId=${e.id}`}
-                                onClick={() => exerciseStore.loadExercise(e.id)}
-                                title={e.name} >
+                                  className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`}
+                                  to={`?exerciseId=${e.id}${courseId != null ? `&courseId=${courseId}` : ''}`}
+                                  onClick={() => exerciseStore.loadExercise(e.id)}
+                                  title={e.name} >
                                 {e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name}
                             </Link>
                         )}
-                    </ul>
+                    </div>
                 </div>
                 <div className="col-xl-9 col-md-9 col-12">
+                    {exerciseStore.storeState.tag === 'ERROR' &&
+                        <LoadFailure error={exerciseStore.storeState.error} />}
                     <ExerciseCardElement
                         store={exerciseStore}
                         card={exerciseStore.currentCard}
@@ -93,7 +119,15 @@ export const ExerciseSettings = observer(() => {
                     />
                 </div>
             </div>
-        </div>
+            {canImport && showImportModal && courseId != null && (
+                <ImportFromGlobalModal
+                    courseId={courseId}
+                    canInherit={canImportInherit}
+                    canClone={canImportClone}
+                    onClose={() => setShowImportModal(false)}
+                    onImported={onExerciseImported} />
+            )}
+        </PageLayout>
     );
 })
 
@@ -107,145 +141,127 @@ type ExerciseCardElementProps = {
 }
 
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
-    const { card, domains, backends, strategies, store } = props;
+    const { card, domains, strategies, store } = props;
     const { t } = useTranslation();
-    const user = useCurrentUser();
-    const conceptFlagNames = useMemo(() => {
-        return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
 
     if (store.exercisesLoadStatus === 'EXERCISELOADING')
         return <Loader delay={200} />;
 
     if (card == null)
-        return (<div>No exercise selected</div>);
+        return (<div>{t('exercisesettings_noExerciseSelected')}</div>);
 
     const currentDomain = domains.find(z => z.id === card.domainId);
     const stageDomainLaws = currentDomain?.laws
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+        .filter(l => l.targetEnabled);
     const stageDomainConcepts = currentDomain?.concepts
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+        .filter(l => l.targetEnabled);
     const stageDomainSkills = currentDomain?.skills
     const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
     const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
     const sharedDomainLaws = currentDomain?.laws
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+        .filter(l => !l.targetEnabled);
     const sharedDomainConcepts = currentDomain?.concepts
-        .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+        .filter(c => !c.targetEnabled);
     const sharedDomainSkills : DomainSkill[] = []; // TODO: temporarily disabled due to missing flags in domain skills
     const currentStrategy = strategies.find(s => s.id === card.strategyId);
+    const linkType = store.cardLinkType;
+    const canEdit = card.permissions.canEdit;
 
     return (
         <div>
+            <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} />
+            <fieldset disabled={!canEdit} style={!canEdit ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
             <form className="exercise-settings-form">
-                <div className="form-group">
-                    <label className="font-weight-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
-                    <input value={card.name} type="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" onChange={e => store.setCardName(e.target.value)} />
+                <div className="mb-3">
+                    <label className="fw-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
+                    <Form.Control value={card.name} type="email" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" onChange={e => store.setCardName(e.target.value)} />
                 </div>
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_domain')}</label>
-                    <select id="domainId" className="form-control" aria-describedby="domainDescription" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)} title={currentDomain?.displayName}>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_domain')}</label>
+                    <Form.Select id="domainId" aria-describedby="domainDescription" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)} title={currentDomain?.displayName}>
                         {domains?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
-                    </select>
+                    </Form.Select>
                     <small id="domainDescription" className="form-text text-muted">{currentDomain?.description ?? ""}</small>
                 </div>
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_strategy')}</label>
-                    <select id="strategyId" className="form-control" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_strategy')}</label>
+                    <Form.Select id="strategyId" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
                         {strategies?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
-                    </select>
+                    </Form.Select>
                     <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
                 </div>
 
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_qopt')}</label>
-                    <div className="form-check">
-                        <input checked={card.options.forceNewAttemptCreationEnabled} 
-                               onChange={x => store.setCardOption('forceNewAttemptCreationEnabled', x.target.checked)} 
-                               type="checkbox" className="form-check-input" id="forceNewAttemptCreationEnabled" />
-                        <label className="form-check-label" htmlFor="forceNewAttemptCreationEnabled">{t('exercisesettings_qopt_forceAttCreation')}</label>
-                    </div>
-                    <div className="form-check">
-                        <input checked={card.options.correctAnswerGenerationEnabled} 
-                               onChange={x => store.setCardOption('correctAnswerGenerationEnabled', x.target.checked)} 
-                               type="checkbox" className="form-check-input" id="correctAnswerGenerationEnabled" />
-                        <label className="form-check-label" htmlFor="correctAnswerGenerationEnabled">{t('exercisesettings_qopt_genCorAnsw')}</label>
-                    </div>
-                    <div className="form-check">
-                        <input checked={card.options.newQuestionGenerationEnabled} 
-                               onChange={x => store.setCardOption('newQuestionGenerationEnabled', x.target.checked)} 
-                               type="checkbox" className="form-check-input" id="newQuestionGenerationEnabled" />
-                        <label className="form-check-label" htmlFor="newQuestionGenerationEnabled">{t('exercisesettings_qopt_forceShowGenNextQ')}</label>
-                    </div>
-                    <div className="form-check">
-                        <input checked={card.options.supplementaryQuestionsEnabled} 
-                               onChange={x => store.setCardOption('supplementaryQuestionsEnabled', x.target.checked)} 
-                               type="checkbox" className="form-check-input" id="supplementaryQuestionsEnabled" />
-                        <label className="form-check-label" htmlFor="supplementaryQuestionsEnabled">{t('exercisesettings_qopt_supQ')}</label>
-                    </div>
-                    <div className="form-check">
-                        <input checked={card.options.preferDecisionTreeBasedSupplementaryEnabled}
-                               onChange={x => store.setCardOption('preferDecisionTreeBasedSupplementaryEnabled', x.target.checked)}
-                               type="checkbox" className="form-check-input" id="preferDecisionTreeBasedSupplementaryEnabled" />
-                        <label className="form-check-label" htmlFor="preferDecisionTreeBasedSupplementaryEnabled">{t('exercisesettings_qopt_preferDTsup')}</label>
-                    </div>
-                    <div className="form-check">
-                        <input checked={card.options.debugButtonEnabled}
-                               onChange={x => store.setCardOption('debugButtonEnabled', x.target.checked)}
-                               type="checkbox" className="form-check-input" id="debugButtonEnabled" />
-                        <label className="form-check-label" htmlFor="debugButtonEnabled">{t('exercisesettings_qopt_debugBtn')}</label>
-                    </div>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_qopt')}</label>
+                    <Form.Check type="checkbox"
+                                id="forceNewAttemptCreationEnabled"
+                                label={t('exercisesettings_qopt_forceAttCreation')}
+                                checked={card.options.forceNewAttemptCreationEnabled}
+                                onChange={x => store.setCardOption('forceNewAttemptCreationEnabled', x.target.checked)} />
+                    <Form.Check type="checkbox"
+                                id="correctAnswerGenerationEnabled"
+                                label={t('exercisesettings_qopt_genCorAnsw')}
+                                checked={card.options.correctAnswerGenerationEnabled}
+                                onChange={x => store.setCardOption('correctAnswerGenerationEnabled', x.target.checked)} />
+                    <Form.Check type="checkbox"
+                                id="newQuestionGenerationEnabled"
+                                label={t('exercisesettings_qopt_forceShowGenNextQ')}
+                                checked={card.options.newQuestionGenerationEnabled}
+                                onChange={x => store.setCardOption('newQuestionGenerationEnabled', x.target.checked)} />
+                    <Form.Check type="checkbox"
+                                id="supplementaryQuestionsEnabled"
+                                label={t('exercisesettings_qopt_supQ')}
+                                checked={card.options.supplementaryQuestionsEnabled}
+                                onChange={x => store.setCardOption('supplementaryQuestionsEnabled', x.target.checked)} />
+                    <Form.Check type="checkbox"
+                                id="debugButtonEnabled"
+                                label={t('exercisesettings_qopt_debugBtn')}
+                                checked={card.options.debugButtonEnabled}
+                                onChange={x => store.setCardOption('debugButtonEnabled', x.target.checked)} />
                 </div>
 
-                <div className="form-group">
-                    <label className="font-weight-bold" htmlFor={`maxExpectedConcurrentStudents`}>{t('exercisesettings_max_concurrent_students')}</label>
-                    <input type="number"
-                        className="form-control"
+                <div className="mb-3">
+                    <label className="fw-bold" htmlFor={`maxExpectedConcurrentStudents`}>{t('exercisesettings_max_concurrent_students')}</label>
+                    <Form.Control type="number"
                         id={`maxExpectedConcurrentStudents`}
                         value={store.currentCard?.options.maxExpectedConcurrentStudents}
                         onChange={e => store.setCardOption('maxExpectedConcurrentStudents', +e.target.value)} />
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="survOptions" className="font-weight-bold">{t('exercisesettings_survey')}</label>
+                <div className="mb-3">
+                    <label htmlFor="survOptions" className="fw-bold">{t('exercisesettings_survey')}</label>
                     <div className="input-group mb-3">
-                        <div className="input-group-prepend">
-                            <div className="input-group-text">
-                                <input checked={card.options.surveyOptions?.enabled}
-                                    type="checkbox"
-                                    aria-label="Checkbox for following text input"
-                                    onChange={x => store.setCardSurveyEnabled(x.target.checked)} />
-                            </div>
+                        <div className="input-group-text">
+                            <input checked={card.options.surveyOptions?.enabled}
+                                type="checkbox"
+                                aria-label="Checkbox for following text input"
+                                onChange={x => store.setCardSurveyEnabled(x.target.checked)} />
                         </div>
-                        <input id="survOptions"
+                        <Form.Control id="survOptions"
                             type="text"
                             value={card.options.surveyOptions?.surveyId}
-                            className="form-control"
                             aria-label="Text input with checkbox"
                             disabled={!card.options.surveyOptions?.enabled}
                             onChange={x => store.setCardSurveyId(x.target.value)} />
                     </div>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="exTagsValues" className="font-weight-bold">{t('exercisesettings_tags')}</label>
-                    {currentDomain?.tags.map((t, i) => 
-                        <div key={i} className="form-check">
-                            <input 
-                                checked={card.tags.includes(t)} 
-                                onChange={x => x.target.checked
-                                    ? store.setCardTags([...new Set([...card.tags, x.target.value])])
-                                    : store.setCardTags([...card.tags.filter(z => z !== x.target.value)])} 
-                                type="checkbox" 
-                                value={t}
-                                className="form-check-input"
-                                id={`tag_checkbox_${t}`} />
-                            <label className="form-check-label" htmlFor={`tag_checkbox_${t}`}>{t}</label>
-                        </div>)}
+                <div className="mb-3">
+                    <label htmlFor="exTagsValues" className="fw-bold">{t('exercisesettings_tags')}</label>
+                    {currentDomain?.tags.map((t, i) =>
+                        <Form.Check key={i}
+                            type="checkbox"
+                            id={`tag_checkbox_${t}`}
+                            label={t}
+                            value={t}
+                            checked={card.tags.includes(t)}
+                            onChange={x => x.target.checked
+                                ? store.setCardTags([...new Set([...card.tags, x.target.value])])
+                                : store.setCardTags([...card.tags.filter(z => z !== x.target.value)])} />)}
                 </div>
                 {sharedDomainConcepts?.length
-                    && <div className="form-group">
+                    && <div className="mb-3">
                         <div>
-                            <label className="font-weight-bold">{t('exercisesettings_commonConcepts')}</label>
+                            <label className="fw-bold">{t('exercisesettings_commonConcepts')}</label>
                         </div>
                         <div className="row">
                             <div className="col-md-12">
@@ -269,8 +285,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     || null
                 }
                 {sharedDomainLaws?.length
-                    && <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_commonLaws')}</label>
+                    && <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_commonLaws')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseLaws
                                 id="common_laws"
@@ -290,8 +306,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     || null
                 }
                 {sharedDomainSkills?.length
-                    && <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_commonSkills')}</label>
+                    && <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_commonSkills')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseSkills
                                 id="common_skills"
@@ -310,8 +326,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     </div>
                     || null
                 }
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_stages')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold mb-2">{t('exercisesettings_stages')}</label>
                     <div className="list-group list-group-flush">
                         {card.stages.map((stage, stageIdx, stages) => 
                             <ExerciseStage
@@ -329,26 +345,120 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 </div>
                 {currentStrategy?.options.multiStagesEnabled
                     ? <div style={{marginTop: "-1rem"}}>
-                        <button type="button" className="btn btn-success" onClick={() => store.addStage()}>{t('exercisesettings_addStage')}</button>
+                        <Button variant="success" onClick={() => store.addStage()}>{t('exercisesettings_addStage')}</Button>
                       </div>
                     : null
                 }
             </form >
-            {user?.roles.includes('ADMIN') && // TODO временный фикс, убрать в будущем
-                <div className="mt-5">
-                    <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>
-                    <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>
-                    <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
-                    {currentStrategy?.options.multiStagesEnabled &&
-                        <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
-                    }
-                </div>
-                || null}
+            </fieldset>
+            <div className="mt-5">
+                {canEdit && <Button variant="primary" className="me-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</Button>}
+                {canEdit && <Button variant="primary" className="me-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</Button>}
+                <Button variant="primary" className="me-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</Button>
+                {canEdit && currentStrategy?.options.multiStagesEnabled &&
+                    <Button variant="primary" className="me-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</Button>
+                }
+            </div>
             </div >
 
 
     );
 })
+
+type ExerciseModeBarProps = {
+    store: ExerciseSettingsStore,
+    linkType: 'global' | 'original' | 'inherited' | 'cloned',
+    courseId: number | null,
+};
+
+const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBarProps) => {
+    const { t } = useTranslation();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const card = store.currentCard;
+    if (!card) return null;
+
+    const { canCloneToCourse, canUnlinkFromCourse, canCopyToGlobalPool, canDelete } = card.permissions;
+    const showToolbar = canCloneToCourse || canUnlinkFromCourse || canCopyToGlobalPool || canDelete;
+
+    const onConvertToClone = async () => {
+        if (courseId == null) return;
+        setBusy(true);
+        await store.cloneCurrentToCourse(courseId);
+        setBusy(false);
+    };
+
+    const onUnlink = async () => {
+        if (courseId == null) return;
+        setBusy(true);
+        await store.unlinkFromCourse(courseId);
+        setBusy(false);
+    };
+
+    const onCopyToPool = async () => {
+        setBusy(true);
+        const newId = await store.copyCurrentToPool();
+        setBusy(false);
+        if (newId != null) {
+            window.location.href = `/pages/exercise-settings?exerciseId=${newId}`;
+        }
+    };
+
+    const onDeleteClick = () => {
+        if (card.isPublic) {
+            setShowDeleteModal(true);
+        } else if (window.confirm(t('exerciseModeBar_confirmDelete'))) {
+            store.deleteCurrentExercise();
+        }
+    };
+
+    const onConfirmGlobalDelete = async () => {
+        setShowDeleteModal(false);
+        setBusy(true);
+        await store.deleteCurrentExercise();
+        setBusy(false);
+    };
+
+    return (
+        <div className="mb-3">
+            <div className="mb-2">
+                <ExerciseRowBadge linkType={linkType} />
+            </div>
+            {showToolbar && (
+                <div className="btn-toolbar" role="toolbar">
+                    <div className="btn-group btn-group-sm flex-wrap" role="group" style={{ gap: '0.25rem' }}>
+                        {canCloneToCourse && (
+                            <Button variant="warning" disabled={busy} onClick={onConvertToClone}>
+                                {t('exerciseModeBar_convertToClone')}
+                            </Button>
+                        )}
+                        {canUnlinkFromCourse && (
+                            <Button variant="outline-danger" disabled={busy} onClick={onUnlink}>
+                                {t('exerciseModeBar_unlinkFromCourse')}
+                            </Button>
+                        )}
+                        {canCopyToGlobalPool && (
+                            <Button variant="info" disabled={busy} onClick={onCopyToPool}>
+                                {t('exerciseModeBar_copyToPool')}
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button variant="danger" disabled={busy} onClick={onDeleteClick}>
+                                {t('exerciseModeBar_deleteExercise')}
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            )}
+            {showDeleteModal && (
+                <DeleteGlobalExerciseModal
+                    exerciseId={card.id}
+                    onConfirm={onConfirmGlobalDelete}
+                    onCancel={() => setShowDeleteModal(false)} />
+            )}
+        </div>
+    );
+});
 
 
 type ExerciseStageProps = {
@@ -374,7 +484,7 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
     return (
         <div className="card mb-3">
             <div className="card-body">
-                <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="mb-3" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div>{t('exercisesettings_stageN', { stageNumber: stageIdx + 1 })}</div>                                            
                     <div>
                         <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
@@ -386,30 +496,29 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     </div>
                 </div>
                 {strategy?.options.multiStagesEnabled
-                    && <div className="form-group">
-                            <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
-                            <input type="text"
-                                className="form-control"
+                    && <div className="mb-3">
+                            <label className="fw-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
+                            <Form.Control type="text"
                                 id={`numberOfQuestions_stage${stageIdx}`}
                                 value={stage.numberOfQuestions}
                                 onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
                         </div>
                     || null
                 }
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_qcomplexity')}</label>
                     <div className="d-flex">
                         <input type="range"
-                            className="form-control-range"
+                            className="form-range"
                             id={`complexity_stage${stageIdx}`}
                             value={(stage.complexity ?? 0.5) * 100}
                             onChange={e => store.setCardStageComplexity(stageIdx, e.target.value)} />
-                        <div className="ml-2">{stage.complexity.toFixed(2)}</div>
+                        <div className="ms-2">{stage.complexity.toFixed(2)}</div>
                     </div>
                 </div>
                 {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
-                    <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_stageN_concepts')}</label>
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_stageN_concepts')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseConcepts
                                 id={`stage${stageIdx}_concepts`}
@@ -428,8 +537,8 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     || null}
                 {(stageDomainLaws && stageDomainLaws.length > 0)
                     &&
-                    <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_stageN_laws')}</label>
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_stageN_laws')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseLaws
                                 id={`stage${stageIdx}_laws`}
@@ -450,8 +559,8 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                 }
                 {(stageDomainSkills && stageDomainSkills.length > 0)
                     &&
-                    <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_stageN_skills')}</label>
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_stageN_skills')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseSkills
                                 id={`stage${stageIdx}_skills`}
@@ -471,12 +580,11 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     || null
                 }
                 
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_stageN_matchedQuestionExamples')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_stageN_matchedQuestionExamples')}</label>
                     {
-                        stage.bankLoadingState === 'IN_PROGRESS' 
-                            && <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
-                            || <div className="list-group">
+                        stage.bankLoadingState === 'IN_PROGRESS' && <Loader styleOverride={{ marginLeft: '0.5rem', width: '1rem', height: '1rem' }} delay={0} />}
+                        <div className="list-group">
                                 {
                                     stage.bankSearchResult.questions.length === 0
                                     ? <div className="list-group-item">{t('exercisesettings_noQuestionsFound')}</div>
@@ -485,12 +593,11 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                                             <a target="_blank" href={`${API_URL}/pages/question?metadataId=${q.metadataId}`}>{q.name}</a>
                                         </div>)
                                 }
-                               </div>
-                    }
+                        </div>
                 </div>
                 {showDeleteBtn &&
                     <div className="d-flex justify-content-end">
-                        <button type="button" className="btn btn-danger" onClick={() => store.removeStage(stageIdx)}>{t('exercisesettings_removeStage')}</button>
+                        <Button variant="danger" onClick={() => store.removeStage(stageIdx)}>{t('exercisesettings_removeStage')}</Button>
                     </div>
                     || null
                 }
@@ -512,12 +619,9 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
-    const user = useCurrentUser();
-    
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
-    
+    }, [t])
 
     return (
         <>
@@ -570,11 +674,9 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
-    const user = useCurrentUser();   
-    
     const lawFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
+    }, [t])
 
     return(
     <>
@@ -626,11 +728,9 @@ const ExerciseSkills = observer((props: ExerciseSkillsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');   
-    const user = useCurrentUser();
-    
     const skillFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
+    }, [t])
 
     return(
     <>
@@ -678,5 +778,5 @@ function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target'): ExerciseCardCo
         : value === 'Target' ? 'TARGETED' : 'PERMITTED'
 }
 function getConceptFlags(c: DomainConcept): ['Denied', 'Allowed'] | ['Denied', 'Allowed', 'Target'] {
-    return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
+    return c.targetEnabled ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
 }

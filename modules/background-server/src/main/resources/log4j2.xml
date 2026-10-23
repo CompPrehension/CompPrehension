@@ -28,7 +28,7 @@
                                  onMismatch="DENY"/>
             </AppenderRef>
         </Logger>
-        <Logger name="org.vstu.compprehension.models.businesslogic.storage"
+        <Logger name="org.vstu.compprehension.businesslogic.storage"
                 additivity="true">
             <AppenderRef ref="BankLoadTestingFile">
                 <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-OFF}"

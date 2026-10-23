@@ -3,9 +3,14 @@ import React from "react";
 import Navbar from "react-bootstrap/esm/Navbar";
 import { Language } from "../../types/language";
 
+export type HeaderCrumb = {
+    label: string,
+    /** Omitted (or ignored on the last crumb) — renders as the current, non-clickable page label. */
+    onClick?: () => void,
+}
 
 export type HeaderProps = {
-    text?: string | null,
+    crumbs?: HeaderCrumb[],
     pagination?: React.ReactNode | React.ReactNode[] | null,
     languageHint: string,
     language: Language,
@@ -14,24 +19,44 @@ export type HeaderProps = {
     user: string,
     userHref?: string | null,
     onUserClicked?: (() => void) | null,
+    logoutLabel?: string | null,
+    /** Задан — ссылка выхода вызывает его вместо перехода на /logout. */
+    onLogoutClicked?: (() => void) | null,
 }
 export const Header = observer((props: HeaderProps) => {
-    const { text, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref } = props;
+    const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel, onLogoutClicked } = props;
 
     return (
-        <Navbar className="px-0">
-            {
-                text && <h5>{text}</h5> || null
-            }
+        <Navbar className="px-0 flex-wrap comp-ph-header">
+            {crumbs && crumbs.length > 0 && (
+                <div className="comp-ph-header-crumbs">
+                    {crumbs.map((crumb, i) => {
+                        const isCurrent = i === crumbs.length - 1;
+                        return (
+                            <React.Fragment key={i}>
+                                {i > 0 && <span className="comp-ph-header-crumb-sep">›</span>}
+                                {isCurrent
+                                    ? <h5 className="mb-0 comp-ph-header-title">{crumb.label}</h5>
+                                    : <a href="#" className="comp-ph-header-brand" onClick={e => { e.preventDefault(); crumb.onClick?.(); }}>{crumb.label}</a>}
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
+            )}
             <Navbar.Collapse className="justify-content-end">
                 {pagination}
                 <Navbar.Text className="px-2">
                     {languageHint}: <a href="#" onClick={onLanguageClicked ?? undefined}>{language}</a>
                 </Navbar.Text>
-                <Navbar.Toggle />        
+                <Navbar.Toggle />
                 <Navbar.Text className="px-2">
                     {userHint}: <a href={userHref ?? "#"} onClick={onUserClicked ?? undefined}>{user}</a>
                 </Navbar.Text>
+                {logoutLabel && (
+                    <Navbar.Text className="px-2">
+                        <a href="/logout" onClick={onLogoutClicked ? e => { e.preventDefault(); onLogoutClicked(); } : undefined}>{logoutLabel}</a>
+                    </Navbar.Text>
+                )}
             </Navbar.Collapse>
         </Navbar>
     );

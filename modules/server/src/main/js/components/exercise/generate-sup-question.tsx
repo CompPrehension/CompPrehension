@@ -72,7 +72,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
             <Optional isVisible={isButtonsVisible}>
                 <div className="d-flex flex-row mt-3">
                     <Button onClick={onDetailsClicked} variant="primary">{t('exercise_supquestion_details')}</Button>
-                    <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('exercise_supquestion_gotit')}</Button>
+                    <Button onClick={onGotitClicked} variant="success" className="ms-2">{t('exercise_supquestion_gotit')}</Button>
                 </div>
             </Optional>            
             <Modal  type={'DIALOG'} size={'xl'} 
@@ -132,7 +132,7 @@ const SupQuestion = observer((props: SupQuestionProps) => {
                 <Button variant="primary" onClick={onSubmitted}>{t('exercise_supquestion_send_answer')}</Button>
             }
             {showMessageFeedback &&
-                <>{store.feedback!.message.message}</>
+                <div dangerouslySetInnerHTML={{ __html: store.feedback!.message.message }} />
             }
             {showQuestionFeedback &&
                 <div className='mt-2'>
@@ -155,8 +155,7 @@ type ShortFeedbackAlertProps = {
     supQuestionStore?: SupplementaryQuestionStore,
 }
 export const ShortFeedbackAlert = observer((props: ShortFeedbackAlertProps) => {
-    let { supQuestionStore, message, showGenerateSupQuestion } = props;    
-    showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
+    const { message } = props;
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(

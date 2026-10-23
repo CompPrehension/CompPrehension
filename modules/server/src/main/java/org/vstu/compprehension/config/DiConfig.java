@@ -11,22 +11,26 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.service.BktService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.repositories.data.UserDataRepository;
+import org.vstu.compprehension.data.user.UserAccountData;
+import org.vstu.compprehension.data.user.UserData;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.adapters.*;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
-import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.businesslogic.backend.Backend;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.businesslogic.backend.PelletBackend;
+import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.services.questionbank.QuestionBankImpl;
+import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 import org.vstu.compprehension.strategies.*;
-import org.vstu.compprehension.utils.RandomProvider;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
+import org.vstu.compprehension.services.RandomProviderImpl;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.List;
 
 @Configuration
@@ -55,54 +59,50 @@ public class DiConfig {
     @Bean
     @Singleton
     @ConditionalOnProperty(prefix = "bkt", name = "enabled", havingValue = "true")
-    BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory) {
-        return new BktStrategy(bktService, domainFactory);
+    BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory,
+                               @Autowired ExerciseAttemptDataService exerciseAttemptService) {
+        return new BktStrategy(bktService, domainFactory, exerciseAttemptService);
     }
 
     @Bean
     @Singleton @Primary
-    GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory) {
-        return new GradeConfidenceBaseStrategy(domainFactory);
+    GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory,
+                                                               @Autowired ExerciseAttemptDataService exerciseAttemptService) {
+        return new GradeConfidenceBaseStrategy(domainFactory, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider) {
-        return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider);
+    GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider,
+                                                                                                    @Autowired ExerciseAttemptDataService exerciseAttemptService) {
+        return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory) {
-        return new StaticStrategy(domainFactory);
+    StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory,
+                                     @Autowired ExerciseAttemptDataService exerciseAttemptService) {
+        return new StaticStrategy(domainFactory, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider) {
-        return new Strategy(domainFactory, randomProvider);
+    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider, @Autowired ExerciseAttemptDataService exerciseAttemptService) {
+        return new Strategy(domainFactory, randomProvider, exerciseAttemptService);
     }
 
     @Bean
     @SessionScope
-    UserService getUserService(@Autowired UserRepository userRepository) {
-        return new CachedUserService(new UserServiceImpl(userRepository));
+    UserDataService getUserService(@Autowired UserDataRepository userDataRepository,
+                                   @Autowired EducationResourceService educationResourceService,
+                                   @Autowired LtiContextProvider ltiContextProvider,
+                                   @Autowired CourseDataService courseService,
+                                   @Autowired RoleAssignmentService roleAssignmentService,
+                                   @Autowired Mapper<UserAccountData, UserData> currentUserMapper) {
+        return new CachedUserService(new UserServiceImpl(userDataRepository, educationResourceService, ltiContextProvider, courseService, roleAssignmentService, currentUserMapper));
     }
 
     @Bean
     @Singleton
-    QuestionBank getQuestionBank(
-            @Autowired DomainRepository domainRepository,
-            @Autowired QuestionMetadataRepository metadataRepository,
-            @Autowired QuestionDataRepository questionDataRepository,
-            @Autowired QuestionGenerationRequestRepository generationRequestRepository,
-            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
-            @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
-        //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
-    }
-    
-    @Bean
-    @SessionScope
-    RandomProvider getRandomProvider() {
-        return new RandomProvider();
+    QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository) {
+        return new QuestionBankImpl(bankDataRepository);
     }
 
     @Bean

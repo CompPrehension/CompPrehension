@@ -6,19 +6,39 @@ import { nonEmptyArray } from './utils';
 export type ExerciseListItem = {
     id: number,
     name: string,
-    /*
-    domainId: string,
-    strategyId: string,
-    backendId: string,*/
+    isPublic: boolean,
 };
 export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     id: io.number,
     name: io.string,
-    /*
-    domainId: io.string,
-    strategyId: io.string,
-    backendId: io.string,*/
+    isPublic: io.boolean,
 })
+
+export type ExerciseListPermissions = {
+    canCreateExercise: boolean,
+    canImportInherit: boolean,
+    canImportClone: boolean,
+};
+export const TExerciseListPermissions: io.Type<ExerciseListPermissions> = io.type({
+    canCreateExercise: io.boolean,
+    canImportInherit: io.boolean,
+    canImportClone: io.boolean,
+}, 'ExerciseListPermissions')
+
+export const noExerciseListPermissions: ExerciseListPermissions = {
+    canCreateExercise: false,
+    canImportInherit: false,
+    canImportClone: false,
+};
+
+export type ExerciseList = {
+    exercises: ExerciseListItem[],
+    permissions: ExerciseListPermissions,
+};
+export const TExerciseList: io.Type<ExerciseList> = io.type({
+    exercises: io.array(TExerciseListItem),
+    permissions: TExerciseListPermissions,
+}, 'ExerciseList')
 
 export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
 export type ExerciseCardConcept = {
@@ -78,6 +98,21 @@ export const TExerciseStage : io.Type<ExerciseStage> = io.type({
 })
 
 
+export type ExerciseCardPermissions = {
+    canEdit: boolean,
+    canDelete: boolean,
+    canCloneToCourse: boolean,
+    canCopyToGlobalPool: boolean,
+    canUnlinkFromCourse: boolean,
+}
+export const TExerciseCardPermissions: io.Type<ExerciseCardPermissions> = io.type({
+    canEdit: io.boolean,
+    canDelete: io.boolean,
+    canCloneToCourse: io.boolean,
+    canCopyToGlobalPool: io.boolean,
+    canUnlinkFromCourse: io.boolean,
+}, 'ExerciseCardPermissions')
+
 export type ExerciseCard = {
     id: number,
     name: string,
@@ -87,6 +122,8 @@ export type ExerciseCard = {
     stages: NonEmptyArray<ExerciseStage>,
     tags: string[],
     options: ExerciseOptions,
+    isPublic: boolean,
+    permissions: ExerciseCardPermissions,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -95,9 +132,11 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     domainId: io.string,
     strategyId: io.string,
     backendId: io.string,
-    stages: nonEmptyArray(TExerciseStage),    
+    stages: nonEmptyArray(TExerciseStage),
     tags: io.array(io.string),
     options: TExerciseOptions,
+    isPublic: io.boolean,
+    permissions: TExerciseCardPermissions,
 })
 
 export type DomainSkill = {
@@ -116,31 +155,26 @@ export const TDomainSkill : io.Type<DomainSkill> = io.recursion('DomainSkill', (
 export type DomainLaw = {
     name: string,
     displayName: string,
-    bitflags: number,
+    targetEnabled: boolean,
     childs: DomainLaw[],
 }
 export const TDomainLaw : io.Type<DomainLaw> = io.recursion('DomainLaw', () => io.type({
     name: io.string,
     displayName: io.string,
-    bitflags: io.number,
+    targetEnabled: io.boolean,
     childs: io.array(TDomainLaw),
 }))
-
-export enum DomainConceptFlag {
-    VisibleToTeacher = 1,
-    TargetEnabled = 1 << 1,
-}
 
 export type DomainConcept = {
     name: string,
     displayName: string,
-    bitflags: number,
+    targetEnabled: boolean,
     childs: DomainConcept[],
 }
 export const TDomainConcept : io.Type<DomainConcept> = io.recursion('DomainConcept', () => io.type({
     name: io.string,
     displayName: io.string,
-    bitflags: io.number,
+    targetEnabled: io.boolean,
     childs: io.array(TDomainConcept),
 }))
 

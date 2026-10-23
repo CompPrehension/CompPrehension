@@ -1,100 +1,44 @@
 package org.vstu.compprehension.adapter;
 
-import com.google.common.collect.Lists;
-import domains.DataFlowDTDomain;
-import domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.domains.*;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.businesslogic.domains.*;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.services.LocalizationService;
+import org.vstu.compprehension.services.RandomProvider;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class DomainFactoryImpl implements DomainFactory {
-    private @NotNull HashMap<String, Domain> domainIdToClassMap = new HashMap<>();
-    private @NotNull HashMap<String, Domain> domainShortNameToClassMap = new HashMap<>(); // TODO remove this
+    private final @NotNull Map<String, Domain> domains;
 
     @Autowired
-    public DomainFactoryImpl(DomainRepository domainRepository,
-                             LocalizationService localizationService,
+    public DomainFactoryImpl(LocalizationService localizationService,
                              RandomProvider randomProvider,
                              QuestionBank questionStorage) {
-
-        var domains = Lists.newArrayList(domainRepository.findAll());
-        {
-            var progExprDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("expression"))
-                    .findFirst()
-                    .orElseThrow();
-            var progExprDomain = new ProgrammingLanguageExpressionDomain(
-                    progExprDomainEntity,
-                    localizationService,
-                    randomProvider,
-                    questionStorage);
-            domainIdToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
-            domainShortNameToClassMap.put(progExprDomainEntity.getShortName(), progExprDomain);
-        }
-        {
-            var controlFlowDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("ctrl_flow"))
-                    .findFirst()
-                    .orElseThrow();
-            var controlFlowDomain = new ControlFlowStatementsDomain(
-                    controlFlowDomainEntity,
-                    localizationService,
-                    randomProvider,
-                    questionStorage);
-            domainIdToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
-            domainShortNameToClassMap.put(controlFlowDomainEntity.getShortName(), controlFlowDomain);
-        }
-        {
-            var progExprDomain = (ProgrammingLanguageExpressionDomain)domainShortNameToClassMap.get("expression");
-            var dtDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("expression_dt"))
-                    .findFirst()
-                    .orElseThrow();
-            var dtDomain = new ProgrammingLanguageExpressionDTDomain(
-                    dtDomainEntity,
-                    progExprDomain);
-            domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
-            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
-        }
-        {
-            var controlFlowDomain = (ControlFlowStatementsDomain)domainShortNameToClassMap.get("ctrl_flow");
-            var dtDomainEntity = domains
-                    .stream().filter(x -> x.getName/*!*/().equals("ControlFlowStatementsDTDomain"))
-                    .findFirst()
-                    .orElseThrow();
-            var dtDomain = new ControlFlowStatementsDTDomain(
-                    dtDomainEntity,
-                    controlFlowDomain);
-            domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
-            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
-        }
+        var progExprDomain = new ProgrammingLanguageExpressionDomain(localizationService, randomProvider, questionStorage);
+        domains = Stream.<Domain>of(
+                        progExprDomain,
+                        new ProgrammingLanguageExpressionDTDomain(progExprDomain),
+                        new ControlFlowStatementsDomain(localizationService, randomProvider, questionStorage),
+                        new ControlFlowDTDomain(randomProvider, localizationService, questionStorage))
+                .collect(Collectors.toUnmodifiableMap(Domain::getDomainId, Function.identity()));
     }
 
     @Override
-    @NotNull
-    public Set<String> getDomainIds() {
-        return domainIdToClassMap.keySet();
+    public @NotNull Set<String> getDomainIds() {
+        return domains.keySet();
     }
 
     @Override
     public @NotNull Domain getDomain(@NotNull String domainId) {
-        if (!domainIdToClassMap.containsKey(domainId) && !domainShortNameToClassMap.containsKey(domainId)) {
-            throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));
-        }
-
-        var domain = domainIdToClassMap.get(domainId);
-        if (domain == null) {
-            domain = domainShortNameToClassMap.get(domainId);
-        }
+        var domain = domains.get(domainId);
         if (domain == null) {
             throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));
         }

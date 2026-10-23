@@ -1,0 +1,17 @@
+package org.vstu.compprehension.frontend.dto.survey;
+
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
+import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.data.survey.SurveyOptionsData;
+
+@Value
+@Jacksonized
+@Builder
+public class SurveyDto {
+    @NotNull String surveyId;
+    @NotNull SurveyOptionsData options;
+    @Builder.Default
+    @NotNull SurveyQuestionDto[] questions = new SurveyQuestionDto[0];
+}

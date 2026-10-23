@@ -1,12 +1,14 @@
 package org.vstu.compprehension.config;
 
-import com.nimbusds.jose.shaded.json.JSONArray;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,11 +24,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,10 +40,14 @@ import static java.util.Collections.singletonList;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-    private final KeycloakLogoutHandler keycloakLogoutHandler;
+    private static final String LOGOUT_RETURN_PARAMETER = "returnTo";
+    private static final String APP_PAGES_PREFIX = "/pages/";
+    private static final String DEFAULT_PAGE = "/pages/courses";
 
-    public WebSecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
-        this.keycloakLogoutHandler = keycloakLogoutHandler;
+    private final OidcLogoutHandler oidcLogoutHandler;
+
+    public WebSecurityConfig(OidcLogoutHandler oidcLogoutHandler) {
+        this.oidcLogoutHandler = oidcLogoutHandler;
     }
 
     @Bean
@@ -48,21 +55,28 @@ public class WebSecurityConfig {
         http.cors(c -> c.configurationSource(corsConfigurationSource()));
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(new AntPathRequestMatcher("/lti/**")).permitAll()
+                        .requestMatchers("/lti/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2Login ->
                     oauth2Login.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                 .oidcUserService(this.oidcUserService())
                         )
                 )
-                .logout((logout) -> logout.addLogoutHandler(keycloakLogoutHandler)
-                          .logoutSuccessUrl("/pages/exercise-settings")
+                .logout((logout) -> logout.addLogoutHandler(oidcLogoutHandler)
+                          .logoutSuccessHandler((request, response, authentication) ->
+                                  response.sendRedirect(resolvePageAfterLogout(request.getParameter(LOGOUT_RETURN_PARAMETER))))
                           .invalidateHttpSession(true)
                           .clearAuthentication(true)
                           .deleteCookies("JSESSIONID"));
         http.exceptionHandling(c ->
-                c.defaultAuthenticationEntryPointFor(getRestAuthenticationEntryPoint(), new AntPathRequestMatcher("/api/**")));
+                c.defaultAuthenticationEntryPointFor(getRestAuthenticationEntryPoint(), PathPatternRequestMatcher.withDefaults().matcher("/api/**")));
+        // Required for LTI iframe embedding in Moodle
+        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         return http.build();
+    }
+
+    private static @NotNull String resolvePageAfterLogout(@Nullable String requestedPage) {
+        return requestedPage != null && requestedPage.startsWith(APP_PAGES_PREFIX) ? requestedPage : DEFAULT_PAGE;
     }
 
     private AuthenticationEntryPoint getRestAuthenticationEntryPoint() {
@@ -108,8 +122,7 @@ public class WebSecurityConfig {
             OidcUser oidcUser = delegate.loadUser(userRequest);
 
             final Map<String, Object> claims = oidcUser.getClaims();
-            final JSONArray groups = (JSONArray)claims.get("groups");
-            if (groups == null)
+            if (!(claims.get("groups") instanceof Collection<?> groups))
                 throw new OAuth2AuthenticationException("Claim 'groups' is required for access_token");
 
             final Set<GrantedAuthority> mappedAuthorities = groups.stream()

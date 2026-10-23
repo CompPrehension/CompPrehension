@@ -9,7 +9,6 @@ export type ExerciseOptions = {
     newQuestionGenerationEnabled: boolean,
     supplementaryQuestionsEnabled: boolean,
     correctAnswerGenerationEnabled: boolean,
-    preferDecisionTreeBasedSupplementaryEnabled: boolean,
     debugButtonEnabled: boolean,
     maxExpectedConcurrentStudents: number,
 }
@@ -20,7 +19,6 @@ export const TExerciseOptions: io.Type<ExerciseOptions> = io.intersection([
         newQuestionGenerationEnabled: io.boolean,
         supplementaryQuestionsEnabled: io.boolean,
         correctAnswerGenerationEnabled: io.boolean,
-        preferDecisionTreeBasedSupplementaryEnabled: io.boolean,
         maxExpectedConcurrentStudents: io.number,
     }),
     io.partial({

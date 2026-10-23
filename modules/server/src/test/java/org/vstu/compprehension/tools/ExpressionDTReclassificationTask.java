@@ -1,0 +1,115 @@
+package org.vstu.compprehension.tools;
+
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Disabled;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
+
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
+
+import jakarta.transaction.Transactional;
+import org.hibernate.SessionFactory;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.test.annotation.Rollback;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Disabled("Утилита пересчёта метаданных банка в БД.")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@RequiredArgsConstructor
+public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
+    private final DomainFactory domainFactory;
+    private final QuestionMetadataRepository qMetaRepo;
+    private final SessionFactory sessionFactory;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataWithData> questionMetadataToDataMapper;
+    private final Mapper<QuestionMetadataData, QuestionMetadataEntity> questionDataToMetadataMapper;
+
+    private ProgrammingLanguageExpressionDTDomain domain;
+
+    @BeforeAll
+    public void tearUp() {
+        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(ProgrammingLanguageExpressionDTDomain.DOMAIN_ID);
+    }
+
+    @Test
+    public void performReclassification() {
+        final int BATCH_SIZE = 8 * 1024;
+        int lastId = 0;
+        int batches = 0;
+
+        while (true) {
+            List<QuestionMetadataEntity> batchList = qMetaRepo.loadPageWithData(lastId, BATCH_SIZE);
+            System.err.println("New batch loaded");
+
+            if (batchList.isEmpty()) {
+                break;
+            }
+
+            lastId = processBatch(batchList, lastId);
+            batches++;
+            if (batches % 8 == 0) {
+                System.gc();
+            }
+        }
+    }
+
+    @Transactional
+    @Rollback(false)
+    protected int processBatch(List<QuestionMetadataEntity> batchList, int lastId) {
+        List<Integer> toDelete = new ArrayList<>();
+        List<QuestionMetadataEntity> newMeta = new ArrayList<>();
+
+        for (QuestionMetadataEntity meta : batchList) {
+            if (!meta.getDomainShortname().equals(domain.getDomainId())) {
+                continue;
+            }
+
+            System.err.printf("Processing metadata id=%d%n", meta.getId());
+            QuestionMetadataData obj;
+            try {
+                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, questionMetadataToDataMapper.map(meta));
+            } catch (Exception e) {
+                e.printStackTrace();
+                obj = null;
+            }
+
+            if (obj == null) {
+                toDelete.add(meta.getId());
+                lastId = meta.getId();
+                System.err.println("This metadata will be deleted");
+                continue;
+            }
+
+            obj.setId(meta.getId());
+            obj.setGenerationRequestId(meta.getGenerationRequestId());
+            obj.setCreatedAt(meta.getCreatedAt());
+            var updated = questionDataToMetadataMapper.map(obj);
+            updated.setQuestionData(meta.getQuestionData());
+            newMeta.add(updated);
+            lastId = meta.getId();
+        }
+
+        System.err.println("Saving this batch");
+        try (var session = sessionFactory.openSession()) {
+            var transaction = session.beginTransaction();
+            for (QuestionMetadataEntity meta : newMeta) {
+                session.merge(meta);
+            }
+            transaction.commit();
+        }
+        if (!toDelete.isEmpty()) {
+            System.err.printf("Deleting %d metadata %n", toDelete.size());
+            qMetaRepo.deleteAllById(toDelete);
+        }
+        return lastId;
+    }
+}

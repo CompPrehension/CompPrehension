@@ -1,0 +1,35 @@
+package org.vstu.compprehension.services;
+
+import org.vstu.compprehension.data.cource.CourseSummaryData;
+import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.data.cource.CourseExerciseData;
+import org.vstu.compprehension.data.cource.CreateCourseData;
+import org.vstu.compprehension.frontend.dto.course.CourseDto;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+public interface CourseDataService {
+    @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(@NotNull String externalCourseId, long educationResourceId);
+
+    long getOrCreate(@NotNull CreateCourseData course);
+
+    void linkExerciseWithCourseIfMissing(long exerciseId, long courseId);
+
+    @NotNull List<Long> findCourseIdsByExerciseId(long exerciseId);
+
+    @NotNull List<CourseExerciseData> getExercisesInCourseOrThrow(long courseId, @NotNull Collection<Long> exerciseIds);
+
+    @NotNull List<CourseSummaryData> getAllCourses();
+
+    @NotNull List<CourseSummaryData> getCoursesByIds(@NotNull Collection<Long> courseIds);
+
+    @NotNull List<Long> findCourseIdsByEducationResourceIds(@NotNull Collection<Long> educationResourceIds);
+
+    @NotNull List<CourseSummaryData> getExerciseMemberships(long exerciseId);
+
+    void addExerciseToCourse(long exerciseId, long courseId);
+
+    void removeExerciseFromCourse(long exerciseId, long courseId);
+}

@@ -3,7 +3,7 @@ package org.vstu.compprehension.utils.transactions;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Component
 @Singleton

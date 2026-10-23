@@ -1,6 +1,5 @@
-import { observable } from "mobx";
 import { observer } from "mobx-react";
-import React, { useState } from "react";
+import React from "react";
 
 type ClickableLabelProps = {
   id: string, 
@@ -30,19 +29,13 @@ export type ToggleSwitchProps<T extends string> = {
     values: T[],
     displayNames?: string[],
     valueStyles?: (React.CSSProperties | null | undefined)[],
-    inputAttributes?: {},
+    inputAttributes?: Record<string, string | number | boolean>,
     selected: T,
     onChange?: (val: T) => void,
 }
 export const ToggleSwitch = observer(<T extends string>(props: ToggleSwitchProps<T>) => {
   const handleChange = (val: T) => {
     props.onChange?.(val);
-  };
-
-  const selectionStyle = () => {
-    return {
-      left: `${props.values.indexOf(props.selected) / 3 * 100}%`,
-    };
   };
 
   return (
@@ -70,4 +63,3 @@ export const ToggleSwitch = observer(<T extends string>(props: ToggleSwitchProps
     </div>
   );
 })
-

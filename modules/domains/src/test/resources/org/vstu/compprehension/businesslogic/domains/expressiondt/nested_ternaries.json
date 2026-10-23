@@ -1,0 +1,1474 @@
+{
+  "id": 1746650,
+  "data": {
+    "tags": [
+      "basics",
+      "operators",
+      "order",
+      "evaluation",
+      "errors",
+      "Python",
+      "C++",
+      "Java"
+    ],
+    "concepts": [],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "showTrace": true,
+        "requireContext": true,
+        "requireAllAnswers": true,
+        "orderNumberOptions": {
+          "position": "BOTTOM",
+          "delimiter": "#"
+        },
+        "multipleSelectionEnabled": false,
+        "showSupplementaryQuestions": true
+      },
+      "questionName": "STRACE(rt_sigprocmask(%s,_%#llx,_%#x,_%d),_(how_==_SIG_BLOCK_)___c++1464281805_v",
+      "questionText": "",
+      "questionType": "ORDER",
+      "answerObjects": [],
+      "statementFacts": [
+        {
+          "verb": "nodeType",
+          "object": "Integer",
+          "subject": "mt_node_32",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "value",
+          "object": "-1",
+          "subject": "mt_node_32",
+          "objectType": "xsd:long",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "-1",
+          "subject": "mt_node_32",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "else",
+          "subject": "mt_node_32",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_32",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_8",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_7",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_6",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "expressions.comparison.EqOp",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "condition",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_20",
+          "subject": "mt_node_17",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_19",
+          "subject": "mt_node_17",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_18",
+          "subject": "mt_node_17",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "expressions.comparison.EqOp",
+          "subject": "mt_node_17",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "condition",
+          "subject": "mt_node_17",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_17",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_14",
+          "subject": "mt_node_11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_13",
+          "subject": "mt_node_11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_12",
+          "subject": "mt_node_11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "expressions.comparison.EqOp",
+          "subject": "mt_node_11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "condition",
+          "subject": "mt_node_11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "String",
+          "subject": "mt_node_24",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "SIG_UNBLOCK",
+          "subject": "mt_node_24",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "then",
+          "subject": "mt_node_24",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_24",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_37",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "size",
+          "subject": "mt_node_37",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "args",
+          "subject": "mt_node_37",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_37",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:ObjectProperty",
+          "subject": "rdfs:subPropertyOf",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:Class",
+          "subject": "owl:Class",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "MeaningTreeLabel",
+          "subject": "mt_node_31",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "attr",
+          "object": "false",
+          "subject": "mt_node_31",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "id",
+          "object": "0",
+          "subject": "mt_node_31",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_31",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_31",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_25",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_10",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_5",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "TernaryOperator",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "args",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_23",
+          "subject": "mt_node_16",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_22",
+          "subject": "mt_node_16",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_17",
+          "subject": "mt_node_16",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "TernaryOperator",
+          "subject": "mt_node_16",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "else",
+          "subject": "mt_node_16",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_16",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "Integer",
+          "subject": "mt_node_29",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "value",
+          "object": "0",
+          "subject": "mt_node_29",
+          "objectType": "xsd:long",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "0",
+          "subject": "mt_node_29",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "right",
+          "subject": "mt_node_29",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_29",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_24",
+          "subject": "mt_node_10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_16",
+          "subject": "mt_node_10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_11",
+          "subject": "mt_node_10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "TernaryOperator",
+          "subject": "mt_node_10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "else",
+          "subject": "mt_node_10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "String",
+          "subject": "mt_node_23",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "SIG_SETMASK",
+          "subject": "mt_node_23",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "then",
+          "subject": "mt_node_23",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_23",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_36",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "oldset_addr",
+          "subject": "mt_node_36",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "args",
+          "subject": "mt_node_36",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_36",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "MeaningTreeLabel",
+          "subject": "mt_node_9",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "attr",
+          "object": "false",
+          "subject": "mt_node_9",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "id",
+          "object": "0",
+          "subject": "mt_node_9",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_9",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_9",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_0",
+          "subject": "MeaningTree",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "[1f53c87b-62ad-4ae4-9cc5-ecb84c7f9cf0]",
+          "subject": "mt_node_30",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_30",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_30",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "rdf:nil",
+          "subject": "[ae5410d7-06ca-4e0e-b6b9-82b932640796]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_15",
+          "subject": "[ae5410d7-06ca-4e0e-b6b9-82b932640796]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "[a65d8625-2ca9-4cec-a42b-213639d611d8]",
+          "subject": "[280f5634-3e11-4e20-a22c-628aba5d7690]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_4",
+          "subject": "[280f5634-3e11-4e20-a22c-628aba5d7690]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "String",
+          "subject": "mt_node_3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "rt_sigprocmask(%s, %#llx, %#x, %d)",
+          "subject": "mt_node_3",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "args",
+          "subject": "mt_node_3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "MeaningTreeLabel",
+          "subject": "mt_node_15",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "attr",
+          "object": "true",
+          "subject": "mt_node_15",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "id",
+          "object": "0",
+          "subject": "mt_node_15",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_15",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_15",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_28",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "set_addr",
+          "subject": "mt_node_28",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "left",
+          "subject": "mt_node_28",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_28",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "[8ae609a3-8731-4394-ac81-26c86284baa2]",
+          "subject": "[eeac8bd4-cfd0-4e73-83ea-b9a9ef67b183]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_36",
+          "subject": "[eeac8bd4-cfd0-4e73-83ea-b9a9ef67b183]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "String",
+          "subject": "mt_node_22",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "??",
+          "subject": "mt_node_22",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "else",
+          "subject": "mt_node_22",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_22",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "rdf:nil",
+          "subject": "[8ae609a3-8731-4394-ac81-26c86284baa2]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_37",
+          "subject": "[8ae609a3-8731-4394-ac81-26c86284baa2]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "IntType",
+          "subject": "mt_node_35",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "isUnsigned",
+          "object": "false",
+          "subject": "mt_node_35",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "size",
+          "object": "64",
+          "subject": "mt_node_35",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "type",
+          "subject": "mt_node_35",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_35",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "rdf:nil",
+          "subject": "[30a4f1b8-b10d-41d0-a06f-851550bdb822]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_9",
+          "subject": "[30a4f1b8-b10d-41d0-a06f-851550bdb822]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "[280f5634-3e11-4e20-a22c-628aba5d7690]",
+          "subject": "[bf83252c-42eb-45b5-a4af-5011d9012a2c]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_3",
+          "subject": "[bf83252c-42eb-45b5-a4af-5011d9012a2c]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "[30a4f1b8-b10d-41d0-a06f-851550bdb822]",
+          "subject": "mt_node_8",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_8",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_8",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "[eeac8bd4-cfd0-4e73-83ea-b9a9ef67b183]",
+          "subject": "[a65d8625-2ca9-4cec-a42b-213639d611d8]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_26",
+          "subject": "[a65d8625-2ca9-4cec-a42b-213639d611d8]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "[bf83252c-42eb-45b5-a4af-5011d9012a2c]",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "args",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "rdf:nil",
+          "subject": "[510bbe23-5780-472f-a59c-b015c79e92e3]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_21",
+          "subject": "[510bbe23-5780-472f-a59c-b015c79e92e3]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "[ae5410d7-06ca-4e0e-b6b9-82b932640796]",
+          "subject": "mt_node_14",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_14",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_14",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_30",
+          "subject": "mt_node_27",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_29",
+          "subject": "mt_node_27",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_28",
+          "subject": "mt_node_27",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "expressions.comparison.NotEqOp",
+          "subject": "mt_node_27",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "condition",
+          "subject": "mt_node_27",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_27",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:ObjectProperty",
+          "subject": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "MeaningTreeLabel",
+          "subject": "mt_node_21",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "attr",
+          "object": "false",
+          "subject": "mt_node_21",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "id",
+          "object": "0",
+          "subject": "mt_node_21",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_21",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_21",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_34",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "set",
+          "subject": "mt_node_34",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "expression",
+          "subject": "mt_node_34",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_34",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_7",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "SIG_BLOCK_",
+          "subject": "mt_node_7",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "right",
+          "subject": "mt_node_7",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_7",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_19",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "SIG_SETMASK_",
+          "subject": "mt_node_19",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "right",
+          "subject": "mt_node_19",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_19",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:ObjectProperty",
+          "subject": "rdf:type",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_38",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_2",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "FunctionCall",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "rootNode",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_13",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "SIG_UNBLOCK_",
+          "subject": "mt_node_13",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "right",
+          "subject": "mt_node_13",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_13",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_33",
+          "subject": "mt_node_26",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_32",
+          "subject": "mt_node_26",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_27",
+          "subject": "mt_node_26",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "TernaryOperator",
+          "subject": "mt_node_26",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "args",
+          "subject": "mt_node_26",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_26",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "rdf:nil",
+          "subject": "mt_node_39",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_39",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_39",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "[510bbe23-5780-472f-a59c-b015c79e92e3]",
+          "subject": "mt_node_20",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_20",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_20",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_35",
+          "subject": "mt_node_33",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_34",
+          "subject": "mt_node_33",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "CastTypeExpression",
+          "subject": "mt_node_33",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "then",
+          "subject": "mt_node_33",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_33",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "how",
+          "subject": "mt_node_6",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "left",
+          "subject": "mt_node_6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_18",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "how",
+          "subject": "mt_node_18",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "left",
+          "subject": "mt_node_18",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_18",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_39",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_1",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "MeaningTree",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "root",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_12",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "how",
+          "subject": "mt_node_12",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "left",
+          "subject": "mt_node_12",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_12",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:rest",
+          "object": "rdf:nil",
+          "subject": "[1f53c87b-62ad-4ae4-9cc5-ecb84c7f9cf0]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:first",
+          "object": "mt_node_31",
+          "subject": "[1f53c87b-62ad-4ae4-9cc5-ecb84c7f9cf0]",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "String",
+          "subject": "mt_node_25",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "SIG_BLOCK",
+          "subject": "mt_node_25",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "then",
+          "subject": "mt_node_25",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_25",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_38",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "STRACE",
+          "subject": "mt_node_38",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "name",
+          "subject": "mt_node_38",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_38",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        }
+      ],
+      "questionDomainType": "OrderOperators"
+    }
+  },
+  "name": "STRACE(rt_sigprocmask(%s,_%#llx,_%#x,_%d),_(how_==_SIG_BLOCK_)___c++1464281805_v",
+  "origin": "ish-app/ish",
+  "lawBits": 1,
+  "tagBits": 63,
+  "version": 12,
+  "skillBits": 6822166831,
+  "templateId": "STRACE(rt_sigprocmask(%s,_%#llx,_%#x,_%d),_(how_==_SIG_BLOCK_)___c++",
+  "conceptBits": 5630599045841156,
+  "originLicense": "Other",
+  "solutionSteps": 10,
+  "violationBits": 19135,
+  "domainShortname": "expression_dt",
+  "traceConceptBits": 5630599045841156,
+  "integralComplexity": 0.9891856457961165,
+  "distinctErrorsCount": 12,
+  "solutionStructuralComplexity": 11.0
+}

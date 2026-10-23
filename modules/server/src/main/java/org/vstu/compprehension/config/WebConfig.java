@@ -1,40 +1,41 @@
 package org.vstu.compprehension.config;
 
-import domains.DataFlowDTDomain;
-import domains.ObjectsScopeDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.webmvc.autoconfigure.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.UserDataService;
 import org.vstu.compprehension.config.interceptors.RandomSeedSetInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 
 import java.util.Locale;
 
-@Configuration @EnableAsync
+@Configuration @EnableScheduling
 public class WebConfig implements WebMvcConfigurer {
+
     @Bean
-    public ServletRegistrationBean dispatcherRegistration(@Autowired UserService userService) {
+    public ServletRegistrationBean dispatcherRegistration(@Autowired UserDataService userService) {
         return new ServletRegistrationBean(dispatcherServlet(userService));
     }
 
     @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet(@Autowired UserService userService) {
+    public DispatcherServlet dispatcherServlet(@Autowired UserDataService userService) {
         return new LoggableDispatcherServlet(userService);
     }
 
@@ -53,7 +54,7 @@ public class WebConfig implements WebMvcConfigurer {
         messageSource.addBasenames(ControlFlowStatementsDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDTDomain.MESSAGES_CONFIG_PATH);
-        messageSource.addBasenames(ControlFlowStatementsDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(ControlFlowDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ObjectsScopeDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(DataFlowDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.setDefaultEncoding("UTF-8");
@@ -68,8 +69,12 @@ public class WebConfig implements WebMvcConfigurer {
         return localeInterceptor;
     }
 
-    @Autowired
-    private RandomSeedSetInterceptor randomSeedSetInterceptor;
+    private final RandomSeedSetInterceptor randomSeedSetInterceptor;
+
+    public WebConfig(RandomSeedSetInterceptor randomSeedSetInterceptor) {
+        this.randomSeedSetInterceptor = randomSeedSetInterceptor;
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(randomSeedSetInterceptor);
