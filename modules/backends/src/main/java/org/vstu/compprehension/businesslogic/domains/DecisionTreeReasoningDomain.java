@@ -43,7 +43,12 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         var backend = new DecisionTreeReasonerBackend();
         var backendInterface = getBackendInterface();
         var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
-        return backendInterface.interpretJudgeOutput(question, output, language);
+        var result = backendInterface.interpretJudgeOutput(question, output, language);
+        // Незасчитанный ответ не продвигает решение, даже если рассуждение изменило модель ситуации.
+        if (result.isAnswerCorrect) {
+            result.updatedContent = backendInterface.updateQuestionAfterJudge(question.getContent(), output);
+        }
+        return result;
     }
 
     public Optional<DomainTermDictionary> getTermDictionary() {

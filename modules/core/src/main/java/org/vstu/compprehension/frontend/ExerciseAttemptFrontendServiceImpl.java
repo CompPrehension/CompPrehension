@@ -241,14 +241,18 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     }
 
     /**
-     * Записать взаимодействие студента с вопросом, выставить за него оценку стратегии
-     * и, если стратегия так решила, закрыть попытку.
+     * Сохранить изменённое ответом содержимое вопроса, записать взаимодействие студента с вопросом,
+     * выставить за него оценку стратегии и, если стратегия так решила, закрыть попытку.
      */
     private @NotNull GradedInteraction recordAndGrade(@NotNull QuestionData question,
                                                       @Nullable QuestionAttemptContextData context,
                                                       @NotNull InteractionType interactionType,
                                                       @NotNull List<NewInteractionAnswerData> answers,
                                                       @NotNull Domain.InterpretSentenceResult judgeResult) {
+        val judged = judgeResult.updatedContent == null ? question : question.withContent(judgeResult.updatedContent);
+        if (judgeResult.updatedContent != null) {
+            questionService.saveQuestion(judged, null, null);
+        }
         val recorded = questionService.recordInteraction(new NewInteractionData(
                 question.getId(),
                 interactionType,
@@ -266,7 +270,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
             exerciseAttemptService.ensureAttemptStatus(context.attemptId(), decision.decision());
         }
 
-        return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
+        return new GradedInteraction(judged.withInteraction(recorded), recorded, decision);
     }
 
     private static <T> @NotNull List<T> orEmpty(@Nullable List<T> values) {

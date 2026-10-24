@@ -14,6 +14,7 @@ import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
@@ -408,6 +409,19 @@ public class DecisionTreeReasonerBackend
                 expl.setMuted(true);
             }
             return expl;
+        }
+
+        /**
+         * Содержимое вопроса, изменённое засчитанным ответом (например, сохранённое состояние решения)
+         * @param question the judged question
+         * @param backendOutput the output from the backend's {@link #judge} method
+         * @return the changed content, or null if the question does not change
+         */
+        default @Nullable QuestionContentData updateQuestionAfterJudge(
+            QuestionContentData question,
+            Output backendOutput
+        ) {
+            return null;
         }
 
         @Override
