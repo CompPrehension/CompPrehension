@@ -46,7 +46,7 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         var result = backendInterface.interpretJudgeOutput(question, output, language);
         // Незасчитанный ответ не продвигает решение, даже если рассуждение изменило модель ситуации.
         if (result.isAnswerCorrect) {
-            result.updatedContent = backendInterface.updateQuestionAfterJudge(question.getContent(), output);
+            result.updatedContent = backendInterface.updateQuestionAfterJudge(question, responses, output);
         }
         return result;
     }

@@ -3,6 +3,7 @@ package org.vstu.compprehension.businesslogic.backend;
 import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
+import its.model.DomainSolvingModel;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
 import its.model.nodes.*;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Explanation;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.domains.Domain;
@@ -76,11 +78,17 @@ public class DecisionTreeReasonerBackend
      * Information, needed to perform a decision-tree based reasoning
      * @param situationDomainModel combined question and domain data, described in the {@link DomainModel} form
      * @param decisionTree a decision tree structure that describes the reasoning process
+     * @param solvingModel the domain solving model whose graphs the decision tree may call; null if it calls none
      */
     public record Input(
         DomainModel situationDomainModel,
-        DecisionTree decisionTree
-    ){}
+        DecisionTree decisionTree,
+        @Nullable DomainSolvingModel solvingModel
+    ){
+        public Input(DomainModel situationDomainModel, DecisionTree decisionTree) {
+            this(situationDomainModel, decisionTree, null);
+        }
+    }
 
     /**
      * Aggregation policy for creating explanation messages
@@ -254,7 +262,8 @@ public class DecisionTreeReasonerBackend
 
         LearningSituation situation = new LearningSituation(
             situationModel,
-            LearningSituation.collectDecisionTreeVariables(situationModel)
+            LearningSituation.collectDecisionTreeVariables(situationModel),
+            questionData.solvingModel
         );
 
         if(situation.getDecisionTreeVariables().keySet().containsAll(
@@ -414,11 +423,13 @@ public class DecisionTreeReasonerBackend
         /**
          * Содержимое вопроса, изменённое засчитанным ответом (например, сохранённое состояние решения)
          * @param question the judged question
+         * @param responses the judged responses, the accepted one last
          * @param backendOutput the output from the backend's {@link #judge} method
          * @return the changed content, or null if the question does not change
          */
         default @Nullable QuestionContentData updateQuestionAfterJudge(
-            QuestionContentData question,
+            QuestionData question,
+            List<? extends AnswerData> responses,
             Output backendOutput
         ) {
             return null;
