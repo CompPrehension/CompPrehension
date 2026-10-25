@@ -452,9 +452,25 @@ class ControlFlowDTDomainJudgeTest {
         }
     }
 
-    /** В трассе только непрозрачные действия: начало программы, входы в ветвление и блок и выходы из них не показываются. */
+    /** Трасса решения — ровно действия засчитанных ответов: действия без кнопки, в том числе раскрывающие конструкцию, не показываются. */
+    @ParameterizedTest
+    @MethodSource("bank")
+    void solutionTraceShowsExactlyAnsweredActions(BankQuestion bankQuestion) {
+        // Arrange.
+        var question = bankQuestion(bankQuestion);
+        var solved = withCorrectSteps(question, trace(question, bankQuestion), bankQuestion);
+
+        // Act.
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
+
+        // Assert.
+        assertEquals(bankQuestion.trace().stream().map(answered -> answered.split(",")[0]).toList(),
+                trace.stream().map(ControlFlowDTDomainJudgeTest::actionOf).toList(), bankQuestion.file());
+    }
+
+    /** Начало программы, вход в ветвление и в его ветвь, BEGIN и END ветвления и блока не показываются. */
     @Test
-    void solutionTraceShowsOnlyOpaqueActions() {
+    void solutionTraceSkipsActionsWithoutButtons() {
         // Arrange.
         var question = bankQuestion(IF_THEN);
         var solved = withCorrectSteps(question, trace(question, IF_THEN), IF_THEN);
@@ -464,8 +480,7 @@ class ControlFlowDTDomainJudgeTest {
 
         // Assert.
         assertEquals(List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast19",
-                        "global_statements_structure_action_next_ast66", "if_structure_action_first_cond_ast29",
-                        "if_structure_action_if_branch_ast64", "block_structure_action_first_ast43",
+                        "if_structure_action_first_cond_ast29", "block_structure_action_first_ast43",
                         "global_statements_structure_action_next_ast98", "global_statements_structure_action_next_ast124",
                         "global_statements_structure_action_next_ast131"),
                 trace.stream().map(ControlFlowDTDomainJudgeTest::actionOf).toList());
