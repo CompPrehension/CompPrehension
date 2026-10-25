@@ -1,0 +1,5801 @@
+{
+  "id": 1749901,
+  "name": "def square_x_ return x  x def sum_squares_a_ b__-490146161_0b0b9c2b5f",
+  "domainShortname": "ctrl_flow_dt25",
+  "templateId": "-490146161",
+  "tagBits": 8,
+  "conceptBits": 17592188307104,
+  "lawBits": 0,
+  "violationBits": 0,
+  "traceConceptBits": 17592188307104,
+  "skillBits": 14365,
+  "solutionStructuralComplexity": 37,
+  "integralComplexity": 0.7626371811047404,
+  "solutionSteps": 10,
+  "distinctErrorsCount": 7,
+  "version": 3,
+  "data": {
+    "questionData": {
+      "questionType": "ORDER",
+      "questionText": "<div class=\"ctrl-flow-code-block\"><div class=\"line-numbers\"><span class=\"line-number\">1</span><span class=\"line-number\">2</span><span class=\"line-number\">3</span><span class=\"line-number\">4</span><span class=\"line-number\">5</span><span class=\"line-number\">6</span><span class=\"line-number\">7</span><span class=\"line-number\">8</span><span class=\"line-number\">9</span></div><div class=\"code-content\"><div class=\"code-line\"><span class=\"token keyword\" data-node-id=\"12\" data-token-id=\"65\" data-token-index=\"0\">def</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token identifier\" data-node-id=\"1\" data-token-id=\"66\" data-token-index=\"1\">square</span><span class=\"token opening_brace\" data-node-id=\"12\" data-token-id=\"67\" data-token-index=\"2\">(</span><span class=\"token identifier\" data-node-id=\"12\" data-token-id=\"68\" data-token-index=\"3\">x</span><span class=\"token closing_brace\" data-node-id=\"12\" data-token-id=\"69\" data-token-index=\"4\">)</span><span class=\"token separator\" data-node-id=\"12\" data-token-id=\"70\" data-token-index=\"5\">:</span></div><div class=\"code-line\"><span class=\"token whitespace\" data-token-id=\"72\" data-token-index=\"7\">    </span><button class=\"injected-button filled play\" data-node-id=\"9\" data-node-type=\"return_statement\" data-position=\"before\" id=\"answer_0\" style=\"\"><i class=\"ri-play-fill\" style=\"color: #0A1048;\"></i></button><span class=\"token keyword\" data-node-id=\"9\" data-token-id=\"73\" data-token-index=\"8\">return</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token identifier\" data-node-id=\"6\" data-token-id=\"78\" data-token-index=\"9\">x</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token operator\" data-node-id=\"8\" data-token-id=\"75\" data-token-index=\"10\">*</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token identifier\" data-node-id=\"7\" data-token-id=\"77\" data-token-index=\"11\">x</span></div><div class=\"code-line\"></div><div class=\"code-line\"></div><div class=\"code-line\"><span class=\"token keyword\" data-node-id=\"36\" data-token-id=\"82\" data-token-index=\"15\">def</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token identifier\" data-node-id=\"13\" data-token-id=\"83\" data-token-index=\"16\">sum_squares</span><span class=\"token opening_brace\" data-node-id=\"36\" data-token-id=\"84\" data-token-index=\"17\">(</span><span class=\"token identifier\" data-node-id=\"36\" data-token-id=\"85\" data-token-index=\"18\">a</span><span class=\"token comma\" data-node-id=\"36\" data-token-id=\"86\" data-token-index=\"19\">,</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token identifier\" data-node-id=\"36\" data-token-id=\"87\" data-token-index=\"20\">b</span><span class=\"token closing_brace\" data-node-id=\"36\" data-token-id=\"88\" data-token-index=\"21\">)</span><span class=\"token separator\" data-node-id=\"36\" data-token-id=\"89\" data-token-index=\"22\">:</span></div><div class=\"code-line\"><span class=\"token whitespace\" data-token-id=\"91\" data-token-index=\"24\">    </span><button class=\"injected-button filled play\" data-node-id=\"32\" data-node-type=\"return_statement\" data-position=\"before\" id=\"answer_1\" style=\"\"><i class=\"ri-play-fill\" style=\"color: #0A1048;\"></i></button><span class=\"token keyword\" data-node-id=\"32\" data-token-id=\"92\" data-token-index=\"25\">return</span><button class=\"injected-button filled step-into\" data-node-id=\"25\" data-node-type=\"function_call\" data-position=\"before\" id=\"answer_2\" style=\"\"><i class=\"ri-corner-down-right-line\" style=\"color: #0F629A;\"></i></button><span class=\"token callable_identifier\" data-node-id=\"21\" data-token-id=\"97\" data-token-index=\"26\">square</span><span class=\"token opening_brace\" data-node-id=\"25\" data-token-id=\"98\" data-token-index=\"27\">(</span><span class=\"token identifier\" data-node-id=\"22\" data-token-id=\"99\" data-token-index=\"28\">a</span><span class=\"token closing_brace\" data-node-id=\"25\" data-token-id=\"100\" data-token-index=\"29\">)</span><button class=\"injected-button filled step-out\" data-comp-ph-custom-click=\"\" data-node-id=\"25\" data-node-type=\"function_call\" data-position=\"after\" id=\"answer_3\" style=\"\"><i class=\"ri-corner-right-down-fill\" style=\"color: #73328D;\"></i></button><div class=\"call-value-menu\" popover=\"\"><div class=\"call-value-menu-prompt\" data-localization-key=\"ctrlflow_function_return_dropdown_tooltip\">Which function call is ending here?</div><button data-action=\"func_call_structure_action_BEGIN_ast25\" data-comp-ph-order-answer=\"3\" data-hint=\"square(2)\" id=\"answer_9\" type=\"button\">square(2)</button><button data-action=\"func_call_structure_action_BEGIN_ast30\" data-comp-ph-order-answer=\"3\" data-hint=\"square(3)\" id=\"answer_10\" type=\"button\">square(3)</button></div><span class=\"token operator\" data-node-id=\"31\" data-token-id=\"101\" data-token-index=\"30\">+</span><button class=\"injected-button filled step-into\" data-node-id=\"30\" data-node-type=\"function_call\" data-position=\"before\" id=\"answer_4\" style=\"\"><i class=\"ri-corner-down-right-line\" style=\"color: #0F629A;\"></i></button><span class=\"token callable_identifier\" data-node-id=\"26\" data-token-id=\"106\" data-token-index=\"31\">square</span><span class=\"token opening_brace\" data-node-id=\"30\" data-token-id=\"107\" data-token-index=\"32\">(</span><span class=\"token identifier\" data-node-id=\"27\" data-token-id=\"108\" data-token-index=\"33\">b</span><span class=\"token closing_brace\" data-node-id=\"30\" data-token-id=\"109\" data-token-index=\"34\">)</span><button class=\"injected-button filled step-out\" data-comp-ph-custom-click=\"\" data-node-id=\"30\" data-node-type=\"function_call\" data-position=\"after\" id=\"answer_5\" style=\"\"><i class=\"ri-corner-right-down-fill\" style=\"color: #73328D;\"></i></button><div class=\"call-value-menu\" popover=\"\"><div class=\"call-value-menu-prompt\" data-localization-key=\"ctrlflow_function_return_dropdown_tooltip\">Which function call is ending here?</div><button data-action=\"func_call_structure_action_BEGIN_ast25\" data-comp-ph-order-answer=\"5\" data-hint=\"square(2)\" id=\"answer_11\" type=\"button\">square(2)</button><button data-action=\"func_call_structure_action_BEGIN_ast30\" data-comp-ph-order-answer=\"5\" data-hint=\"square(3)\" id=\"answer_12\" type=\"button\">square(3)</button></div><span class=\"token whitespace\" data-token-id=\"110\" data-token-index=\"35\">  </span></div><div class=\"code-line\"></div><div class=\"code-line\"></div><div class=\"code-line\"><button class=\"injected-button filled play\" data-node-id=\"47\" data-node-type=\"expression_statement\" data-position=\"before\" id=\"answer_6\" style=\"\"><i class=\"ri-play-fill\" style=\"color: #0A1048;\"></i></button><span class=\"token callable_identifier\" data-node-id=\"46\" data-token-id=\"130\" data-token-index=\"40\">print</span><span class=\"token opening_brace\" data-node-id=\"46\" data-token-id=\"131\" data-token-index=\"41\">(</span><button class=\"injected-button filled step-into\" data-node-id=\"43\" data-node-type=\"function_call\" data-position=\"before\" id=\"answer_7\" style=\"\"><i class=\"ri-corner-down-right-line\" style=\"color: #0F629A;\"></i></button><span class=\"token callable_identifier\" data-node-id=\"38\" data-token-id=\"123\" data-token-index=\"42\">sum_squares</span><span class=\"token opening_brace\" data-node-id=\"43\" data-token-id=\"124\" data-token-index=\"43\">(</span><span class=\"token const\" data-node-id=\"39\" data-token-id=\"125\" data-token-index=\"44\">2</span><span class=\"token comma\" data-node-id=\"43\" data-token-id=\"126\" data-token-index=\"45\">,</span><span class=\"token whitespace\" data-token-id=\"-1\" data-token-index=\"-1\"> </span><span class=\"token const\" data-node-id=\"40\" data-token-id=\"127\" data-token-index=\"46\">3</span><span class=\"token closing_brace\" data-node-id=\"43\" data-token-id=\"128\" data-token-index=\"47\">)</span><button class=\"injected-button filled step-out\" data-comp-ph-custom-click=\"\" data-node-id=\"43\" data-node-type=\"function_call\" data-position=\"after\" id=\"answer_8\" style=\"\"><i class=\"ri-corner-right-down-fill\" style=\"color: #73328D;\"></i></button><div class=\"call-value-menu\" popover=\"\"><div class=\"call-value-menu-prompt\" data-localization-key=\"ctrlflow_function_return_dropdown_tooltip\">Which function call is ending here?</div><button data-action=\"func_call_structure_action_BEGIN_ast43\" data-comp-ph-order-answer=\"8\" data-hint=\"sum_squares(2, 3)\" id=\"answer_13\" type=\"button\">sum_squares(2, 3)</button></div><span class=\"token closing_brace\" data-node-id=\"46\" data-token-id=\"132\" data-token-index=\"48\">)</span><span class=\"token whitespace\" data-token-id=\"133\" data-token-index=\"49\">  </span></div></div><script>\n        (() => {\n            // Dropdown значений вызова (docs/ideas/function_return_dropdown.md). Пункт\n            // доступен, если его подсказка есть у актов трассы BEGIN его места вызова.\n            // Без доступных пунктов кнопка отправляет свой ответ: завершение вызова без значения.\n            const script = document.currentScript;\n            const traceRoot = script.closest(\".comp-ph-question\") ?? document;\n            for (const menu of script.parentElement.querySelectorAll(\".call-value-menu\")) {\n                const button = menu.previousElementSibling;\n                button.addEventListener(\"click\", () => {\n                    let available = false;\n                    for (const option of menu.querySelectorAll(\"button[data-hint]\")) {\n                        const selector = `.trace-act[data-action=\"${option.dataset.action}\"] .value-hint`;\n                        const hints = Array.from(traceRoot.querySelectorAll(selector), (hint) => hint.textContent);\n                        option.disabled = !hints.includes(option.dataset.hint);\n                        available ||= !option.disabled;\n                    }\n                    if (!available) {\n                        button.dispatchEvent(new CustomEvent(\"compph:on-answer-evaluated\", { bubbles: true }));\n                        return;\n                    }\n                    const rect = button.getBoundingClientRect();\n                    menu.style.left = `${rect.left}px`;\n                    menu.style.top = `${rect.bottom}px`;\n                    menu.showPopover();\n                });\n                // Ответ пункта отправляет хост, dropdown только закрывается.\n                menu.addEventListener(\"click\", (event) => {\n                    if (event.target.closest(\"button:enabled\")) menu.hidePopover();\n                });\n            }\n        })();\n    </script></div>",
+      "questionName": "def square_x_ return x  x def sum_squares_a_ b__-490146161_0b0b9c2b5f",
+      "questionDomainType": "OrderActs",
+      "options": {
+        "showTrace": true,
+        "requireContext": true,
+        "requireAllAnswers": true,
+        "orderNumberOptions": {
+          "position": "NONE",
+          "delimiter": "/"
+        },
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "play",
+          "domainInfo": "block_structure_action_first_ast9",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 1,
+          "hyperText": "play",
+          "domainInfo": "block_structure_action_first_ast32",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 2,
+          "hyperText": "step-into",
+          "domainInfo": "func_call_structure_action_BEGIN_ast25",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 3,
+          "hyperText": "step-out",
+          "domainInfo": "func_call_structure_action_END_ast25",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 4,
+          "hyperText": "step-into",
+          "domainInfo": "func_call_structure_action_BEGIN_ast30",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 5,
+          "hyperText": "step-out",
+          "domainInfo": "func_call_structure_action_END_ast30",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 6,
+          "hyperText": "play",
+          "domainInfo": "global_statements_structure_action_first_ast47",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 7,
+          "hyperText": "step-into",
+          "domainInfo": "func_call_structure_action_BEGIN_ast43",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 8,
+          "hyperText": "step-out",
+          "domainInfo": "func_call_structure_action_END_ast43",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 9,
+          "hyperText": "square(2)",
+          "domainInfo": "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_0",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 10,
+          "hyperText": "square(3)",
+          "domainInfo": "func_call_structure_action_END_ast25,semantic_value_action_30_30_END_0",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 11,
+          "hyperText": "square(2)",
+          "domainInfo": "func_call_structure_action_END_ast30,semantic_value_action_25_25_END_0",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 12,
+          "hyperText": "square(3)",
+          "domainInfo": "func_call_structure_action_END_ast30,semantic_value_action_30_30_END_0",
+          "concept": "action",
+          "isRightCol": false
+        },
+        {
+          "answerId": 13,
+          "hyperText": "sum_squares(2, 3)",
+          "domainInfo": "func_call_structure_action_END_ast43,semantic_value_action_43_43_END_0",
+          "concept": "action",
+          "isRightCol": false
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "",
+          "subject": "ASTEntity",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "AST-related entity"
+        },
+        {
+          "subjectType": "",
+          "subject": "ASTEntity",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "сущность, связанная с AST"
+        },
+        {
+          "subjectType": "",
+          "subject": "AbstractSpec",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "abstract specification"
+        },
+        {
+          "subjectType": "",
+          "subject": "AbstractSpec",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "абстрактная спецификация"
+        },
+        {
+          "subjectType": "",
+          "subject": "ActionSpec",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "action specification"
+        },
+        {
+          "subjectType": "",
+          "subject": "ActionSpec",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "спецификация действия"
+        },
+        {
+          "subjectType": "",
+          "subject": "ActionSpec",
+          "verb": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "object": "AbstractSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "ActionSpecChainPlaceholder",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "action specification ordered chain"
+        },
+        {
+          "subjectType": "",
+          "subject": "ActionSpecChainPlaceholder",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "порядок спецификации действий"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConcreteAction",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "action"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConcreteAction",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "действие"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConcreteAction",
+          "verb": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "object": "ASTEntity"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConcreteConstruct",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "construct"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConcreteConstruct",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конструкция"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConcreteConstruct",
+          "verb": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "object": "ASTEntity"
+        },
+        {
+          "subjectType": "",
+          "subject": "Constraint",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "constraint"
+        },
+        {
+          "subjectType": "",
+          "subject": "Constraint",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "ограничение"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConstructSpec",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "construct specification"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConstructSpec",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "спецификация конструкции"
+        },
+        {
+          "subjectType": "",
+          "subject": "ConstructSpec",
+          "verb": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "object": "AbstractSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "Effect",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "Effect",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "эффект"
+        },
+        {
+          "subjectType": "",
+          "subject": "NoValue",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "no value"
+        },
+        {
+          "subjectType": "",
+          "subject": "NoValue",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "без значения"
+        },
+        {
+          "subjectType": "",
+          "subject": "NoValue",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "NoValue",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": ""
+        },
+        {
+          "subjectType": "",
+          "subject": "NoValue",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "NoValue",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "SemanticValue",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "runtime value"
+        },
+        {
+          "subjectType": "",
+          "subject": "SemanticValue",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "значение времени выполнения"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceAct",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "trace act"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceAct",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "действие в трассе"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceConfig",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "global trace configuration"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceConfig",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "глобальная конфигурация трассировки"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceConfig",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TraceConfigSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceConfig",
+          "verb": "stop_on_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceConfigSpec",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "trace configuration"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceConfigSpec",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конфигурация трассировки"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceState",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "trace state"
+        },
+        {
+          "subjectType": "",
+          "subject": "TraceState",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "состояние трассировки"
+        },
+        {
+          "subjectType": "",
+          "subject": "TransitionSpec",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "transition specification"
+        },
+        {
+          "subjectType": "",
+          "subject": "TransitionSpec",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "спецификация перехода"
+        },
+        {
+          "subjectType": "",
+          "subject": "TransitionSpec",
+          "verb": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "object": "AbstractSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "act_root",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "traced begin of program on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "act_root",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало программы на строке 1 в трассе"
+        },
+        {
+          "subjectType": "",
+          "subject": "act_root",
+          "verb": "hasAction",
+          "objectType": "rdf:resource",
+          "object": "global_statements_structure_action_BEGIN_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "act_root",
+          "verb": "inFrame",
+          "objectType": "rdf:resource",
+          "object": "act_root"
+        },
+        {
+          "subjectType": "",
+          "subject": "act_root",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "act_root",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TraceAct"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of program"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало программы"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "program"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "she"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "program"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of code block"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало блока кода"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало определения функции"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function call"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало вызова функции"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "auto.annotated"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function result evaluation"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало вычисления результата функции"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_5",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_6",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_6",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_6",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_6",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_6",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of program"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец программы"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "program"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "she"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "program"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of code block"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец блока кода"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец определения функции"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function call"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец вызова функции"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "hasEffects",
+          "objectType": "rdf:resource",
+          "object": "effect_return_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "END.annotated"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function result evaluation"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец вычисления результата функции"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_5",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_6",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_6",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_6",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_6",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_6",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "END"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "optional"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "content"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content_2",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content_2",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "optional"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_content_2",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "content"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
+          "verb": "generalization",
+          "objectType": "xsd:string",
+          "object": "item"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "auto"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "first"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "generalization",
+          "objectType": "xsd:string",
+          "object": "item"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "auto"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "first"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func",
+          "verb": "hasEffects",
+          "objectType": "rdf:resource",
+          "object": "effect_return"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "procedure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "func"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func_body",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func_body",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func_body",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "compound"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func_body",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_func_body",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "identifier"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "name"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name_2",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name_2",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "identifier"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_name_2",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "name"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "generalization",
+          "objectType": "xsd:string",
+          "object": "item"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "auto"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "next"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "generalization",
+          "objectType": "xsd:string",
+          "object": "item"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "auto"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "role",
+          "objectType": "xsd:string",
+          "object": "next"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of code block on line 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало блока кода на строке 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "10"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_first_ast9"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast10",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of code block on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало блока кода на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "34"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_first_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_BEGIN_ast34",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of code block on line 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец блока кода на строке 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "10"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast10",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of code block on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец блока кода на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "34"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_END_ast34",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function result evaluation on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вычисление результата функции на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "32"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "return_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_first_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_END_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "hasEffects",
+          "objectType": "rdf:resource",
+          "object": "effect_return_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast32",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function result evaluation on line 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вычисление результата функции на строке 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "9"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "return_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_first_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_END_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "hasEffects",
+          "objectType": "rdf:resource",
+          "object": "effect_return_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "block_structure_action_first_ast9",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "constraint_no_value_any",
+          "verb": "condition_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "constraint_no_value_any",
+          "verb": "interruption_mode",
+          "objectType": "rdf:resource",
+          "object": "any"
+        },
+        {
+          "subjectType": "",
+          "subject": "constraint_no_value_any",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Constraint"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_END_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_first_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_next_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_block_structure_BEGIN_to_first"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_block_structure_first_to_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_block_structure_next_to_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "compound.sequence.block"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "block"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "name",
+          "objectType": "xsd:string",
+          "object": "block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "preorder",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConstructSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "code block on line 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "блок кода на строке 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "10"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_BEGIN_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_END_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_first_ast9"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast10",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "code block on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "блок кода на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "34"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_BEGIN_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_END_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "block_structure_action_first_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_block_structure_ast34",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_END_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_name_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_func_call_structure_BEGIN_to_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_func_call_structure_func_to_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "identifier",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "inline.call"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "name",
+          "objectType": "xsd:string",
+          "object": "func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "preorder",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConstructSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вызов функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "25"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_BEGIN_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_END_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_func_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast25",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вызов функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "30"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_BEGIN_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_END_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_func_ast12_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast30",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function call <code class=\"id\">sum_squares</code> on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вызов функции <code class=\"id\">sum_squares</code> на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "43"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_BEGIN_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_END_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_func_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_call_structure_ast43",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_END_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_name"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_func_def_structure_BEGIN_to_func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_func_def_structure_func_body_to_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "identifier",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "compound.procedure.noop"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "function_def"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "name",
+          "objectType": "xsd:string",
+          "object": "func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "preorder",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConstructSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function definition <code class=\"id\">square</code> on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "определение функции <code class=\"id\">square</code> на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "12"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_BEGIN_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_END_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_func_body_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast12",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function definition <code class=\"id\">sum_squares</code> on line 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "определение функции <code class=\"id\">sum_squares</code> на строке 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "36"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_BEGIN_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_END_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_func_body_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_func_def_structure_ast36",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_first"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_global_statements_structure_BEGIN_to_first"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_global_statements_structure_first_to_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_global_statements_structure_next_to_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "compound.sequence.program"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "she"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "program"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "name",
+          "objectType": "xsd:string",
+          "object": "global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "preorder",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConstructSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "program on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "программа на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "51"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "program_entry_point"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "global_statements_structure_action_BEGIN_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "global_statements_structure_action_END_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "global_statements_structure_action_first_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "she"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_global_statements_structure_ast51",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_END_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_content_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_inline_compound_atom_structure_BEGIN_to_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_inline_compound_atom_structure_content_to_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "inline.compound"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "name",
+          "objectType": "xsd:string",
+          "object": "inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "preorder",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConstructSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "statement on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "действие на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "47"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "expression_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "inline_compound_atom_structure_action_BEGIN_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "inline_compound_atom_structure_action_END_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "inline_compound_atom_structure_action_content_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_inline_compound_atom_structure_ast47",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_END_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "action_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_return_compound_action_BEGIN_to_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "hasTransitions",
+          "objectType": "rdf:resource",
+          "object": "transition_return_compound_action_content_to_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "kind",
+          "objectType": "xsd:string",
+          "object": "inline.compound"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "locale_pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "locale_trace_name",
+          "objectType": "xsd:string",
+          "object": "return"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "name",
+          "objectType": "xsd:string",
+          "object": "return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "preorder",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConstructSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function result evaluation on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вычисление результата функции на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "32"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "return_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_BEGIN_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_END_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_content_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "hasActions",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_content_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "hasParent",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "construct_return_compound_action_ast32",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteConstruct"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_add_frame",
+          "verb": "call_stack",
+          "objectType": "rdf:resource",
+          "object": "add_frame"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_add_frame",
+          "verb": "interruption_start",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_add_frame",
+          "verb": "interruption_stop",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_add_frame",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return",
+          "verb": "call_stack",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return",
+          "verb": "interruption_start",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return",
+          "verb": "interruption_stop",
+          "objectType": "rdf:resource",
+          "object": "return"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_2",
+          "verb": "call_stack",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_2",
+          "verb": "interruption_start",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_2",
+          "verb": "interruption_stop",
+          "objectType": "rdf:resource",
+          "object": "return"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_3",
+          "verb": "call_stack",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_3",
+          "verb": "interruption_start",
+          "objectType": "rdf:resource",
+          "object": "return"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_3",
+          "verb": "interruption_stop",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_3",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_4",
+          "verb": "call_stack",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_4",
+          "verb": "interruption_start",
+          "objectType": "rdf:resource",
+          "object": "return"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_4",
+          "verb": "interruption_stop",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_4",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_drop_frame",
+          "verb": "call_stack",
+          "objectType": "rdf:resource",
+          "object": "drop_frame"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_drop_frame",
+          "verb": "interruption_start",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_drop_frame",
+          "verb": "interruption_stop",
+          "objectType": "rdf:resource",
+          "object": "return"
+        },
+        {
+          "subjectType": "",
+          "subject": "effect_return_drop_frame",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "Effect"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало вызова функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "25"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_func_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "hasValue",
+          "objectType": "rdf:resource",
+          "object": "semantic_value_action_25_25_BEGIN_0"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast25",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало вызова функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "30"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_func_ast12_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "hasValue",
+          "objectType": "rdf:resource",
+          "object": "semantic_value_action_30_30_BEGIN_0"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast30",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function call <code class=\"id\">sum_squares</code> on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало вызова функции <code class=\"id\">sum_squares</code> на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "43"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_func_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "hasValue",
+          "objectType": "rdf:resource",
+          "object": "semantic_value_action_43_43_BEGIN_0"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_BEGIN_ast43",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец вызова функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "25"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "hasValue",
+          "objectType": "rdf:resource",
+          "object": "semantic_value_action_25_25_END_0"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast25",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец вызова функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "30"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "hasValue",
+          "objectType": "rdf:resource",
+          "object": "semantic_value_action_30_30_END_0"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast30",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function call <code class=\"id\">sum_squares</code> on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец вызова функции <code class=\"id\">sum_squares</code> на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "43"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "hasValue",
+          "objectType": "rdf:resource",
+          "object": "semantic_value_action_43_43_END_0"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_END_ast43",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function definition <code class=\"id\">square</code> on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "определение функции <code class=\"id\">square</code> на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_END_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function definition <code class=\"id\">square</code> on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "определение функции <code class=\"id\">square</code> на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_END_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast12_2",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function definition <code class=\"id\">sum_squares</code> on line 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "определение функции <code class=\"id\">sum_squares</code> на строке 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_call_structure_action_END_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_call_structure_action_func_ast36",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function definition <code class=\"id\">square</code> on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало определения функции <code class=\"id\">square</code> на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_func_body_ast10"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast12",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function definition <code class=\"id\">sum_squares</code> on line 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало определения функции <code class=\"id\">sum_squares</code> на строке 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_func_body_ast34"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_BEGIN_ast36",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function definition <code class=\"id\">square</code> on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец определения функции <code class=\"id\">square</code> на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast12",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function definition <code class=\"id\">sum_squares</code> on line 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец определения функции <code class=\"id\">sum_squares</code> на строке 5"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_definition"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_END_ast36",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "code block on line 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "блок кода на строке 2"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "10"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_END_ast12"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast10",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "code block on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "блок кода на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "34"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "compound_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "func_def_structure_action_END_ast36"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "func_def_structure_action_func_body_ast34",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of program on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало программы на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "51"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "program_entry_point"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "global_statements_structure_action_first_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_BEGIN_ast51",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of program on line 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец программы на строке 1"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "51"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "program_entry_point"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_END_ast51",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "statement on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "действие на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "47"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "expression_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_first"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "global_statements_structure_action_END_ast51"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "global_statements_structure_action_first_ast47",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of statement on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало действия на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "47"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "expression_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "inline_compound_atom_structure_action_content_ast43"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_BEGIN_ast47",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of statement on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец действия на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "47"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "expression_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_END_ast47",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function call <code class=\"id\">sum_squares</code> on line 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вызов функции <code class=\"id\">sum_squares</code> на строке 9"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "43"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_content_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "inline_compound_atom_structure_action_END_ast47"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "inline_compound_atom_structure_action_content_ast43",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "begin of function result evaluation on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "начало вычисления результата функции на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "return_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_content_ast25"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "it"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_BEGIN_ast32",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "end of function result evaluation on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "конец вычисления результата функции на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "return_statement"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_END_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_END_ast32",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вызов функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "25"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_content_ast30"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast25",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "function call <code class=\"id\">square</code> on line 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "вызов функции <code class=\"id\">square</code> на строке 6"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "ast_id",
+          "objectType": "xsd:integer",
+          "object": "30"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "ast_type",
+          "objectType": "xsd:string",
+          "object": "function_call"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "derivedFrom",
+          "objectType": "rdf:resource",
+          "object": "action_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "directlyBeforeOf",
+          "objectType": "rdf:resource",
+          "object": "return_compound_action_action_END_ast32"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "pronoun",
+          "objectType": "xsd:string",
+          "object": "he"
+        },
+        {
+          "subjectType": "",
+          "subject": "return_compound_action_action_content_ast30",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ConcreteAction"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_BEGIN_0",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(2)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_BEGIN_0",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(2)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_BEGIN_0",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_BEGIN_0",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": "square(2)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_BEGIN_0",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_BEGIN_0",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_END_0",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(2)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_END_0",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(2)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_END_0",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_END_0",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": "square(2)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_END_0",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_25_25_END_0",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_BEGIN_0",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_BEGIN_0",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_BEGIN_0",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_BEGIN_0",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": "square(3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_BEGIN_0",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_BEGIN_0",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_END_0",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_END_0",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "square(3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_END_0",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_END_0",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": "square(3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_END_0",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_30_30_END_0",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_BEGIN_0",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "sum_squares(2, 3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_BEGIN_0",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "sum_squares(2, 3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_BEGIN_0",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_BEGIN_0",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": "sum_squares(2, 3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_BEGIN_0",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_BEGIN_0",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_END_0",
+          "verb": "EN_localizedName",
+          "objectType": "xsd:string",
+          "object": "sum_squares(2, 3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_END_0",
+          "verb": "RU_localizedName",
+          "objectType": "xsd:string",
+          "object": "sum_squares(2, 3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_END_0",
+          "verb": "bool_value",
+          "objectType": "rdf:resource",
+          "object": "null"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_END_0",
+          "verb": "hint",
+          "objectType": "xsd:string",
+          "object": "sum_squares(2, 3)"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_END_0",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "SemanticValue"
+        },
+        {
+          "subjectType": "",
+          "subject": "semantic_value_action_43_43_END_0",
+          "verb": "used",
+          "objectType": "xsd:boolean",
+          "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "trace_state",
+          "verb": "interruption_mode",
+          "objectType": "rdf:resource",
+          "object": "none"
+        },
+        {
+          "subjectType": "",
+          "subject": "trace_state",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TraceState"
+        },
+        {
+          "subjectType": "",
+          "subject": "trace_state",
+          "verb": "var...",
+          "objectType": "xsd:string",
+          "object": "S"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_BEGIN_to_first",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_BEGIN_to_first",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_BEGIN_to_first",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_BEGIN_to_first",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_first_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_first_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_next_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_block_structure_first_to_next_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_first_to_next_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_block_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_next_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_next_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_block_structure_next_to_next_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_block_structure_next_to_next_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_BEGIN_to_func",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_BEGIN_to_func",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_BEGIN_to_func",
+          "verb": "hasEffects",
+          "objectType": "rdf:resource",
+          "object": "effect_add_frame"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_BEGIN_to_func",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_BEGIN_to_func",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_func_to_END",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_call_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_func_to_END",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_func"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_func_to_END",
+          "verb": "hasConstraints",
+          "objectType": "rdf:resource",
+          "object": "constraint_no_value_any"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_func_to_END",
+          "verb": "hasEffects",
+          "objectType": "rdf:resource",
+          "object": "effect_return_drop_frame"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_func_to_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_call_structure_func_to_END",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_END_4"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_BEGIN_to_func_body",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_BEGIN_to_func_body",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_BEGIN_to_func_body",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_BEGIN_to_func_body",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_func_body_to_END",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_func_def_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_func_body_to_END",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_func_body"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_func_body_to_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_func_def_structure_func_body_to_END",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_END_3"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_BEGIN_to_first",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_BEGIN_to_first",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_BEGIN_to_first",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_BEGIN_to_first",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_first"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_first"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_global_statements_structure_first_to_next_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_first_to_next_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_global_statements_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_next"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_global_statements_structure_next_to_next_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_global_statements_structure_next_to_next_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_content_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_inline_compound_atom_structure_BEGIN_to_content_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_BEGIN_to_content_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_inline_compound_atom_structure"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_content_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_content_2"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_inline_compound_atom_structure_content_to_content_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END_6"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_inline_compound_atom_structure_content_to_content_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_BEGIN_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_return_compound_action_BEGIN_to_content_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_BEGIN_to_content_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content",
+          "verb": "belongsTo",
+          "objectType": "rdf:resource",
+          "object": "construct_return_compound_action"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content",
+          "verb": "from_",
+          "objectType": "rdf:resource",
+          "object": "action_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "TransitionSpec"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content",
+          "verb": "to_",
+          "objectType": "rdf:resource",
+          "object": "action_content"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content",
+          "verb": "to_when_absent",
+          "objectType": "rdf:resource",
+          "object": "transition_return_compound_action_content_to_content_to_when_absent_0_END"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content_to_when_absent_0_END",
+          "verb": "contains",
+          "objectType": "rdf:resource",
+          "object": "action_END_5"
+        },
+        {
+          "subjectType": "",
+          "subject": "transition_return_compound_action_content_to_content_to_when_absent_0_END",
+          "verb": "rdf:type",
+          "objectType": "rdf:resource",
+          "object": "ActionSpecChainPlaceholder"
+        }
+      ]
+    },
+    "concepts": [
+      "arithmetic",
+      "call_depth",
+      "function",
+      "io",
+      "lib_function_call",
+      "program_function_call",
+      "return",
+      "strings"
+    ],
+    "negativeLaws": [],
+    "tags": [
+      "python"
+    ]
+  }
+}
