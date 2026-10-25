@@ -1,174 +1,31 @@
-//-------------------STATIC (CLASS) SECTION-------------------
-//------------------------------------------------------------
-
-
-
-////// Общие перечисления //////
-
-enum OptionalBoolValue {
-	`true` [
-		RU.localizedName = "истина" ;
-		EN.localizedName = "true" ;
-	],
-	`false` [
-		RU.localizedName = "ложь" ;
-		EN.localizedName = "false" ;
-	],
-	any [
-		RU.localizedName = "любое" ;
-		EN.localizedName = "any value" ;
-	],
-	no_value [
-		RU.localizedName = "нет значения" ;
-		EN.localizedName = "no value" ;
-	],
-} [
-	RU.localizedName = "значение условия" ;
-	EN.localizedName = "condition value" ;
-]
-
-
 enum InterruptionType {
 	break [
-		RU.localizedName = "прерывание цикла" ;
+		RU.localizedName = "выход по break" ;
 		EN.localizedName = "break" ;
-	
 	],
 	continue [
 		RU.localizedName = "прерывание итерации цикла" ;
 		EN.localizedName = "continue" ;
-	
 	],
 	return [
 		RU.localizedName = "возврат из функции" ;
 		EN.localizedName = "return" ;
-	
 	],
 	exception [
 		RU.localizedName = "исключение" ;
 		EN.localizedName = "exception" ;
-	
 	],
 	any [
 		RU.localizedName = "любое" ;
 		EN.localizedName = "any" ;
-
 	],
-	no_interruption [
+	none [
 		RU.localizedName = "обычное выполнение" ;
 		EN.localizedName = "usual flow" ;
-
-	],
-	generic_interruption [
-		RU.localizedName = "прерывание любого вида" ;
-		EN.localizedName = "generic interruption" ;
-
 	],
 } [
 	RU.localizedName = "тип прерывания" ;
 	EN.localizedName = "interruption type" ;
-
-]
-
-enum AppearanceType {
-	mandatory [
-		RU.localizedName = "обязательный" ;
-		EN.localizedName = "mandatory" ;
-	
-	],
-	none [
-		RU.localizedName = "не показывать" ;
-		EN.localizedName = "none" ;
-	
-	],
-} [
-	RU.localizedName = "тип отображения" ;
-	EN.localizedName = "appearance type" ;
-
-]
-
-enum ActionKind {
-	compound [
-		RU.localizedName = "составное действие" ;
-		EN.localizedName = "compound" ;
-	
-	],
-	inline [
-		RU.localizedName = "внутристрочное действие" ;
-		EN.localizedName = "inline" ;
-	
-	],
-	any [
-		RU.localizedName = "любое" ;
-		EN.localizedName = "any" ;
-	
-	],
-	condition [
-		RU.localizedName = "условие" ;
-		EN.localizedName = "condition" ;
-	
-	],
-	block [
-		RU.localizedName = "блок кода" ;
-		EN.localizedName = "block" ;
-	
-	],
-	sequence [
-		RU.localizedName = "последовательность" ;
-		EN.localizedName = "sequence" ;
-	
-	],
-	alternative [
-		RU.localizedName = "развилка" ;
-		EN.localizedName = "alternative" ;
-	
-	],
-	loop [
-		RU.localizedName = "цикл" ;
-		EN.localizedName = "loop" ;
-	
-	],
-	noop [
-		RU.localizedName = "пустая операция" ;
-		EN.localizedName = "noop" ;
-	
-	],
-	call [
-		RU.localizedName = "вызов функции" ;
-		EN.localizedName = "call" ;
-	
-	],
-	try [
-		RU.localizedName = "обработка исключений" ;
-		EN.localizedName = "try" ;
-	
-	],
-} [
-	RU.localizedName = "тип действия" ;
-	EN.localizedName = "action kind" ;
-
-]
-
-enum NodeKind {
-	BEGIN [
-		RU.localizedName = "начало" ;
-		EN.localizedName = "begin" ;
-	],
-	END [
-		RU.localizedName = "конец" ;
-		EN.localizedName = "end" ;
-	],
-	atom [
-		RU.localizedName = "" ;
-		EN.localizedName = "atom" ;
-	],
-	any [
-		RU.localizedName = "любое" ;
-		EN.localizedName = "any" ;
-	],
-} [
-	RU.localizedName = "тип узла CFG" ;
-	EN.localizedName = "node kind" ;
 ]
 
 enum CallStackAction {
@@ -185,17 +42,30 @@ enum CallStackAction {
 	drop_frame [
 		RU.localizedName = "удаление фрейма функции" ;
 		EN.localizedName = "drop frame" ;
-	
 	],
 } [
 	RU.localizedName = "действие стека вызовов" ;
 	EN.localizedName = "call stack action" ;
-
 ]
 
 
-// Уровень абстракций управляющих конструкций //
+// -------- Правила предметной области --------
 
+class AbstractSpec {
+    // класс спецификаций (т.е. правил предметной области, задействованных при решении)
+} [
+	RU.localizedName = "абстрактная спецификация" ;
+	EN.localizedName = "abstract specification" ;
+]
+
+// Видимо придется создавать его всегда при переходах
+class Constraint {
+	obj prop condition_value: OptionalBool ;
+	obj prop interruption_mode: InterruptionType ;
+} [
+	RU.localizedName = "ограничение" ;
+	EN.localizedName = "constraint" ;
+]
 
 class Effect {
 	obj prop interruption_stop: InterruptionType ;
@@ -204,211 +74,134 @@ class Effect {
 } [
 	RU.localizedName = "эффект" ;
 	EN.localizedName = "effect" ;
-
 ]
 
-
-class Behaviour {
-	obj prop assumed_value: OptionalBoolValue ;  // Когда соответствующее действие отсутствует в AST (опущено)
-} [
-	RU.localizedName = "поведение" ;
-	EN.localizedName = "behaviour" ;
-
-]
-
-class Constraint {
-	obj prop condition_value: OptionalBoolValue ;
-	obj prop interruption_mode: InterruptionType ;
-} [
-	RU.localizedName = "ограничение" ;
-	EN.localizedName = "constraint" ;
-]
-
-class ActionSpec {
+class ActionSpec : AbstractSpec {
 	obj prop role: string ;
-	obj prop generalization: string ;
+	obj prop generalization: string ; // по факту не должно использоваться - автоматическое разворачивание
 	obj prop kind: string ;
-	obj prop appearanceType: AppearanceType ;
-	obj prop _locale_trace_name: string ;
-	obj prop _locale_pronoun: string ;  // he she it
+	obj prop is_opaque: bool ;
 
-	rel hasConstruct(ConstructSpec) ;
-	rel hasEffects(Effect) ;
-	rel hasBehaviour(Behaviour) : {* -> 1} ;
+	rel belongsTo(ConstructSpec) : {* -> 1} ;
+	rel hasEffects(Effect) : {* -> 1} ; // нужен только для отслеживания завершения прерываний (но в переходы также встраивается, поэтому применяется только в прерываниях!!)
 } [
 	RU.localizedName = "спецификация действия" ;
 	EN.localizedName = "action specification" ;
 ]
 
-class TransitionSpec {
-	rel from_(ActionSpec): {* -> 1};
-	rel to_(ActionSpec): {* -> 1};
-	rel to_when_absent(ActionSpec): {* -> 2};
+class ActionSpecChainPlaceholder {
+	rel contains(ActionSpec) : {* -> 1} ;
 
-	rel hasConstruct(ConstructSpec) ;
-	rel hasConstraints(Constraint) ;
-	rel hasEffects(Effect) ;
+	rel directlyBeforeOf(ActionSpecChainPlaceholder) : linear ;
+	rel directlyAfterOf(ActionSpecChainPlaceholder) : opposite to directlyBeforeOf ;
+	rel beforeOf(ActionSpecChainPlaceholder) : transitive to directlyBeforeOf ;
+	rel afterOf(ActionSpecChainPlaceholder) : transitive to directlyAfterOf ;
+	rel isBetween(ActionSpecChainPlaceholder, ActionSpecChainPlaceholder) : between to beforeOf ;
+	rel isCloserToThan(ActionSpecChainPlaceholder, ActionSpecChainPlaceholder) : closer to beforeOf ;
+	rel isFurtherFromThan(ActionSpecChainPlaceholder, ActionSpecChainPlaceholder) : further to beforeOf ;
+} [
+	RU.localizedName = "порядок спецификации действий" ;
+	EN.localizedName = "action specification ordered chain" ;
+]
+
+class TransitionSpec : AbstractSpec {
+	rel from_(ActionSpec) ; // может быть несколько from из-за generalization
+	rel to_(ActionSpec): {* -> 1};
+	rel to_when_absent(ActionSpecChainPlaceholder) : {* -> 1};
+
+	rel belongsTo(ConstructSpec) : {* -> 1} ;
+	rel hasConstraints(Constraint): {* -> 1};
+	rel hasEffects(Effect): {* -> 1};
 } [
 	RU.localizedName = "спецификация перехода" ;
 	EN.localizedName = "transition specification" ;
-
 ]
 
-class ConstructSpec {
+class ConstructSpec : AbstractSpec {
 	obj prop name: string ;
 	obj prop kind: string ;
-	obj prop _locale_trace_name: string ;
-	obj prop _locale_pronoun: string ;  // he she it
+	// конструкт раскрывается ДО породившего его действия: это действие попадает в трассу после END конструкта
+	obj prop preorder: bool ;
 
-	rel hasActions(ActionSpec) ;
-	rel hasTransitions(TransitionSpec) ;
-	rel belongsToASTNode(ASTNodeWrapper) : {* -> 1} ;
-	rel hasEffects(Effect) ;
+	rel hasActions(ActionSpec) : {1 -> *} ;
+	rel hasTransitions(TransitionSpec) : {1 -> *};
+	// rel hasEffects(Effect): {* -> 1} ; не нужно т.к. этот эффект автоматически привязывается к ActionSpec этого конструкта с ролью END (см. ActionSpec->hasEffects)
 } [
 	RU.localizedName = "спецификация конструкции" ;
 	EN.localizedName = "construct specification" ;
 ]
 
+// -------- Отображение узлов AST на модель --------
 
+class ASTEntity {
+    obj prop ast_id: int ;
+    obj prop ast_type: string;
 
-// Уровень CFG - Control Flow Graph //
-
-
-class Metadata {
-	obj prop primary: bool ;
-	obj prop is_after_last: bool ;
-	obj prop call_count: int[0, 65536] ;
-
-	rel hasAbstractAction(ActionSpec) : {* -> 1} ;
-	rel belongsToASTNode(ASTNodeWrapper) : {* -> 1} ;
-	rel hasAbstractTransition(TransitionSpec) : {* -> 1} ;
-	rel hasCorrespondingEnd(Node) : {* -> 1} ;
+    rel hasValue(SemanticValue) ;
 } [
-	RU.localizedName = "метаданные" ;
-	EN.localizedName = "metadata" ;
-
+	RU.localizedName = "сущность, связанная с AST" ;
+	EN.localizedName = "AST-related entity" ;
 ]
 
-class Node {
-	obj prop id: string ;
-	obj prop kind: NodeKind ;
+class SemanticValue {
+    // null - значение без логического смысла (например, аннотация вызова для трассы): в рассуждении не участвует
+    obj prop bool_value: OptionalBool ;
+	obj prop used: bool;
 
-	rel belongsTo(CFG) : opposite to CFG->hasNodes ;
-	rel hasEffects(Effect) ;
-	rel hasMetadata(Metadata) : {* -> 1};
-
-	rel hasEdges(Edge) : opposite to Edge->hasSource ;
-	rel startsPath(PathInfo) : opposite to PathInfo->from_;
-	rel endsPath(PathInfo) : opposite to PathInfo->to_;
+	rel directlyBeforeOf(SemanticValue) : linear ;
+	rel directlyAfterOf(SemanticValue) : opposite to directlyBeforeOf ;
+	rel beforeOf(SemanticValue) : transitive to directlyBeforeOf ;
+	rel afterOf(SemanticValue) : transitive to directlyAfterOf ;
+	rel isBetween(SemanticValue, SemanticValue) : between to beforeOf ;
+	rel isCloserToThan(SemanticValue, SemanticValue) : closer to beforeOf ;
+	rel isFurtherFromThan(SemanticValue, SemanticValue) : further to beforeOf ;
 } [
-	RU.localizedName = "узел" ;
-	EN.localizedName = "node" ;
+	RU.localizedName = "значение времени выполнения" ;
+	EN.localizedName = "runtime value" ;
 ]
 
+class ConcreteConstruct : ASTEntity {
+    rel hasActions(ConcreteAction) : {1 -> *};
 
-class Edge {
-	obj prop id: string ;
-
-	rel belongsTo(CFG) : opposite to CFG->hasEdges ;
-	rel hasSource(Node) : {* -> 1} ;
-	rel hasDestination(Node) : {* -> 1} ;
-	rel hasMetadata(Metadata) : {* -> 1};
-	rel hasEffects(Effect) ;
-	rel hasConstraints(Constraint) ;
+    rel derivedFrom(ConstructSpec): {* -> 1};
+	
+	rel hasParent(ConcreteConstruct) : partial ; // прямой родитель (many-to-one -> лес конструктов)
+	rel hasAncestor(ConcreteConstruct) : transitive to hasParent ; // все конструкты-предки (транзитивное замыкание hasParent)
 } [
-	RU.localizedName = "ребро" ;
-	EN.localizedName = "edge" ;
+	RU.localizedName = "конструкция" ;
+	EN.localizedName = "construct" ;
 ]
 
-class CFG {
-	obj prop id: string ;
-	obj prop name: string ;
+class ConcreteAction : ASTEntity {
+	rel belongsTo(ConcreteConstruct) : {* -> 1};
+    rel derivedFrom(ActionSpec) : {* -> 1};
 
-	rel hasNodes(Node) : {1 -> *} ;
-	rel hasEdges(Edge) : {1 -> *} ;
-	rel hasBegin(Node) : {1 -> 1} ;
-	rel hasEnd(Node) : {1 -> 1} ;
+	rel hasEffects(Effect) : {* -> 1}; // проверяется только во времени выполнения, заранее неизвестен, поэтому не привязывается к переходам автоматически
+
+	rel directlyBeforeOf(ConcreteAction) : linear ;
+	rel directlyAfterOf(ConcreteAction) : opposite to directlyBeforeOf ;
+	rel beforeOf(ConcreteAction) : transitive to directlyBeforeOf ;
+	rel afterOf(ConcreteAction) : transitive to directlyAfterOf ;
+	rel isBetween(ConcreteAction, ConcreteAction) : between to beforeOf ;
+	rel isCloserToThan(ConcreteAction, ConcreteAction) : closer to beforeOf ;
+	rel isFurtherFromThan(ConcreteAction, ConcreteAction) : further to beforeOf ;
 } [
-	RU.localizedName = "граф потока управления" ;
-	EN.localizedName = "control flow graph" ;
+	RU.localizedName = "действие" ;
+	EN.localizedName = "action" ;
 ]
 
-
-class PathInfo {
-	obj prop id: string ;
-	obj prop is_direct: bool ;
-	obj prop ast_actions: int[0, 65536] ;
-	obj prop transparent_actions: int[0, 65536] ;
-	obj prop opaque_actions: int[0, 65536] ;
-	obj prop conditions: int[0, 65536] ;  // Непрозрачные (TODO)
-	obj prop frame_changes: int[0, 65536] ;
-	obj prop frames_added: int[0, 65536] ;
-	obj prop frames_dropped: int[0, 65536] ;
-
-	rel from_(Node) : {* -> 1} ;  // opposite to Node->startsPath
-	rel to_(Node) : {* -> 1} ;  // opposite to Node->endsPath
-	rel hasEffects(Effect) : {* -> *} ;
-	rel hasConstraints(Constraint) : {* -> 1} ;
-
-	rel hasFirstMiddleAction(Node) : {* -> 1} ;
-	rel hasFirstMiddleCondition(Node) : {* -> 1} ;
-	rel hasFirstMiddleFrameChange(Node) : {* -> 1} ;
-} [
-	RU.localizedName = "Путь по графу CFG и информация о достижимости" ;
-	EN.localizedName = "Path within a CFG & reachability info" ;
-]
-
-
-// Уровень условия задачи -- конкретного AST //
-
-class ASTNodeWrapper {
-	obj prop ast_id: int ;
-	obj prop ast_node: string ;
-	obj prop _code_piece: string ;  // имя действия для трассы
-
-	rel hasParent(ASTNodeWrapper) : {* -> 1} ;
-	rel hasChildren(ASTNodeWrapper) ;
-	rel hasMetadata(Metadata) : {* -> 1};
-} [
-	RU.localizedName = "обёртка узла AST" ;
-	EN.localizedName = "AST node wrapper" ;
-]
-
-// ... Что-то про цепочки значения условий ???
-
-
-
-// Уровень выполнения задачи -- трассы //
-
-class State {
-	obj prop interruption_state: InterruptionType ;
-
-	rel hasLastConditionAction(ActionSpec);
-	// + значение этого условия (T/F) ???
-}
-
-
-class RuntimeInfo {
-	obj prop function_name: string ;
-	obj prop function_args: string ;    // JSON-строка с аргументами функции
-	obj prop return_value: string ;     // Строковое представление возвращаемого значения
-	obj prop print_outputs: string ;    // JSON-строка со списком выводов print
-} [
-	RU.localizedName = "информация о выполнении" ;
-	EN.localizedName = "runtime info" ;
-]
-
+// -------- Данные, которые будут собираться по ходу решения задачи  --------
 
 class TraceAct {
-	obj prop is_known_correct: bool ;
-	obj prop condition_value: OptionalBoolValue ; // используем
+    rel hasAction(ConcreteAction) : {* -> 1};
+	rel hasTransition(TransitionSpec) : {* -> 1};
+	rel hasValue(SemanticValue);
+	// заполняется только у BEGIN-акта развернутого конструкта: действие, из которого конструкт развернут
+	rel unfoldedFrom(ConcreteAction) : {* -> 1};
+	// кадр вызова: акт действия func, открывший активацию функции (для глобального кода - корневой акт трассы).
+	// Акты разных активаций одной функции различаются кадром, поэтому BEGIN/END сопоставляются только внутри кадра
+	rel inFrame(TraceAct) : {* -> 1};
 
-	rel hasCFGNode(Node) : {* -> 1};
-	rel hasActionSpec(ActionSpec) : {* -> 1};
-	rel hasASTNode(ASTNodeWrapper) : {* -> 1} ;
-	rel hasActAsCorrespondingEnd(TraceAct) : {1 -> *} ;
-	rel hasRuntimeInfo(RuntimeInfo) : {* -> 1} ;  // Информация о runtime значениях (аргументы, возврат, print)
-	
 	rel directlyBeforeOf(TraceAct) : linear ;
 	rel directlyAfterOf(TraceAct) : opposite to directlyBeforeOf ;
 	rel beforeOf(TraceAct) : transitive to directlyBeforeOf ;
@@ -416,11 +209,37 @@ class TraceAct {
 	rel isBetween(TraceAct, TraceAct) : between to beforeOf ;
 	rel isCloserToThan(TraceAct, TraceAct) : closer to beforeOf ;
 	rel isFurtherFromThan(TraceAct, TraceAct) : further to beforeOf ;
-	rel hasNextTraceAct(TraceAct) : {1 -> 1} ;   // Линейное отношение "непосредственно следующий" в цепочке актов трассы
 } [
 	RU.localizedName = "действие в трассе" ;
 	EN.localizedName = "trace act" ;
 ]
 
+class TraceState {
+	obj prop interruption_mode: InterruptionType ;
+} [
+	RU.localizedName = "состояние трассировки" ;
+	EN.localizedName = "trace state" ;
+]
 
+class TraceConfigSpec {
+	obj prop stop_on_opaque: bool ; // остановить поиск следующего действия перед первым непрозрачным действием (т.е. пройти только прозрачные действия)
+} [
+	RU.localizedName = "конфигурация трассировки" ;
+	EN.localizedName = "trace configuration" ;
+]
 
+obj TraceConfig : TraceConfigSpec {
+	stop_on_opaque = true ;
+} [
+	RU.localizedName = "глобальная конфигурация трассировки" ;
+	EN.localizedName = "global trace configuration" ;
+] 
+
+obj NoValue : SemanticValue {
+	bool_value = OptionalBool:`null`;
+	used = false; // не должен меняться и учитываться для этого объекта
+} [
+	RU.localizedName = "без значения";
+	EN.localizedName = "no value";
+	hint = "";
+]
