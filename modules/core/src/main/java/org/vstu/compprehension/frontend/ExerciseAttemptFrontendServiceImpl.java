@@ -241,7 +241,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     }
 
     /**
-     * Сохранить изменённое ответом содержимое вопроса, записать взаимодействие студента с вопросом,
+     * Сохранить изменённое ответом решение вопроса, записать взаимодействие студента с вопросом,
      * выставить за него оценку стратегии и, если стратегия так решила, закрыть попытку.
      */
     private @NotNull GradedInteraction recordAndGrade(@NotNull QuestionData question,
@@ -249,9 +249,12 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                                                       @NotNull InteractionType interactionType,
                                                       @NotNull List<NewInteractionAnswerData> answers,
                                                       @NotNull Domain.InterpretSentenceResult judgeResult) {
-        val judged = judgeResult.updatedContent == null ? question : question.withContent(judgeResult.updatedContent);
-        if (judgeResult.updatedContent != null) {
-            questionService.saveQuestion(judged, null, null);
+        val solutionFacts = judgeResult.updatedSolutionFacts;
+        val judged = solutionFacts == null
+                ? question
+                : question.withContent(question.getContent().toBuilder().solutionFacts(solutionFacts).build());
+        if (solutionFacts != null) {
+            questionService.saveSolutionFacts(question.getId(), solutionFacts);
         }
         val recorded = questionService.recordInteraction(new NewInteractionData(
                 question.getId(),

@@ -285,8 +285,8 @@ public interface Domain {
          */
         public boolean isAnswerCorrect;
         /**
-         * Содержимое вопроса, которое засчитанный ответ изменил (например, решение); null — вопрос не меняется.
+         * Решение вопроса, которое засчитанный ответ изменил; null — решение не меняется.
          */
-        public @Nullable QuestionContentData updatedContent;
+        public @Nullable List<BackendFactData> updatedSolutionFacts;
     }
 }

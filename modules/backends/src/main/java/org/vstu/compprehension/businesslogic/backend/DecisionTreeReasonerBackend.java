@@ -23,6 +23,7 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.domains.Domain;
@@ -421,13 +422,13 @@ public class DecisionTreeReasonerBackend
         }
 
         /**
-         * Содержимое вопроса, изменённое засчитанным ответом (например, сохранённое состояние решения)
+         * Решение вопроса, изменённое засчитанным ответом (например, сохранённое состояние рассуждения)
          * @param question the judged question
          * @param responses the judged responses, the accepted one last
          * @param backendOutput the output from the backend's {@link #judge} method
-         * @return the changed content, or null if the question does not change
+         * @return the changed solution facts, or null if the solution does not change
          */
-        default @Nullable QuestionContentData updateQuestionAfterJudge(
+        default @Nullable List<BackendFactData> updateSolutionAfterJudge(
             QuestionData question,
             List<? extends AnswerData> responses,
             Output backendOutput
