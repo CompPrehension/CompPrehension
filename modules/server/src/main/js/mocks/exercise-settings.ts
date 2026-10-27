@@ -56,7 +56,7 @@ export const mockStrategies: Strategy[] = [
     },
 ];
 
-export const mockBackends = ['JenaBackend', 'PelletBackend'];
+export const mockBackends = ['JenaBackend', 'DecisionTreeReasonerBackend'];
 
 const initialCard: ExerciseCard = {
     id: 1,
