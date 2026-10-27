@@ -21,7 +21,6 @@ import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.businesslogic.backend.Backend;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.businesslogic.backend.PelletBackend;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
@@ -40,7 +39,6 @@ public class DiConfig {
     @RequestScope
     List<Backend<?, ?>> getAllBackends(
             @Autowired @Lazy JenaBackend jenaBackend,
-            @Autowired @Lazy PelletBackend pelletBackend,
             @Autowired DecisionTreeReasonerBackend decisionTreeReasonerBackend,
             @Autowired BackendTaskQueue taskQueue,
             @Autowired Cache<String, JenaFactList> jenaCache)
@@ -51,8 +49,7 @@ public class DiConfig {
                 new SolutionCachingJenaBackendDecorator(jenaBackend, jenaCache),
                 taskQueue
             ),
-            decisionTreeReasonerBackend, //FIXME wrap with RateLimitBackendDecorator
-            new RateLimitBackendDecorator<>(PelletBackend.BackendId, pelletBackend, taskQueue)
+            decisionTreeReasonerBackend //FIXME wrap with RateLimitBackendDecorator
         );
     }
 
