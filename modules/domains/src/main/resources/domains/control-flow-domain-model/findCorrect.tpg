@@ -1,0 +1,630 @@
+lambda applyInterruptionMode(E: EffectDeclaration, S: TraceState) =
+    E.interruption_start != InterruptionType:none ? 
+            S.interruption_mode = E.interruption_start // начинается новое прерывание
+        : (
+            // если какое-то прерывание останавливается
+            E.interruption_stop != InterruptionType:none and (
+                // все прерывания или только текущее
+                E.interruption_stop == InterruptionType:any or
+                S.interruption_mode == E.interruption_stop
+            )
+                ? S.interruption_mode = InterruptionType:none // остановить прерывание
+                : (S.interruption_mode = S.interruption_mode) // ничего не делать (self-assign в скобках: ветви ternary одного типа bool; скобки обязательны из-за приоритета =)
+    );
+
+lambda findUnusedValue(A: ConcreteAction) = findExtreme unused [
+    $unused == A->hasValue or $unused=>isCloserToThan(A->hasValue, $v)
+] among SemanticValue v {
+    A=>hasValue() and ($v=>afterOf(A->hasValue) or $v == A->hasValue) and not $v.used
+};
+
+// чтобы поддерживать порядок из нескольких to_when_absent
+lambda toWhenAbsent(T: TransitionSpec, C: ConcreteConstruct) = if (T=>to_when_absent()) (findExtreme present [
+    $present=>isCloserToThan(T->to_when_absent, $ap) or $present == T->to_when_absent
+] among ActionSpecChainPlaceholder ap {
+    ($ap=>afterOf(T->to_when_absent) or $ap == T->to_when_absent) and 
+    forAny ConcreteAction aa {C=>hasActions($aa) and $aa=>derivedFrom($ap->contains)}
+})->contains else T->to_;
+
+// Переход t выходит из роли действия акта L в его конструкте
+lambda transitionFrom(t: TransitionSpec, L: TraceAct) =
+    t->from_ == L->hasAction->derivedFrom and
+    t->belongsTo == L->hasAction->belongsTo->derivedFrom;
+
+// Переход ограничен именно текущим режимом прерывания (не any)
+lambda interruptionSpecific(t: TransitionSpec, S: TraceState) =
+    t=>hasConstraints() and
+    t->hasConstraints.interruption_mode == S.interruption_mode and
+    t->hasConstraints.interruption_mode != InterruptionType:any;
+
+// Переход допустим в текущем режиме прерывания (без ограничений, совпадает или any)
+lambda interruptionAllowed(t: TransitionSpec, S: TraceState) =
+    not t=>hasConstraints() or
+    t->hasConstraints.interruption_mode == S.interruption_mode or
+    t->hasConstraints.interruption_mode == InterruptionType:any;
+
+// Если у L есть значение условия — переход должен требовать именно его. Берём значение акта L,
+// а не очередное неизрасходованное: при добавлении акта его значение уже помечено израсходованным.
+// Значение без bool_value (аннотация акта) переходы не ограничивает
+lambda valueFits(t: TransitionSpec, L: TraceAct) =
+    not L=>hasValue() or
+    L->hasValue.bool_value == OptionalBool:`null` or (
+        t=>hasConstraints() and
+        L->hasValue.bool_value == t->hasConstraints.condition_value
+    );
+
+// BEGIN-действие (правило) конструкта C
+lambda beginActionOf(C: ConcreteConstruct) = find ConcreteAction d {
+    $d->belongsTo == C and $d->derivedFrom.role == "BEGIN"
+};
+
+// Кадр вызова для BEGIN-акта, добавляемого сразу после акта prev: если в prev вошли
+// по переходу с add_frame (действие func вызова), BEGIN открывает новый кадр - сам prev,
+// иначе остаётся в кадре prev. Зеркало на стороне Python: _frame_acts в serialization/adapters/situation.py
+lambda frameAfter(prev: TraceAct) = if (
+    prev=>hasTransition() and prev->hasTransition=>hasEffects() and
+    prev->hasTransition->hasEffects.call_stack == CallStackAction:add_frame
+) prev else prev->inFrame;
+
+// Последний BEGIN-акт конструкта акта t, несущий unfoldedFrom
+lambda unfoldBeginAct(t: TraceAct) = findExtreme latest [
+    not $latest=>beforeOf($b)
+] among TraceAct b {
+    $b->inFrame == t->inFrame and
+    $b->hasAction->belongsTo == t->hasAction->belongsTo and
+    $b->hasAction->derivedFrom.role == "BEGIN" and
+    $b=>beforeOf(t) and
+    $b=>unfoldedFrom()
+};
+
+// t - последний акт трассы и он END preorder-конструкта, породившее действие которого ещё не в трассе
+lambda hasPendingUnfold(t: TraceAct) =
+    t->hasAction->derivedFrom.role == "END" and
+    t->hasAction->belongsTo->derivedFrom.preorder and
+    not forAny TraceAct later { $later=>afterOf(t) } and
+    forAny TraceAct b {
+        $b->inFrame == t->inFrame and
+        $b->hasAction->belongsTo == t->hasAction->belongsTo and
+        $b->hasAction->derivedFrom.role == "BEGIN" and
+        $b=>beforeOf(t) and
+        $b=>unfoldedFrom()
+    };
+
+// Отложенное действие preorder-конструкта - "настоящий" шаг студента, если оно
+// непрозрачно. В отличие от classifyAction прозрачность BEGIN роли не играет:
+// действие выполняется ПОСЛЕ конструкта, это не "вход" в него, и ничем другим
+// в трассе оно не представлено (оператор с вызовом, условие с вызовом).
+lambda pendingUnfoldIsStep(t: TraceAct) =
+    unfoldBeginAct(t)->unfoldedFrom->derivedFrom.is_opaque;
+
+
+// Добавить в трассу отложенное действие preorder-конструкта (END которого - текущий L).
+// Работает с переменными tpg напрямую (как unfoldNewConstruct): меняет L.
+fragment appendPendingUnfold() {
+    var beganAct: TraceAct = unfoldBeginAct(L);
+    var U: ConcreteAction = beganAct->unfoldedFrom;
+    var pendingPrev: TraceAct = L;
+    conclude : null with ({
+        L = +obj : TraceAct (
+            {
+                hasAction(U);
+                inFrame(beganAct->inFrame);
+                (beganAct=>hasTransition()) ? hasTransition(beganAct->hasTransition);
+                (U=>hasValue()) ? hasValue(findUnusedValue(U));
+            }
+        );
+        if (U=>hasValue()) L->hasValue.used = true;
+        if (U=>hasEffects()) applyInterruptionMode(U->hasEffects, S);
+        if (beganAct=>hasTransition() and beganAct->hasTransition=>hasEffects())
+            applyInterruptionMode(beganAct->hasTransition->hasEffects, S);
+        pendingPrev +=> directlyBeforeOf(L);
+    });
+}
+
+fragment findLastTracedAction(last: TraceAct) {
+    // фрагмент поиска "реального" последнего действия, от которого будет происходить дальнейший поиск следующего корректного
+
+    // отложенное действие preorder-конструкта: конструкт раскрылся раньше породившего
+    // его действия, поэтому это действие добавляется после END конструкта.
+    // Случай, когда такое действие - шаг студента, обработан в теле дерева ДО вызова фрагмента.
+    while (hasPendingUnfold(last)) {
+        body -> {
+            `fragment`:appendPendingUnfold();
+        }
+        true, false, null -> out;
+    };
+
+    // было начато прерывание, нужно последовательно выходить из всех конструктов, пока не найдем остановку прерывания
+    // либо переход, заданный для этого прерывания
+    while (
+        S.interruption_mode != InterruptionType:none 
+        and last->hasAction->belongsTo->derivedFrom.name != "global_statements_structure"
+    ) {
+        body -> {
+        // Найти последнее действие последнего вложенного конструкта, из которого еще не вышли
+        // (BEGIN/END конструкта ищутся в кадре акта: END вложенной активации той же функции его не закрывает).
+        // Закрывает только END в акте prev или после него: END прошлого выполнения конструкта
+        // в том же кадре (прошлая итерация цикла) лежит раньше. Сам prev учитывается, потому что
+        // только что добавленный END-акт становится кандидатом prev.
+        var currentAct: TraceAct = findExtreme act [$act == last or $act=>isCloserToThan(last, $prev)] among TraceAct prev {
+            forAny TraceAct c {
+                $c->inFrame == $prev->inFrame
+                and $c->hasAction->belongsTo == $prev->hasAction->belongsTo
+                and $c->hasAction->derivedFrom.role == "BEGIN"}
+            and not forAny TraceAct c {
+                $c->inFrame == $prev->inFrame
+                and $c->hasAction->belongsTo == $prev->hasAction->belongsTo
+                and $c->hasAction->derivedFrom.role == "END"
+                and ($c == $prev or $c=>afterOf($prev))}
+        } out true else {
+            conclude: error [exception = true; exceptionName = "UnclosedInterruption"];
+        };
+        var current: ConcreteAction = currentAct->hasAction;
+
+        // Если эффекты текущего действия останавливают текущее прерывание — не выходим из конструкта
+        ask (current->derivedFrom=>hasEffects() and (
+            current->derivedFrom->hasEffects.interruption_stop == S.interruption_mode or
+            current->derivedFrom->hasEffects.interruption_stop == InterruptionType:any
+        )) out false else {
+            conclude: null with ({
+                applyInterruptionMode(current->derivedFrom->hasEffects, S);
+                if (current=>hasEffects()) applyInterruptionMode(current->hasEffects, S);
+            });
+        };
+
+        // Если у текущего действия есть переход именно для текущего прерывания — выходим по нему:
+        // раскрутка останавливается, переход выберет обычный поиск (interruptionSpecific) и применит его эффекты
+        ask (forAny TransitionSpec t {
+            $t->from_ == current->derivedFrom and
+            $t->belongsTo == current->belongsTo->derivedFrom and
+            interruptionSpecific($t, S)
+        }) out false else {
+            conclude: true with (last = currentAct);
+        };
+
+        var exit: ConcreteAction = find ConcreteAction a {
+            $a->derivedFrom.role == "END" and $a->belongsTo == current->belongsTo
+        };
+        var exitPrev: TraceAct = last;
+        conclude : null with ({
+            last = +obj : TraceAct (
+                {
+                    hasAction(exit);
+                    inFrame(currentAct->inFrame);
+                    (exit=>hasValue()) ? hasValue(findUnusedValue(exit));
+                }
+            );
+            if (exit=>hasValue()) last->hasValue.used = true;
+
+            // так как перехода нет, выход вынужденный, то проверяем явно, устанавливает ли правило эффекты (для справки: в обычной ситуации ActionSpec->hasEffects уже встраивается в TransitionSpec, но здесь перехода нет явно)
+            if (exit->derivedFrom=>hasEffects()) applyInterruptionMode(exit->derivedFrom->hasEffects, S);
+            if (current->derivedFrom=>hasEffects()) applyInterruptionMode(current->derivedFrom->hasEffects, S);
+
+            if (exit=>hasEffects()) applyInterruptionMode(exit->hasEffects, S);
+            if (current=>hasEffects()) applyInterruptionMode(current->hasEffects, S);
+
+            exitPrev +=> directlyBeforeOf(last);
+        });
+        }
+        true, false, null -> out;
+    };
+
+    // последнее вычисленное действие является END в его конструкте
+    ask (last->hasAction->derivedFrom.role == "END") out false else {
+        // ищем еще незавершенное действие конструкта, который ближе к P (но не сам конструкт из P).
+        // END ищется только в кадре акта: иначе END вложенной (рекурсивной) активации той же
+        // функции "закрыл" бы акты внешней активации. Когда кадр закрыт целиком (END тела функции),
+        // ближайшим незавершённым оказывается акт func вызова в кадре вызывающего - точка возврата
+        var possibleLast: TraceAct = findExtreme lastAct [not $lastAct=>beforeOf($c)] among TraceAct c {
+            $c->hasAction->derivedFrom.role != "END" and
+            not forAny TraceAct t2 {
+                $t2->inFrame == $c->inFrame and
+                $t2->hasAction->belongsTo == $c->hasAction->belongsTo and
+                $t2->hasAction->derivedFrom.role == "END" and 
+                $t2=>afterOf($c)
+            }
+        } out true else {conclude : error [exception = true;];};
+        conclude: true with (last = possibleLast);
+    };
+    // Если последнее действие - это добавление в стек вызовов (прыжок в функцию).
+    // BEGIN-акты исключены: у BEGIN-акта preorder-конструкта hasTransition хранит
+    // переход к ОТЛОЖЕННОМУ действию, а не переход, по которому вошли в этот акт.
+    ask (last->hasAction->derivedFrom.role != "BEGIN" and
+        last=>hasTransition() and last->hasTransition=>hasEffects() and 
+        last->hasTransition->hasEffects.call_stack != CallStackAction:none
+    ) out false else {
+        // Ищем начало тела функции и создаем акт вызова функции.
+        // Рекурсия допустима: BEGIN открывает новый кадр (сам акт вызова callPrev),
+        // и акты вложенной активации сопоставляются только внутри своего кадра
+        var callAction: ConcreteAction = find ConcreteAction a {
+            $a->derivedFrom.role == "BEGIN" and
+            $a.ast_id == last->hasAction.ast_id
+        } out true else {conclude : error [exception = true;];};
+
+        var callPrev: TraceAct = last;
+        conclude : true with ({
+            last = +obj : TraceAct (
+                {
+                    hasAction(callAction);
+                    inFrame(frameAfter(callPrev));
+                    (callAction=>hasValue()) ? hasValue(findUnusedValue(callAction));
+                }
+            );
+            if (callAction=>hasValue()) last->hasValue.used = true;
+            if (callAction->derivedFrom=>hasEffects()) applyInterruptionMode(callAction->derivedFrom->hasEffects, S);
+            if (callAction=>hasEffects()) applyInterruptionMode(callAction->hasEffects, S);
+            callPrev +=> directlyBeforeOf(last);
+        });
+    };
+    // Иначе, P и есть последнее корректное действие для поиска следующего
+    conclude : null;
+}
+
+fragment unfoldNewConstruct(C: ConcreteConstruct) {
+    var A: ConcreteAction = find ConcreteAction c {
+        $c->derivedFrom.role == "BEGIN" and $c->belongsTo == C
+    } out true else { conclude : error [exception = true;];};
+    var unfoldPrev: TraceAct = findExtreme lastAct [not $lastAct=>beforeOf($a)] among TraceAct a {true};
+    // Кадр берётся от L (логически последнего акта), а не от unfoldPrev: после возврата
+    // из вызова хронологически последним в трассе стоит END уже закрытого кадра
+    var unfoldFrame: TraceAct = L->inFrame;
+
+    // preorder-конструкт раскрывается ДО породившего его действия N: в трассу
+    // добавляется только BEGIN (с unfoldedFrom(N) и переходом T, ведущим к N),
+    // а само N будет добавлено после END конструкта (см. findLastTracedAction)
+    ask (C->derivedFrom.preorder) out false else {
+        ask (A->derivedFrom.is_opaque) {
+            true -> {
+                // непрозрачный BEGIN - это и есть следующий шаг студента.
+                // Пре-ран (stop_on_opaque = false) останавливается ПЕРЕД ним, не добавляя:
+                // этот шаг должен выбрать студент (зеркало guard-а в теле дерева)
+                ask (obj:TraceConfig.stop_on_opaque) out true else {
+                    conclude : true;
+                };
+                conclude : true with ({
+                    P = +obj : TraceAct (
+                        {
+                            hasAction(A);
+                            inFrame(unfoldFrame);
+                            unfoldedFrom(N);
+                            hasTransition(T);
+                        }
+                    );
+                    unfoldPrev +=> directlyBeforeOf(P);
+                    L = P;
+                    if (A->derivedFrom=>hasEffects()) applyInterruptionMode(A->derivedFrom->hasEffects, S);
+                    if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+                });
+            }
+            false -> {
+                // прозрачный BEGIN - продолжаем искать ответ внутри конструкта
+                conclude : null with ({
+                    L = +obj : TraceAct (
+                        {
+                            hasAction(A);
+                            inFrame(unfoldFrame);
+                            unfoldedFrom(N);
+                            hasTransition(T);
+                        }
+                    );
+                    unfoldPrev +=> directlyBeforeOf(L);
+                    if (A->derivedFrom=>hasEffects()) applyInterruptionMode(A->derivedFrom->hasEffects, S);
+                    if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+                });
+            }
+        };
+    };
+
+    ask (A->derivedFrom.is_opaque) {
+        false -> {
+            conclude : null with ({
+                // Сначала само действие
+                L = +obj : TraceAct (
+                    {
+                        hasAction(N);
+                        inFrame(unfoldFrame);
+                        hasTransition(T);
+                        (N=>hasValue()) ? hasValue(findUnusedValue(N));
+                    }
+                );
+                unfoldPrev +=> directlyBeforeOf(L);
+                unfoldPrev = L;
+                if (N=>hasValue()) L->hasValue.used = true;
+                if (N=>hasEffects()) applyInterruptionMode(N->hasEffects, S);
+                if (T=>hasEffects()) applyInterruptionMode(T->hasEffects, S);
+                // Затем то, во что оно разворачивается (BEGIN нового конструкта), если оно прозрачное.
+                // Для вызова (T с add_frame: func -> тело функции) BEGIN открывает новый кадр
+                L = +obj : TraceAct (
+                    {
+                        hasAction(A);
+                        inFrame(frameAfter(unfoldPrev));
+                        unfoldedFrom(N);
+                    }
+                );
+                unfoldPrev +=> directlyBeforeOf(L);
+                if (A->derivedFrom=>hasEffects()) applyInterruptionMode(A->derivedFrom->hasEffects, S);
+                if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+            });
+        };
+        true -> {
+            ask (not N->derivedFrom.is_opaque) out false else {
+                conclude : null with ({
+                    // Т.к. действие до BEGIN прозрачное, то это не остановка
+                    L = +obj : TraceAct (
+                        {
+                            hasAction(N);
+                            inFrame(unfoldFrame);
+                            hasTransition(T);
+                            (N=>hasValue()) ? hasValue(findUnusedValue(N));
+                        }
+                    );
+                    unfoldPrev +=> directlyBeforeOf(L);
+                    unfoldPrev = L;
+                    if (N=>hasValue()) L->hasValue.used = true;
+                    if (N=>hasEffects()) applyInterruptionMode(N->hasEffects, S);
+                    if (T=>hasEffects()) applyInterruptionMode(T->hasEffects, S);
+                });
+            };
+            conclude : true with ({
+                // Только само действие
+                P = +obj : TraceAct (
+                    {
+                        hasAction(N);
+                        inFrame(unfoldFrame);
+                        hasTransition(T);
+                        (N=>hasValue()) ? hasValue(findUnusedValue(N));
+                    }
+                );
+                unfoldPrev +=> directlyBeforeOf(P);
+                L = P;
+                unfoldPrev = L;
+                if (N=>hasValue()) P->hasValue.used = true;
+                if (N=>hasEffects()) applyInterruptionMode(N->hasEffects, S);
+                if (T=>hasEffects()) applyInterruptionMode(T->hasEffects, S);
+            });
+        };
+    }
+}
+
+fragment classifyAction(N: ConcreteAction) {
+    // если действие является непрозрачным
+    ask (N->derivedFrom.is_opaque) {
+        true -> {
+            // если нужно не захватывать непрозрачные действия в трассу, то останавливаемся.
+            // Пре-ран (stop_on_opaque = false) останавливается только перед «настоящим»
+            // шагом студента: непрозрачное действие, раскрывающее конструкт с ПРОЗРАЧНЫМ
+            // BEGIN (func, if_branch/body в Python), в обычном режиме добавляется проходом
+            // (см. unfoldNewConstruct), поэтому и пре-ран должен пройти его насквозь
+            ask (
+                not obj:TraceConfig.stop_on_opaque and
+                not forAny ConcreteConstruct cc {
+                    $cc != N->belongsTo and
+                    $cc.ast_id == N.ast_id and
+                    forAny ConcreteAction b {
+                        $b->belongsTo == $cc and
+                        $b->derivedFrom.role == "BEGIN" and
+                        not $b->derivedFrom.is_opaque
+                    }
+                }
+            ) out false else {
+                conclude : true with (P = L);
+            };
+            // BEGIN/END несут ast_id самого конструкта, поэтому собственный конструкт
+            // действия исключается (иначе END конструкта раскрывал бы его заново)
+            var C: ConcreteConstruct = find ConcreteConstruct c {
+                $c != N->belongsTo and
+                N->derivedFrom.role != "BEGIN" and
+                N->derivedFrom.role != "END" and
+                $c.ast_id == N.ast_id
+            } {
+                true -> {
+                    // если действие разворачивается в новый конструкт, то его первое прозрачное действие и есть следующее действие
+                    `fragment`:unfoldNewConstruct(C);
+                }
+                false -> {
+                    // иначе, следующее действие - это само действие N, без раскрытия в конструкт
+                    var opaquePrev: TraceAct = findExtreme lastAct [not $lastAct=>beforeOf($a)] among TraceAct a {true};
+                    conclude : true with ({
+                        P = +obj : TraceAct (
+                            {
+                                hasAction(N);
+                                inFrame(L->inFrame);
+                                (N=>hasValue()) ? hasValue(findUnusedValue(N));
+                                hasTransition(T);
+                            }
+                        );
+                        if (N=>hasValue()) P->hasValue.used = true;
+                        if (N=>hasEffects()) applyInterruptionMode(N->hasEffects, S);
+                        if (T=>hasEffects()) applyInterruptionMode(T->hasEffects, S);
+                        opaquePrev +=> directlyBeforeOf(P);
+                        L = P
+                    });
+                }
+            };
+        }
+        false -> {
+            // Для прозрачного действия тоже нужно продвинуть трассу вперед
+            var C: ConcreteConstruct = find ConcreteConstruct c {
+                $c != N->belongsTo and
+                N->derivedFrom.role != "BEGIN" and
+                N->derivedFrom.role != "END" and
+                $c.ast_id == N.ast_id
+            } {
+                true -> {
+                    // если ПРОЗРАЧНОЕ действие (кроме BEGIN и END, это нужно для поддержки произвольных прозрачных действий) разворачивается в новый конструкт, то его первое прозрачное действие и есть следующее действие
+                    `fragment`:unfoldNewConstruct(C);
+                }
+                false -> {
+                    // если не новый конструкт, то просто оставляем действие
+                    var Prev: TraceAct = findExtreme lastAct [not $lastAct=>beforeOf($a)] among TraceAct a {true};
+                    conclude: null with ({
+                        L = +obj : TraceAct (
+                            {
+                                hasAction(N);
+                                inFrame(L->inFrame);
+                                (N=>hasValue()) ? hasValue(findUnusedValue(N));
+                                hasTransition(T);
+                            }
+                        );
+                        if (N=>hasValue()) L->hasValue.used = true;
+                        if (N=>hasEffects()) applyInterruptionMode(N->hasEffects, S);
+                        if (T=>hasEffects()) applyInterruptionMode(T->hasEffects, S);
+                        Prev +=> directlyBeforeOf(L);
+                    });
+                }
+            };
+            // продолжаем искать ответ уже от нового прозрачного действия
+        }
+    };
+}
+
+tpg CtrlFlow_findCorrect(S: TraceState, P: TraceAct) {
+    // L - точка отсчета для рассуждения о следующем, P - предыдущее корректное действие
+    var L: TraceAct = P;
+    // Пока не найдем следующее корректное НЕПРОЗРАЧНОЕ действие
+    while (not L->hasAction->derivedFrom.is_opaque or L == P) {
+        body -> {
+            // если конец программы, то искать ничего не нужно
+            ask (L->hasAction->belongsTo->derivedFrom.name == "global_statements_structure" 
+                and L->hasAction->derivedFrom.role == "END") out false else {
+                conclude: true with (P = L) [
+                    skill = "everything_evaluated" ;
+                    // все вычислено
+                ];
+            };
+
+            // Отложенное действие preorder-конструкта, являющееся шагом студента:
+            // конструкт раскрылся раньше породившего его действия, и после END этого
+            // конструкта такое действие и есть следующее корректное действие
+            ask (hasPendingUnfold(L) and pendingUnfoldIsStep(L)) out false else {
+                // Пре-ран (stop_on_opaque = false): остановиться ПЕРЕД шагом студента
+                ask (obj:TraceConfig.stop_on_opaque) out true else {
+                    conclude : true;
+                };
+                `fragment`:appendPendingUnfold() out null;
+                conclude : true with (P = L);
+            };
+
+            var C: ConcreteConstruct = find ConcreteConstruct c {
+                forAny ConcreteAction a {$a=>belongsTo($c) and $a->derivedFrom.role == "BEGIN" and $a->derivedFrom.is_opaque} and // только для непрозрачных BEGIN
+                not $c->derivedFrom.preorder and // preorder-конструкт раскрывается до своего действия, его BEGIN добавляет unfoldNewConstruct
+                L->hasAction->derivedFrom.role != "BEGIN" and
+                L->hasAction->derivedFrom.role != "END" and
+                $c.ast_id == L->hasAction.ast_id and
+                // если только он уже не развернут в текущем кадре (нет BEGIN без парного END)
+                not forAny TraceAct t {
+                    $t->inFrame == L->inFrame
+                    and $t->hasAction->belongsTo == $c
+                    and $t->hasAction->derivedFrom.role == "BEGIN"
+                    and not forAny TraceAct e {
+                        $e->inFrame == $t->inFrame
+                        and $e->hasAction->belongsTo == $c
+                        and $e->hasAction->derivedFrom.role == "END"
+                        and $e=>afterOf($t)
+                    }
+                }
+            } out false else {
+                // Пре-ран (stop_on_opaque = false): остановиться ПЕРЕД непрозрачным
+                // BEGIN, не добавляя его — этот шаг должен выбрать студент
+                ask (obj:TraceConfig.stop_on_opaque) out true else {
+                    conclude : true;
+                };
+                var A: ConcreteAction = find ConcreteAction c {
+                    $c->derivedFrom.role == "BEGIN" and $c->belongsTo == C
+                } out true else { conclude : error [exception = true;];};
+                var Prev: TraceAct = findExtreme lastAct [not $lastAct=>beforeOf($a)] among TraceAct a {true};
+                var unfoldSource: ConcreteAction = L->hasAction;
+                conclude: true with ({
+                    P = +obj : TraceAct (
+                        {
+                            hasAction(A);
+                            inFrame(frameAfter(L));
+                            unfoldedFrom(unfoldSource);
+                        }
+                    );
+                    Prev +=> directlyBeforeOf(P);
+                    L = P;
+                    if (A->derivedFrom=>hasEffects()) applyInterruptionMode(A->derivedFrom->hasEffects, S);
+                    if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+                });
+            };
+
+            `fragment`:findLastTracedAction(L) out true, null; // присоединяем выходы true, null из фрагмента в этот поток
+        
+            // Ищем переход из роли последнего действия. condition_value — фильтр (valueFits),
+            // ранжирование только по прерыванию: переход под текущий режим важнее any/без ограничений.
+            var T: TransitionSpec = find TransitionSpec t {
+                transitionFrom($t, L) and interruptionSpecific($t, S) and valueFits($t, L)
+            } out true else {
+                var T: TransitionSpec = find TransitionSpec t {
+                    transitionFrom($t, L) and interruptionAllowed($t, S) and valueFits($t, L)
+                } out true else {conclude : error [exception = true; exceptionName = "AmbiguousOrMissingTransition";];};
+                merge;
+            };
+
+            // По найденному переходу ищем конкретное действие
+            var N: ConcreteAction = find ConcreteAction a {
+                $a != L->hasAction and
+                $a->derivedFrom == T->to_ and
+                $a->belongsTo == L->hasAction->belongsTo and
+                (
+                    not L->hasAction=>directlyBeforeOf() // либо действие не в цепочке, либо выбираем такое, которое сразу после L
+                    or ( // если вдруг одни и те же действия идут подряд в одной цепочке
+                        $a=>afterOf(L->hasAction) and
+                        not forAny ConcreteAction mid {
+                            $mid != $a and
+                            $mid->derivedFrom == T->to_ and
+                            $mid->belongsTo == $a->belongsTo and
+                            $mid=>afterOf(L->hasAction) and
+                            $a=>afterOf($mid)
+                        }
+                    )
+                    or ( // если вдруг мы возвращаемся в действие назад, которое ранее проходили, и у него например есть не used значения
+                        not T=>to_when_absent() and // без него в завершении однотипных действий (например, блок statement) неправильно выбирает действие, правильно ли??
+                        not forAny ConcreteAction fwd {
+                            $fwd->derivedFrom == T->to_ and
+                            $fwd->belongsTo == L->hasAction->belongsTo and
+                            $fwd=>afterOf(L->hasAction)
+                        }
+                    )
+                )
+            } out true else {
+                // Если для основного target role нет concrete-action, пробуем fallback
+                // из TransitionSpec.to_when_absent. Это общий механизм для branch/END
+                // и других случаев, когда переход определен, но прямой цели в AST нет.
+                var N_absent: ConcreteAction = find ConcreteAction a {
+                    $a != L->hasAction and
+                    forAny ActionSpec absent {
+                        $absent == toWhenAbsent(T, L->hasAction->belongsTo) and
+                        $a->derivedFrom == $absent
+                    } and
+                    $a->belongsTo == L->hasAction->belongsTo and
+                    (
+                        not L->hasAction=>directlyBeforeOf()
+                        or (
+                            $a=>afterOf(L->hasAction) and
+                            not forAny ConcreteAction mid {
+                                $mid != $a and
+                                forAny ActionSpec absent {
+                                    $absent == toWhenAbsent(T, L->hasAction->belongsTo) and
+                                    $mid->derivedFrom == $absent
+                                } and
+                                $mid->belongsTo == $a->belongsTo and
+                                $mid=>afterOf(L->hasAction) and
+                                $a=>afterOf($mid)
+                            }
+                        )
+                    )
+                } out true else {conclude : error [exception = true; exceptionName = "NoNextAction";];};
+                `fragment`:classifyAction(N_absent);
+            };
+            `fragment`:classifyAction(N);
+        }
+        true, false -> {
+            conclude : true;
+        }
+        null -> {
+            conclude : false [exception=true;];
+        }
+    };
+}

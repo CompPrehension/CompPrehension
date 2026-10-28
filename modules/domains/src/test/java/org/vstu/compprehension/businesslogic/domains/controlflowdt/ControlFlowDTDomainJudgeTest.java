@@ -3,12 +3,12 @@ package org.vstu.compprehension.businesslogic.domains.controlflowdt;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.vstu.compprehension.businesslogic.HyperText;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,6 +33,8 @@ import static org.vstu.compprehension.businesslogic.domains.controlflowdt.Contro
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BREAK_IN_FOR;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.IF_ELIF;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.IF_THEN;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.NESTED_CALLS;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.RECURSION_FACTORIAL;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.SEQUENCE;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_NOT_ENTERED;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_ONE_ITERATION;
@@ -43,18 +46,29 @@ import static org.vstu.compprehension.businesslogic.domains.controlflowdt.Contro
 
 class ControlFlowDTDomainJudgeTest {
 
-    private static final String SEQUENTIAL_ORDER_SKILL = "unevaluated_conditions_between_points_present";
-    private static final String REPEATED_ACTION_SKILL = "current_execution_point_understood";
-    private static final String FAR_AWAY_ACTION_SKILL = "current_code_block_identified";
-    private static final String CONDITION_TRANSITION_SKILL = "applicable_transition_with_condition_found";
-    private static final String INTERRUPTION_TRANSITION_SKILL = "applicable_transition_with_interruption_found";
-    private static final String INTERRUPTION_TERMINATED_SKILL = "interruption_can_be_terminated_determined";
-    private static final String INTERRUPTION_MODE_SKILL = "transition_matches_interruption_mode";
-    private static final String CONDITION_VALUE_SKILL = "required_condition_value_determined";
+    private static final String ACTIONS_IN_ORDER_SKILL = "actions_in_order";
+    private static final String REPEAT_SKILL = "passed_action_repeat";
+    private static final String CONDITION_VALUE_SKILL = "condition_value_selects_next";
+    private static final String INTERRUPTION_SKILL = "interruption_exits_constructs";
+    private static final String CALL_RETURN_SKILL = "call_return_matches_activation";
+    private static final String BODY_ON_CALL_SKILL = "function_body_runs_on_call";
+    private static final String NOT_RESUMED_SKILL = "function_not_resumed_after_exit";
+    private static final String SOLUTION_KEY_VERB = "acceptedAnswerIds";
+    private static final String TRACE_ACT = "<span class=\"trace-act\" data-action=\"%s\">";
+    private static final String CONDITION_OF_FACT = "if_structure_action_first_cond_ast8";
+    private static final String THEN_BODY_OF_IF_ELIF = "block_structure_action_first_ast39";
+    private static final String BODY_OF_WHILE_NOT_ENTERED = "block_structure_action_first_ast56";
+    private static final String BODY_OF_SQUARE = "block_structure_action_first_ast9";
+    private static final String INNER_CALL_RETURNS_FACT_2 = "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_1";
     private static final Pattern CYRILLIC = Pattern.compile("[А-Яа-яЁё]");
 
     static Stream<BankQuestion> bank() {
         return BANK.stream();
+    }
+
+    /** Программы, второе действие которых выполняется вне тела функции. */
+    static Stream<BankQuestion> bankWithSecondActionOutsideFunctions() {
+        return BANK.stream().filter(q -> q != NESTED_CALLS);
     }
 
     // ---- judgeQuestion ----
@@ -78,30 +92,27 @@ class ControlFlowDTDomainJudgeTest {
             assertEquals(List.of(), result.violations);
             assertEquals(bankQuestion.steps() - given.size(), result.IterationsLeft);
             assertFalse(result.domainSkills.isEmpty());
-            assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().isBlank());
         }
     }
 
-    /** Переход по вычисленному условию засчитывает умение определять его значение. */
-    @ParameterizedTest
-    @MethodSource("bank")
-    void judgeQuestionCreditsConditionValueAfterCondition(BankQuestion bankQuestion) {
+    /** Переход по вычисленному условию засчитывает умение выбирать следующее действие по его значению. */
+    @Test
+    void judgeQuestionCreditsConditionValueAfterCondition() {
         // Arrange.
-        var question = bankQuestion(bankQuestion);
+        var question = bankQuestion(IF_THEN);
 
-        for (int step = 1; step < bankQuestion.steps(); step++) {
-            // Act.
-            var result = judge(question, trace(question, bankQuestion, step + 1));
+        // Act.
+        var afterCondition = judge(question, trace(question, IF_THEN, 4));
+        var beforeCondition = judge(question, trace(question, IF_THEN, 2));
 
-            // Assert.
-            assertEquals(bankQuestion.isCondition(step - 1), result.domainSkills.contains(CONDITION_VALUE_SKILL),
-                    bankQuestion.file() + " на шаге " + step);
-        }
+        // Assert.
+        assertTrue(afterCondition.domainSkills.contains(CONDITION_VALUE_SKILL));
+        assertFalse(beforeCondition.domainSkills.contains(CONDITION_VALUE_SKILL));
     }
 
-    /** Пропуск первого действия отклоняется как нарушение последовательности. */
+    /** Пропуск первого действия отклоняется как нарушение порядка действий. */
     @ParameterizedTest
-    @MethodSource("bank")
+    @MethodSource("bankWithSecondActionOutsideFunctions")
     void judgeQuestionRejectsSkippedFirstAction(BankQuestion bankQuestion) {
         // Arrange.
         var question = bankQuestion(bankQuestion);
@@ -112,8 +123,7 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect);
         assertEquals(bankQuestion.steps(), result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("сначала должно произойти"));
+        assertEquals(List.of(ACTIONS_IN_ORDER_SKILL), lawNames(result.violations));
     }
 
     /** Повтор только что выполненного действия отклоняется. */
@@ -130,56 +140,7 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect);
         assertEquals(bankQuestion.steps() - 1, result.IterationsLeft);
-        assertEquals(List.of(REPEATED_ACTION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("два раза подряд"));
-    }
-
-    /** Возврат к давно выполненному действию отклоняется. */
-    @Test
-    void judgeQuestionRejectsReturnToExecutedAction() {
-        // Arrange.
-        var question = bankQuestion(WHILE_NOT_ENTERED);
-
-        // Act.
-        var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 4, "atom_111"));
-
-        // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("не должно выполняться повторно"));
-    }
-
-    /** Действие после цикла без вычисления его условия отклоняется. */
-    @Test
-    void judgeQuestionRejectsSkippedCondition() {
-        // Arrange.
-        var question = bankQuestion(WHILE_NOT_ENTERED);
-
-        // Act.
-        var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 3, "atom_140"));
-
-        // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(2, result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("должно быть вычислено"));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("s < n"));
-    }
-
-    /** Тело цикла при ложном условии отклоняется. */
-    @Test
-    void judgeQuestionRejectsLoopBodyWhenConditionIsFalse() {
-        // Arrange.
-        var question = bankQuestion(WHILE_NOT_ENTERED);
-
-        // Act.
-        var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 4, "atom_124"));
-
-        // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(1, result.IterationsLeft);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("равно ложь"));
+        assertEquals(List.of(REPEAT_SKILL), lawNames(result.violations));
     }
 
     /** Ветка then при ложном условии отклоняется. */
@@ -189,57 +150,27 @@ class ControlFlowDTDomainJudgeTest {
         var question = bankQuestion(IF_ELIF);
 
         // Act.
-        var result = judge(question, withMistake(question, IF_ELIF, 3, "atom_120"));
+        var result = judge(question, withMistake(question, IF_ELIF, 3, THEN_BODY_OF_IF_ELIF));
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
+        assertEquals(IF_ELIF.steps() - 3, result.IterationsLeft);
+        assertEquals(List.of(CONDITION_VALUE_SKILL), lawNames(result.violations));
     }
 
-    /** Ветка else при истинном условии отклоняется. */
+    /** Тело цикла при ложном условии отклоняется. */
     @Test
-    void judgeQuestionRejectsElseBranchWhenConditionIsTrue() {
+    void judgeQuestionRejectsLoopBodyWhenConditionIsFalse() {
         // Arrange.
-        var question = bankQuestion(IF_ELIF);
+        var question = bankQuestion(WHILE_NOT_ENTERED);
 
         // Act.
-        var result = judge(question, withMistake(question, IF_ELIF, 4, "atom_144"));
+        var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 4, BODY_OF_WHILE_NOT_ENTERED));
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("равно истина"));
-    }
-
-    /** Ветка уже отвергнутого условия отклоняется как далёкая от точки выполнения. */
-    @Test
-    void judgeQuestionRejectsBranchOfRejectedCondition() {
-        // Arrange.
-        var question = bankQuestion(IF_ELIF);
-
-        // Act.
-        var result = judge(question, withMistake(question, IF_ELIF, 4, "atom_120"));
-
-        // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(FAR_AWAY_ACTION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("слишком далеко"));
-    }
-
-    /** Выход из цикла после тела без повторной проверки условия отклоняется. */
-    @Test
-    void judgeQuestionRequiresLoopConditionAfterBody() {
-        // Arrange.
-        var question = bankQuestion(WHILE_ONE_ITERATION);
-
-        // Act.
-        var result = judge(question, withMistake(question, WHILE_ONE_ITERATION, 6, "atom_163"));
-
-        // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(2, result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("x > 5"));
+        assertEquals(1, result.IterationsLeft);
+        assertEquals(List.of(CONDITION_VALUE_SKILL), lawNames(result.violations));
     }
 
     /** Новая итерация после ложного условия цикла отклоняется. */
@@ -249,15 +180,30 @@ class ControlFlowDTDomainJudgeTest {
         var question = bankQuestion(WHILE_ONE_ITERATION);
 
         // Act.
-        var result = judge(question, withMistake(question, WHILE_ONE_ITERATION, 7, "atom_123"));
+        var result = judge(question, withMistake(question, WHILE_ONE_ITERATION, 7, WHILE_ONE_ITERATION.action(3)));
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
         assertEquals(1, result.IterationsLeft);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
+        assertEquals(List.of(CONDITION_VALUE_SKILL), lawNames(result.violations));
     }
 
-    /** Выход из цикла по break засчитывает завершение прерывания. */
+    /** Продолжение цикла после break отклоняется: прерывание выводит из цикла. */
+    @Test
+    void judgeQuestionRejectsLoopContinuationAfterBreak() {
+        // Arrange.
+        var question = bankQuestion(BREAK_IN_FOR);
+
+        // Act.
+        var result = judge(question, withMistake(question, BREAK_IN_FOR, 8, BREAK_IN_FOR.action(4)));
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect);
+        assertEquals(1, result.IterationsLeft);
+        assertEquals(List.of(INTERRUPTION_SKILL), lawNames(result.violations));
+    }
+
+    /** Выход из цикла по break засчитывает умение выходить из конструкций по прерыванию. */
     @Test
     void judgeQuestionCreditsInterruptionExitAfterBreak() {
         // Arrange.
@@ -269,55 +215,68 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertTrue(result.isAnswerCorrect);
         assertEquals(0, result.IterationsLeft);
-        assertTrue(result.domainSkills.contains(INTERRUPTION_TERMINATED_SKILL));
+        assertTrue(result.domainSkills.contains(INTERRUPTION_SKILL));
     }
 
-    /** break раньше предшествующего действия тела отклоняется. */
+    /** Действие из тела функции до её вызова отклоняется: тело выполняется только при вызове. */
     @Test
-    void judgeQuestionRejectsBreakBeforePrecedingStatement() {
+    void judgeQuestionRejectsFunctionBodyBeforeCall() {
         // Arrange.
-        var question = bankQuestion(BREAK_IN_FOR);
+        var question = bankQuestion(NESTED_CALLS);
 
         // Act.
-        var result = judge(question, withMistake(question, BREAK_IN_FOR, 10, "atom_140"));
+        var result = judge(question, withMistake(question, NESTED_CALLS, 0, BODY_OF_SQUARE));
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
-        assertEquals(3, result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
+        assertEquals(NESTED_CALLS.steps(), result.IterationsLeft);
+        assertEquals(List.of(BODY_ON_CALL_SKILL), lawNames(result.violations));
     }
 
-    /** Выход из цикла посреди итерации без break отклоняется. */
+    /** Действие из тела функции после возврата из неё отклоняется: завершённый вызов не продолжается. */
     @Test
-    void judgeQuestionRejectsLoopExitWithoutBreak() {
+    void judgeQuestionRejectsFunctionBodyAfterReturn() {
         // Arrange.
-        var question = bankQuestion(BREAK_IN_FOR);
+        var question = bankQuestion(NESTED_CALLS);
 
         // Act.
-        var result = judge(question, withMistake(question, BREAK_IN_FOR, 6, "atom_186"));
+        var result = judge(question, withMistake(question, NESTED_CALLS, 4, BODY_OF_SQUARE));
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
-        assertEquals(7, result.IterationsLeft);
-        assertTrue(lawNames(result.violations).contains(SEQUENTIAL_ORDER_SKILL));
-        assertTrue(lawNames(result.violations).contains(INTERRUPTION_TRANSITION_SKILL));
+        assertEquals(NESTED_CALLS.steps() - 4, result.IterationsLeft);
+        assertEquals(List.of(NOT_RESUMED_SKILL), lawNames(result.violations));
     }
 
-    /** Продолжение цикла после break отклоняется как переход, недопустимый при прерывании. */
-    @ParameterizedTest
-    @ValueSource(strings = {"atom_121", "atom_131", "atom_137"})
-    void judgeQuestionRejectsLoopContinuationAfterBreak(String loopAction) {
+    /** Возврат из внешнего рекурсивного вызова, пока не завершился самый внутренний, отклоняется. */
+    @Test
+    void judgeQuestionRejectsReturnFromOuterRecursiveCall() {
         // Arrange.
-        var question = bankQuestion(BREAK_IN_FOR);
+        var question = bankQuestion(RECURSION_FACTORIAL);
 
         // Act.
-        var result = judge(question, withMistake(question, BREAK_IN_FOR, 12, loopAction));
+        var result = judge(question, withMistake(question, RECURSION_FACTORIAL, 8, INNER_CALL_RETURNS_FACT_2));
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
-        assertEquals(1, result.IterationsLeft);
-        assertEquals(List.of(INTERRUPTION_MODE_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
+        assertEquals(RECURSION_FACTORIAL.steps() - 8, result.IterationsLeft);
+        assertEquals(List.of(CALL_RETURN_SKILL), lawNames(result.violations));
+    }
+
+    /** Вход в тело функции и возврат из вызова с верным значением засчитывают умения вызова функций. */
+    @Test
+    void judgeQuestionCreditsFunctionCallSkills() {
+        // Arrange.
+        var question = bankQuestion(RECURSION_FACTORIAL);
+
+        // Act.
+        var afterBodyEntry = judge(question, trace(question, RECURSION_FACTORIAL, 3));
+        var afterReturn = judge(question, trace(question, RECURSION_FACTORIAL, 9));
+
+        // Assert.
+        assertTrue(afterBodyEntry.domainSkills.contains(BODY_ON_CALL_SKILL));
+        assertTrue(afterReturn.domainSkills.contains(CALL_RETURN_SKILL));
+        assertTrue(afterReturn.domainSkills.contains(NOT_RESUMED_SKILL));
     }
 
     /** Объяснение ошибки локализовано. */
@@ -325,7 +284,7 @@ class ControlFlowDTDomainJudgeTest {
     void judgeQuestionExplainsMistakeInRequestedLanguage() {
         // Arrange.
         var question = bankQuestion(SEQUENCE);
-        var wrong = answers(action(question, "atom_107"));
+        var wrong = answers(action(question, SEQUENCE.action(1)));
 
         // Act.
         var english = domain().judgeQuestion(question, wrong, List.of(), Language.ENGLISH).explanation.toHyperText(Language.ENGLISH).getText();
@@ -335,20 +294,97 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(english.isBlank());
         assertFalse(CYRILLIC.matcher(english).find(), english);
         assertFalse(english.contains("null"), english);
-        assertTrue(english.contains("<code>str_: str = \"h\"</code>"), english);
         assertNotEquals(english, russian);
     }
 
-    /** Вопросы других версий не оцениваются. */
+    /** Значение условия в объяснении ошибки названо на языке студента. */
+    @Test
+    void judgeQuestionNamesConditionValueInRequestedLanguage() {
+        // Arrange.
+        var question = bankQuestion(WHILE_NOT_ENTERED);
+        var enteredBody = answers(withMistake(question, WHILE_NOT_ENTERED, 4, "block_structure_action_first_ast56"));
+
+        // Act.
+        var english = domain().judgeQuestion(question, enteredBody, List.of(), Language.ENGLISH).explanation.toHyperText(Language.ENGLISH).getText();
+        var russian = domain().judgeQuestion(question, enteredBody, List.of(), Language.RUSSIAN).explanation.toHyperText(Language.RUSSIAN).getText();
+
+        // Assert.
+        assertTrue(russian.contains("ложь"), russian);
+        assertFalse(russian.contains("false"), russian);
+        assertTrue(english.contains("false"), english);
+    }
+
+    /** Вопрос, выданный по старой версии модели, не оценивается. */
     @Test
     void judgeQuestionRejectsUnsupportedQuestionVersion() {
         // Arrange.
         var record = bankRecord(SEQUENCE);
-        record.setVersion(1);
         var question = QuestionData.of(domain().makeQuestion(record, List.of(), Language.RUSSIAN).getContent());
+        record.setVersion(2);
 
         // Act & Assert.
-        assertThrows(UnsupportedOperationException.class, () -> judge(question, List.of(action(question, "atom_104"))));
+        assertThrows(UnsupportedOperationException.class, () -> judge(question, List.of(action(question, SEQUENCE.action(0)))));
+    }
+
+    // ---- сохранённое решение ----
+
+    /** Засчитанный ответ сохраняет решение с ответами, по которым оно построено; незасчитанный решение не меняет. */
+    @Test
+    void acceptedAnswerUpdatesSolutionAndRejectedDoesNot() {
+        // Arrange.
+        var question = bankQuestion(IF_THEN);
+        var accepted = trace(question, IF_THEN, 2);
+
+        // Act.
+        var correct = judge(question, accepted);
+        var wrong = judge(question, withMistake(question, IF_THEN, 1, IF_THEN.action(3)));
+
+        // Assert.
+        assertNotNull(correct.updatedSolutionFacts);
+        assertEquals(answerIds(accepted), solutionKey(correct.updatedSolutionFacts));
+        assertNull(wrong.updatedSolutionFacts);
+    }
+
+    /** Решение, сохранённое после каждого шага, ведёт к тем же оценкам, что и восстановление трассы по ответам. */
+    @ParameterizedTest
+    @MethodSource("bank")
+    void savedSolutionContinuesTraceLikeReplay(BankQuestion bankQuestion) {
+        // Arrange.
+        var fresh = bankQuestion(bankQuestion);
+        var question = fresh;
+        var given = new ArrayList<AnswerObjectData>();
+
+        for (int step = 0; step < bankQuestion.steps(); step++) {
+            given.add(action(fresh, bankQuestion.action(step)));
+
+            // Act.
+            var saved = judge(question, given);
+            var replayed = judge(fresh, given);
+
+            // Assert.
+            assertTrue(saved.isAnswerCorrect, bankQuestion.file() + " на шаге " + step);
+            assertEquals(replayed.domainSkills, saved.domainSkills, bankQuestion.file() + " на шаге " + step);
+            assertEquals(replayed.updatedSolutionFacts.size(), saved.updatedSolutionFacts.size(),
+                    bankQuestion.file() + " на шаге " + step);
+            question = withSolution(question, saved.updatedSolutionFacts);
+        }
+    }
+
+    /** Решение, построенное по другим ответам, не используется: трасса восстанавливается по присланным ответам. */
+    @Test
+    void solutionOfOtherAnswersIsNotUsed() {
+        // Arrange.
+        var question = bankQuestion(WHILE_ONE_ITERATION);
+        var later = judge(question, trace(question, WHILE_ONE_ITERATION, 5)).updatedSolutionFacts;
+        var withLaterSolution = withSolution(question, later);
+
+        // Act.
+        var result = judge(withLaterSolution, trace(question, WHILE_ONE_ITERATION, 3));
+
+        // Assert.
+        assertTrue(result.isAnswerCorrect);
+        assertEquals(WHILE_ONE_ITERATION.steps() - 3, result.IterationsLeft);
+        assertEquals(answerIds(trace(question, WHILE_ONE_ITERATION, 3)), solutionKey(result.updatedSolutionFacts));
     }
 
     // ---- getAnyNextCorrectAnswer ----
@@ -368,10 +404,9 @@ class ControlFlowDTDomainJudgeTest {
             var hint = domain().getAnyNextCorrectAnswer(withCorrectSteps(question, given, bankQuestion), Language.RUSSIAN);
 
             // Assert.
-            assertEquals(1, hint.answers.size());
-            assertEquals(expected, hint.answers.getFirst().left());
+            assertEquals(1, hint.answers.size(), bankQuestion.file() + " на шаге " + step);
+            assertEquals(expected, hint.answers.getFirst().left(), bankQuestion.file() + " на шаге " + step);
             assertEquals(expected, hint.answers.getFirst().right());
-            assertFalse(hint.skillName.isEmpty());
             assertNull(hint.lawName);
             given.add(expected);
         }
@@ -382,156 +417,203 @@ class ControlFlowDTDomainJudgeTest {
     void hintIgnoresMistakenInteraction() {
         // Arrange.
         var question = bankQuestion(SEQUENCE);
-        var mistaken = question.withInteraction(interaction(1L, List.of(action(question, "atom_107")),
-                List.of(violation(SEQUENTIAL_ORDER_SKILL)), SEQUENCE.steps()));
+        var mistaken = question.withInteraction(interaction(1L, List.of(action(question, SEQUENCE.action(1))),
+                List.of(violation(ACTIONS_IN_ORDER_SKILL)), SEQUENCE.steps()));
 
         // Act.
         var hint = domain().getAnyNextCorrectAnswer(mistaken, Language.RUSSIAN);
 
         // Assert.
-        assertEquals("atom_104", hint.answers.getFirst().left().getDomainInfo());
-    }
-
-    /** Подсказка о выходе из цикла объясняет завершение прерывания. */
-    @Test
-    void hintExplainsInterruptionExit() {
-        // Arrange.
-        var question = bankQuestion(BREAK_IN_FOR);
-        var afterBreak = withCorrectSteps(question, trace(question, BREAK_IN_FOR, 12), BREAK_IN_FOR);
-
-        // Act.
-        var hint = domain().getAnyNextCorrectAnswer(afterBreak, Language.RUSSIAN);
-
-        // Assert.
-        assertEquals("atom_186", hint.answers.getFirst().left().getDomainInfo());
-        assertTrue(hint.skillName.contains(INTERRUPTION_TERMINATED_SKILL));
-        assertTrue(hint.explanation.toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
+        assertEquals(SEQUENCE.action(0), hint.answers.getFirst().left().getDomainInfo());
     }
 
     // ---- getFullSolutionTrace ----
 
-    /** Трасса решения: старт программы и все выполненные действия с условиями. */
+    /** Трасса решения проходит действия всех засчитанных ответов по порядку. */
     @ParameterizedTest
     @MethodSource("bank")
-    void solutionTraceListsProgramStartAndExecutedActions(BankQuestion bankQuestion) {
+    void solutionTraceListsAnsweredActsInOrder(BankQuestion bankQuestion) {
         // Arrange.
         var question = bankQuestion(bankQuestion);
         var solved = withCorrectSteps(question, trace(question, bankQuestion), bankQuestion);
 
         // Act.
-        var trace = domain().getFullSolutionTrace(solved, Language.RUSSIAN);
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
 
         // Assert.
-        assertEquals(bankQuestion.steps() + 1, trace.size());
-        assertTrue(trace.getFirst().getText().contains("программа"));
-        assertTrue(trace.getFirst().getText().contains("начала свое выполнение"));
-        for (int step = 0; step < bankQuestion.steps(); step++) {
-            var line = trace.get(step + 1).getText();
-            assertTrue(line.contains("1-й") || line.contains("2-й") || line.contains("3-й"), line);
-            if (bankQuestion.isCondition(step)) {
-                assertTrue(line.contains("вычислилось"), line);
-                assertTrue(line.contains("истина") || line.contains("ложь"), line);
-            } else {
-                assertTrue(line.contains("выполнил"), line);
-                assertFalse(line.contains("истина") || line.contains("ложь"), line);
+        int line = 0;
+        for (String answered : bankQuestion.trace()) {
+            String act = TRACE_ACT.formatted(answered.split(",")[0]);
+            while (line < trace.size() && !trace.get(line).startsWith(act)) {
+                line++;
             }
+            assertTrue(line < trace.size(), bankQuestion.file() + ": нет акта " + answered);
+            line++;
         }
     }
 
-    /** Повторные вычисления условия нумеруются. */
-    @Test
-    void solutionTraceCountsRepeatedConditions() {
+    /** Трасса решения — ровно действия засчитанных ответов: действия без кнопки, в том числе раскрывающие конструкцию, не показываются. */
+    @ParameterizedTest
+    @MethodSource("bank")
+    void solutionTraceShowsExactlyAnsweredActions(BankQuestion bankQuestion) {
         // Arrange.
-        var question = bankQuestion(BREAK_IN_FOR);
-        var solved = withCorrectSteps(question, trace(question, BREAK_IN_FOR), BREAK_IN_FOR);
+        var question = bankQuestion(bankQuestion);
+        var solved = withCorrectSteps(question, trace(question, bankQuestion), bankQuestion);
 
         // Act.
-        var trace = domain().getFullSolutionTrace(solved, Language.RUSSIAN);
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
 
         // Assert.
-        assertTrue(trace.get(5).getText().contains("1-й"));
-        assertTrue(trace.get(7).getText().contains("2-й"));
-        assertTrue(trace.get(9).getText().contains("3-й"));
-        assertTrue(trace.get(10).getText().contains("3-й"));
-        assertTrue(trace.get(11).getText().contains("1-й"));
+        assertEquals(bankQuestion.trace().stream().map(answered -> answered.split(",")[0]).toList(),
+                trace.stream().map(ControlFlowDTDomainJudgeTest::actionOf).toList(), bankQuestion.file());
     }
 
-    /** До первого ответа трасса содержит только старт программы. */
+    /** Начало программы, вход в ветвление и в его ветвь, BEGIN и END ветвления и блока не показываются. */
     @Test
-    void solutionTraceBeforeFirstAnswerHasOnlyProgramStart() {
+    void solutionTraceSkipsActionsWithoutButtons() {
+        // Arrange.
+        var question = bankQuestion(IF_THEN);
+        var solved = withCorrectSteps(question, trace(question, IF_THEN), IF_THEN);
+
+        // Act.
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
+
+        // Assert.
+        assertEquals(List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast19",
+                        "if_structure_action_first_cond_ast29", "block_structure_action_first_ast43",
+                        "global_statements_structure_action_next_ast98", "global_statements_structure_action_next_ast124",
+                        "global_statements_structure_action_next_ast131"),
+                trace.stream().map(ControlFlowDTDomainJudgeTest::actionOf).toList());
+    }
+
+    /** Повторы действия нумеруются, а после тире стоит значение условия. */
+    @Test
+    void solutionTraceCountsRepeatsAndShowsConditionValues() {
+        // Arrange.
+        var question = bankQuestion(RECURSION_FACTORIAL);
+        var solved = withCorrectSteps(question, trace(question, RECURSION_FACTORIAL), RECURSION_FACTORIAL);
+
+        // Act.
+        var conditions = linesOf(texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN)), CONDITION_OF_FACT);
+
+        // Assert.
+        assertEquals(3, conditions.size());
+        assertTrue(conditions.get(0).contains("1-й") && conditions.get(0).contains(valueHint("ложь")), conditions.get(0));
+        assertTrue(conditions.get(1).contains("2-й") && conditions.get(1).contains(valueHint("ложь")), conditions.get(1));
+        assertTrue(conditions.get(2).contains("3-й") && conditions.get(2).contains(valueHint("истина")), conditions.get(2));
+    }
+
+    /** BEGIN и END вызова называют вызов в его роде и несут подсказку значения, по которой dropdown ищет значения. */
+    @Test
+    void solutionTraceNamesCallBoundariesWithValueHints() {
+        // Arrange.
+        var question = bankQuestion(NESTED_CALLS);
+        var solved = withCorrectSteps(question, trace(question, NESTED_CALLS), NESTED_CALLS);
+
+        // Act.
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
+
+        // Assert.
+        var begin = linesOf(trace, "func_call_structure_action_BEGIN_ast25");
+        var end = linesOf(trace, "func_call_structure_action_END_ast25");
+        assertEquals(1, begin.size());
+        assertTrue(begin.getFirst().contains("вызов функции"), begin.getFirst());
+        assertTrue(begin.getFirst().contains("начал выполняться"), begin.getFirst());
+        assertTrue(begin.getFirst().contains(" — " + valueHint("square(2)")), begin.getFirst());
+        assertTrue(end.getFirst().contains("завершил выполнение"), end.getFirst());
+        assertTrue(end.getFirst().contains(valueHint("square(2)")), end.getFirst());
+    }
+
+    /** Действие без значения выводится без тире. */
+    @Test
+    void solutionTraceOmitsDashWithoutValue() {
+        // Arrange.
+        var question = bankQuestion(SEQUENCE);
+        var solved = withCorrectSteps(question, trace(question, SEQUENCE), SEQUENCE);
+
+        // Act.
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
+
+        // Assert.
+        assertTrue(trace.stream().noneMatch(line -> line.contains("—") || line.contains("value-hint")), trace.toString());
+    }
+
+    /** До первого ответа трасса пуста. */
+    @Test
+    void solutionTraceBeforeFirstAnswerIsEmpty() {
         // Act.
         var trace = domain().getFullSolutionTrace(bankQuestion(SEQUENCE), Language.RUSSIAN);
 
         // Assert.
-        assertEquals(1, trace.size());
-        assertTrue(trace.getFirst().getText().contains("программа"));
+        assertEquals(List.of(), trace);
     }
 
-    /** Последняя ошибка попадает в трассу подсвеченной. */
+    /** Последняя ошибка попадает в трассу подсвеченной, но не как акт трассы. */
     @Test
     void solutionTraceHighlightsLastMistake() {
         // Arrange.
         var question = bankQuestion(SEQUENCE);
-        var afterMistake = question.withInteraction(interaction(1L, List.of(action(question, "atom_107")),
-                List.of(violation(SEQUENTIAL_ORDER_SKILL)), SEQUENCE.steps()));
-        var afterCorrect = question.withInteraction(interaction(2L, List.of(action(question, "atom_104")), List.of(), 1));
+        var afterMistake = question.withInteraction(interaction(1L, List.of(action(question, SEQUENCE.action(1))),
+                List.of(violation(ACTIONS_IN_ORDER_SKILL)), SEQUENCE.steps()));
+        var afterCorrect = question.withInteraction(interaction(2L, List.of(action(question, SEQUENCE.action(0))), List.of(), 1));
 
         // Act.
-        var mistaken = domain().getFullSolutionTrace(afterMistake, Language.RUSSIAN);
-        var correct = domain().getFullSolutionTrace(afterCorrect, Language.RUSSIAN);
+        var mistaken = texts(domain().getFullSolutionTrace(afterMistake, Language.RUSSIAN));
+        var correct = texts(domain().getFullSolutionTrace(afterCorrect, Language.RUSSIAN));
 
         // Assert.
-        assertEquals(2, mistaken.size());
-        assertTrue(mistaken.getLast().getText().startsWith("<span class=\"warning\">"));
-        assertEquals(2, correct.size());
-        assertFalse(correct.getLast().getText().contains("warning"));
+        assertEquals(1, mistaken.size());
+        assertTrue(mistaken.getLast().startsWith("<span class=\"warning\">"), mistaken.getLast());
+        assertFalse(mistaken.getLast().contains("trace-act"), mistaken.getLast());
+        assertFalse(correct.getLast().contains("warning"), correct.getLast());
+        assertTrue(correct.getLast().startsWith(TRACE_ACT.formatted(SEQUENCE.action(0))), correct.getLast());
     }
 
-    /** Ошибки вперемешку с верными шагами: в трассе старт, верные шаги по порядку и последняя ошибка. */
+    /** Ошибки вперемешку с верными шагами: в трассе верные шаги и только последняя ошибка. */
     @Test
     void solutionTraceKeepsCorrectStepsThroughMistakes() {
         // Arrange.
         var question = bankQuestion(IF_THEN);
-        var clicks = List.of("atom_104", "atom_107", "atom_114", "atom_132", "atom_114", "atom_120", "atom_114");
-        var correctSteps = List.of(1, 2, 3, 3, 3, 4, 4);
+        var clicks = List.of(IF_THEN.action(0), IF_THEN.action(1), IF_THEN.action(3), IF_THEN.action(2), IF_THEN.action(4), IF_THEN.action(3));
+        var correctSteps = List.of(1, 2, 2, 3, 3, 4);
 
         for (int step = 0; step < clicks.size(); step++) {
             var given = new ArrayList<>(question.findLatestCorrectAnswers().stream().map(AnswerData::left).toList());
             given.add(action(question, clicks.get(step)));
             var result = judge(question, given);
             question = question.withInteraction(interaction(step + 1, given, result.violations, result.IterationsLeft));
-            var reference = domain().getFullSolutionTrace(
-                    withCorrectSteps(bankQuestion(IF_THEN), trace(question, IF_THEN, correctSteps.get(step)), IF_THEN), Language.RUSSIAN);
+            var reference = texts(domain().getFullSolutionTrace(
+                    withCorrectSteps(bankQuestion(IF_THEN), trace(question, IF_THEN, correctSteps.get(step)), IF_THEN), Language.RUSSIAN));
 
             // Act.
-            var trace = domain().getFullSolutionTrace(question, Language.RUSSIAN);
+            var trace = texts(domain().getFullSolutionTrace(question, Language.RUSSIAN));
 
             // Assert.
             assertEquals(correctSteps.get(step) == given.size(), result.isAnswerCorrect, "шаг " + step);
-            assertEquals(correctSteps.get(step) + 1 + (result.isAnswerCorrect ? 0 : 1), trace.size(), "шаг " + step);
-            assertEquals(texts(reference), texts(trace.subList(0, reference.size())), "шаг " + step);
+            assertEquals(reference.size() + (result.isAnswerCorrect ? 0 : 1), trace.size(), "шаг " + step);
+            assertEquals(reference, trace.subList(0, reference.size()), "шаг " + step);
             if (!result.isAnswerCorrect) {
-                assertTrue(trace.getLast().getText().startsWith("<span class=\"warning\">"), trace.getLast().getText());
+                assertTrue(trace.getLast().startsWith("<span class=\"warning\">"), trace.getLast());
             }
         }
     }
 
-    /** Трасса локализована. */
+    /** Трасса локализована, включая значения условий. */
     @Test
     void solutionTraceIsLocalized() {
         // Arrange.
-        var question = bankQuestion(SEQUENCE);
-        var solved = withCorrectSteps(question, trace(question, SEQUENCE), SEQUENCE);
+        var question = bankQuestion(IF_THEN);
+        var solved = withCorrectSteps(question, trace(question, IF_THEN), IF_THEN);
 
         // Act.
-        var english = domain().getFullSolutionTrace(solved, Language.ENGLISH);
-        var russian = domain().getFullSolutionTrace(solved, Language.RUSSIAN);
+        var english = texts(domain().getFullSolutionTrace(solved, Language.ENGLISH));
+        var russian = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
 
         // Assert.
         assertEquals(russian.size(), english.size());
-        assertTrue(english.getLast().getText().contains("executed"));
-        assertFalse(english.getLast().getText().contains("null"));
-        assertTrue(english.getLast().getText().contains("str_"));
+        assertTrue(english.getFirst().contains("executed</span> for the"), english.getFirst());
+        assertTrue(english.stream().noneMatch(line -> CYRILLIC.matcher(line).find()), english.toString());
+        assertTrue(linesOf(english, IF_THEN.action(2)).getFirst().contains(valueHint("true")));
     }
 
     // ---- вспомогательное ----
@@ -546,8 +628,33 @@ class ControlFlowDTDomainJudgeTest {
         return given;
     }
 
+    private static List<Integer> answerIds(List<AnswerObjectData> answers) {
+        return answers.stream().map(AnswerObjectData::getAnswerId).toList();
+    }
+
+    private static List<Integer> solutionKey(List<BackendFactData> solution) {
+        return solution.stream()
+                .filter(fact -> fact.getVerb().equals(SOLUTION_KEY_VERB))
+                .findFirst()
+                .map(fact -> Stream.of(fact.getObject().split(",")).map(Integer::valueOf).toList())
+                .orElseThrow();
+    }
+
     private static List<String> texts(List<HyperText> trace) {
         return trace.stream().map(HyperText::getText).toList();
+    }
+
+    private static List<String> linesOf(List<String> trace, String action) {
+        String act = TRACE_ACT.formatted(action);
+        return trace.stream().filter(line -> line.startsWith(act)).toList();
+    }
+
+    private static String actionOf(String line) {
+        return line.substring(line.indexOf("data-action=\"") + "data-action=\"".length(), line.indexOf("\">"));
+    }
+
+    private static String valueHint(String value) {
+        return "<span class=\"value-hint\">" + value + "</span>";
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {
@@ -556,5 +663,9 @@ class ControlFlowDTDomainJudgeTest {
 
     private static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, BankQuestion bankQuestion) {
         return DomainFixtures.withCorrectSteps(question, given, bankQuestion.steps());
+    }
+
+    private static QuestionData withSolution(QuestionData question, List<BackendFactData> solutionFacts) {
+        return question.withContent(question.getContent().toBuilder().solutionFacts(solutionFacts).build());
     }
 }

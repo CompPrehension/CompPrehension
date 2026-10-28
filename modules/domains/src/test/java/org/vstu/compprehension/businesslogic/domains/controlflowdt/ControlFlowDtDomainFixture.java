@@ -16,6 +16,8 @@ final class ControlFlowDtDomainFixture {
 
     static final String PLAY = "play";
     static final String QUESTION = "question";
+    static final String STEP_INTO = "step-into";
+    static final String STEP_OUT = "step-out";
 
     record BankQuestion(String file, List<String> trace, Set<String> conditions) {
         int steps() {
@@ -32,27 +34,63 @@ final class ControlFlowDtDomainFixture {
     }
 
     static final BankQuestion SEQUENCE = new BankQuestion("sequence",
-            List.of("atom_104", "atom_107"),
+            List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast24"),
             Set.of());
     static final BankQuestion WHILE_NOT_ENTERED = new BankQuestion("while_not_entered",
-            List.of("atom_104", "atom_107", "atom_111", "atom_118", "atom_140"),
-            Set.of("atom_118"));
+            List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast19",
+                    "global_statements_structure_action_next_ast32", "while_structure_action_cond_ast42",
+                    "global_statements_structure_action_next_ast152"),
+            Set.of("while_structure_action_cond_ast42"));
     static final BankQuestion IF_ELIF = new BankQuestion("if_elif",
-            List.of("atom_104", "atom_107", "atom_114", "atom_126", "atom_135"),
-            Set.of("atom_114", "atom_126"));
+            List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast19",
+                    "if_structure_action_first_cond_ast33", "if_structure_action_next_cond_ast55",
+                    "block_structure_action_first_ast64"),
+            Set.of("if_structure_action_first_cond_ast33", "if_structure_action_next_cond_ast55"));
     static final BankQuestion IF_THEN = new BankQuestion("if_then",
-            List.of("atom_104", "atom_107", "atom_114", "atom_120", "atom_132", "atom_136", "atom_140"),
-            Set.of("atom_114"));
+            List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast19",
+                    "if_structure_action_first_cond_ast29", "block_structure_action_first_ast43",
+                    "global_statements_structure_action_next_ast98", "global_statements_structure_action_next_ast124",
+                    "global_statements_structure_action_next_ast131"),
+            Set.of("if_structure_action_first_cond_ast29"));
     static final BankQuestion WHILE_ONE_ITERATION = new BankQuestion("while_one_iteration",
-            List.of("atom_104", "atom_107", "atom_114", "atom_123", "atom_129", "atom_132", "atom_114", "atom_163"),
-            Set.of("atom_114", "atom_123"));
+            List.of("global_statements_structure_action_first_ast6", "global_statements_structure_action_next_ast19",
+                    "while_structure_action_cond_ast29", "if_structure_action_first_cond_ast32",
+                    "block_structure_action_first_ast46", "block_structure_action_next_ast80",
+                    "while_structure_action_cond_ast29", "global_statements_structure_action_next_ast246"),
+            Set.of("while_structure_action_cond_ast29", "if_structure_action_first_cond_ast32"));
     static final BankQuestion BREAK_IN_FOR = new BankQuestion("break_in_for",
-            List.of("atom_104", "atom_107", "atom_111", "atom_118", "atom_121", "atom_131", "atom_121", "atom_131",
-                    "atom_121", "atom_131", "atom_137", "atom_140", "atom_186"),
-            Set.of("atom_121", "atom_131"));
+            List.of("global_statements_structure_action_first_ast29", "global_statements_structure_action_next_ast59",
+                    "global_statements_structure_action_next_ast72", "for_each_structure_action_init_ast85",
+                    "for_each_structure_action_cond_ast80", "if_structure_action_first_cond_ast88",
+                    "block_structure_action_first_ast97", "block_structure_action_next_ast110",
+                    "global_statements_structure_action_next_ast156"),
+            Set.of("for_each_structure_action_cond_ast80", "if_structure_action_first_cond_ast88"));
+    static final BankQuestion NESTED_CALLS = new BankQuestion("nested_calls",
+            List.of("func_call_structure_action_BEGIN_ast43", "func_call_structure_action_BEGIN_ast25",
+                    "block_structure_action_first_ast9",
+                    "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_0",
+                    "func_call_structure_action_BEGIN_ast30", "block_structure_action_first_ast9",
+                    "func_call_structure_action_END_ast30,semantic_value_action_30_30_END_0",
+                    "block_structure_action_first_ast32",
+                    "func_call_structure_action_END_ast43,semantic_value_action_43_43_END_0",
+                    "global_statements_structure_action_first_ast47"),
+            Set.of());
+    static final BankQuestion RECURSION_FACTORIAL = new BankQuestion("recursion_factorial",
+            List.of("global_statements_structure_action_first_ast40", "func_call_structure_action_BEGIN_ast53",
+                    "if_structure_action_first_cond_ast8", "func_call_structure_action_BEGIN_ast25",
+                    "if_structure_action_first_cond_ast8", "func_call_structure_action_BEGIN_ast25",
+                    "if_structure_action_first_cond_ast8", "block_structure_action_first_ast10",
+                    "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_0",
+                    "block_structure_action_next_ast27",
+                    "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_1",
+                    "block_structure_action_next_ast27",
+                    "func_call_structure_action_END_ast53,semantic_value_action_53_53_END_0",
+                    "global_statements_structure_action_next_ast57"),
+            Set.of("if_structure_action_first_cond_ast8"));
 
     static final List<BankQuestion> BANK = List.of(
-            SEQUENCE, WHILE_NOT_ENTERED, IF_ELIF, IF_THEN, WHILE_ONE_ITERATION, BREAK_IN_FOR);
+            SEQUENCE, WHILE_NOT_ENTERED, IF_ELIF, IF_THEN, WHILE_ONE_ITERATION, BREAK_IN_FOR,
+            NESTED_CALLS, RECURSION_FACTORIAL);
 
     private static final String BANK_LOCATION = "org/vstu/compprehension/businesslogic/domains/controlflowdt/";
     static final List<String> BUNDLES = List.of("domains/control-flow");

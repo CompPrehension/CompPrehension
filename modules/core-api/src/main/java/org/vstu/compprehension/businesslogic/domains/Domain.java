@@ -284,5 +284,9 @@ public interface Domain {
          * Supplementary can generate new violations even on correct variant.
          */
         public boolean isAnswerCorrect;
+        /**
+         * Решение вопроса, которое засчитанный ответ изменил; null — решение не меняется.
+         */
+        public @Nullable List<BackendFactData> updatedSolutionFacts;
     }
 }

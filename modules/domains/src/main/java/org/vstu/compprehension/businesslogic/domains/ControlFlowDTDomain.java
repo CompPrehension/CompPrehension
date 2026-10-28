@@ -1,26 +1,20 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.question.BackendFactData;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
-import its.model.definition.build.DomainBuilderUtils;
-import its.model.definition.loqi.DomainLoqiBuilder;
-import its.model.nodes.BranchResult;
-import its.model.nodes.DecisionTree;
+import its.model.definition.rdf.DomainRDFFiller;
+import its.model.definition.rdf.DomainRDFWriter;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
-import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,13 +29,13 @@ import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.backend.Fact;
+import org.vstu.compprehension.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
+import org.vstu.compprehension.businesslogic.backend.util.TermMapping;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.businesslogic.HyperText;
 
-import java.io.StringReader;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionContentData;
@@ -53,10 +47,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     protected final QuestionBank qMetaStorage;
 
     static final String RESOURCES_LOCATION = "domains/";
-    static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String MESSAGE_PREFIX = "ctrlflow_text.";
     public static final String DOMAIN_ID = "ctrl_flow_dt25";
-    static final String LOCALIZED_NAME = "localizedName";
+    public static final int QUESTION_VERSION = 3;
     public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "control-flow-domain-model/";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow";
 
@@ -71,73 +64,176 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         put("Python", new Tag("Python", 8L));  	// (2 ^ 3)
     }};
 
-    public DomainModel prepareQuestionModel(QuestionContentData q, DomainSolvingModel domainSolvingModel) {
-        var loqiText = q.getStatementFacts().getFirst().getObject();
-        DomainModel commonModel = domainSolvingModel.getDomainModel();
-        DomainModel resultModel = commonModel.copy();
-        DomainModel situationModel;
-        try (StringReader reader = new StringReader(loqiText)) {
-            situationModel = DomainLoqiBuilder.buildDomain(reader);
-        }
-        resultModel.addMerge(situationModel);
-        fillMissingLocalizedNames(resultModel);
-        return resultModel;
+    static final String CHECK_TREE = "";
+    static final String FIND_CORRECT_TREE = "findCorrect";
+    private static final String RDF_BASE = TermMapping.BASE_URI_DEFAULT + "#";
+    /** Объекты, которые рассуждение меняет по ходу решения: трасса, её состояние и расход значений. */
+    private static final List<String> SOLUTION_CLASSES = List.of("TraceAct", "TraceState", "SemanticValue");
+
+    public DomainModel prepareQuestionModel(QuestionContentData q) {
+        return situationFromFacts(q.getStatementFacts());
     }
 
-    private static void fillMissingLocalizedNames(DomainModel model) {
-        for (ObjectDef object : model.getObjects()) {
-            Map<String, String> localizations = object.getMetadata().getStringLocalizations(LOCALIZED_NAME);
-            if (localizations.isEmpty()) {
-                continue;
-            }
-            String fallback = Arrays.stream(Language.values())
-                    .map(Language::toLocaleString)
-                    .filter(localizations::containsKey)
-                    .findFirst()
-                    .map(localizations::get)
-                    .orElseGet(() -> localizations.values().iterator().next());
-            for (Language language : Language.values()) {
-                String locale = language.toLocaleString();
-                if (!localizations.containsKey(locale)) {
-                    object.getMetadata().add(locale, LOCALIZED_NAME, fallback);
-                }
+    /**
+     * Ситуация вопроса с трассой засчитанных ответов. Начало трассы берётся из сохранённого решения,
+     * если оно построено по началу этих ответов, остальные ответы заново проходят граф проверки.
+     */
+    DomainModel prepareSituationModel(QuestionContentData q, List<? extends AnswerData> accepted) {
+        List<Integer> answerIds = collectAnswerIds(accepted);
+        List<Integer> solvedIds = readSolutionAnswerIds(q.getSolutionFacts());
+        boolean solutionFits = !solvedIds.isEmpty() && solvedIds.size() <= answerIds.size()
+                && answerIds.subList(0, solvedIds.size()).equals(solvedIds);
+        DomainModel situation = solutionFits
+                ? situationFromFacts(withSolution(q.getStatementFacts(), q.getSolutionFacts()))
+                : situationFromFacts(q.getStatementFacts());
+        for (AnswerData answer : accepted.subList(solutionFits ? solvedIds.size() : 0, accepted.size())) {
+            bindCheckVariables(situation, answer);
+            DecisionTreeTrace trace = DecisionTreeReasoner.solve(domainSolvingModel.decisionTree(CHECK_TREE), learningSituation(situation));
+            if (!DecisionTreeReasonerBackend.Interface.isCorrectAnswer(trace)) {
+                throw new IllegalStateException("Accepted answer %s is rejected while restoring the trace of CtrlFlow question %s"
+                        .formatted(answer.left().getDomainInfo(), q.getQuestionName()));
             }
         }
+        return situation;
+    }
+
+    private DomainModel situationFromFacts(List<BackendFactData> facts) {
+        DomainModel situation = domainSolvingModel.getDomainModel().copy();
+        DomainRDFFiller.fillDomain(situation, JenaFactList.fromBackendFacts(facts).getModel(), Set.of(), null);
+        localizeConditionValues(situation);
+        return situation;
+    }
+
+    /** Значения условия подставляются в объяснения ошибок, а встроенное перечисление OptionalBool имён не несёт. */
+    private void localizeConditionValues(DomainModel situation) {
+        var values = situation.getEnums().get("OptionalBool").getValues();
+        for (String value : List.of("true", "false")) {
+            for (Language language : Language.values()) {
+                values.get(value).getMetadata().add(language.toLocaleString(), "localizedName",
+                        getMessage("trace.condition." + value, language));
+            }
+        }
+    }
+
+    /** Факты условия, в которых объекты решения заменены их состоянием из решения. */
+    private static List<BackendFactData> withSolution(List<BackendFactData> statement, List<BackendFactData> solution) {
+        List<BackendFactData> solutionObjects = solution.stream()
+                .filter(fact -> !fact.getSubject().equals("solution"))
+                .toList();
+        Set<String> replaced = solutionObjects.stream().map(BackendFactData::getSubject).collect(Collectors.toSet());
+        List<BackendFactData> facts = new ArrayList<>(statement.stream()
+                .filter(fact -> !replaced.contains(fact.getSubject()))
+                .toList());
+        facts.addAll(solutionObjects);
+        return facts;
+    }
+
+    /** Решение после засчитанных ответов: объекты решения ситуации целиком и answerId этих ответов. */
+    private static List<BackendFactData> toSolutionFacts(DomainModel situation, List<? extends AnswerData> accepted) {
+        // Входные переменные проверки относятся к одному шагу и в решение не входят.
+        situation.getVariables().remove("P");
+        situation.getVariables().remove("A");
+        situation.getVariables().remove("V");
+        Set<String> solutionObjects = situation.getObjects().stream()
+                .filter(object -> SOLUTION_CLASSES.stream().anyMatch(object::isInstanceOf))
+                .map(ObjectDef::getName)
+                .collect(Collectors.toSet());
+        List<BackendFactData> facts = new ArrayList<>(JenaBackend.modelToFacts(
+                        DomainRDFWriter.saveDomain(situation, RDF_BASE, Set.of()), RDF_BASE).stream()
+                .filter(fact -> solutionObjects.contains(fact.getSubject()))
+                .toList());
+        facts.add(new BackendFactData("", "solution", "acceptedAnswerIds", "xsd:string",
+                collectAnswerIds(accepted).stream().map(String::valueOf).collect(Collectors.joining(","))));
+        return facts;
+    }
+
+    /** Прочитать из сохранённого решения answerId ответов, по которым оно построено; пусто, если решения нет. */
+    private static List<Integer> readSolutionAnswerIds(List<BackendFactData> solution) {
+        return solution.stream()
+                .filter(fact -> fact.getSubject().equals("solution") && fact.getVerb().equals("acceptedAnswerIds"))
+                .findFirst()
+                .filter(fact -> !fact.getObject().isEmpty())
+                .map(fact -> Arrays.stream(fact.getObject().split(",")).map(Integer::valueOf).toList())
+                .orElse(List.of());
+    }
+
+    /** answerId переданных ответов в том же порядке. */
+    private static List<Integer> collectAnswerIds(List<? extends AnswerData> answers) {
+        return answers.stream().map(answer -> answer.left().getAnswerId()).toList();
+    }
+
+    /** Входные переменные проверки ответа: текущая точка трассы, выбранное действие и выбранное с ним значение. */
+    private static void bindCheckVariables(DomainModel situation, AnswerData answer) {
+        String[] actionAndValue = answer.left().getDomainInfo().split(",", 2);
+        bindVariable(situation, "P", traceTail(situation).getName());
+        bindVariable(situation, "A", actionAndValue[0]);
+        bindVariable(situation, "V", actionAndValue.length > 1 ? actionAndValue[1] : "NoValue");
+    }
+
+    private static void bindVariable(DomainModel situation, String name, String objectName) {
+        situation.getVariables().remove(name);
+        situation.getVariables().add(new VariableDef(name, objectName));
+    }
+
+    /** Последний акт трассы: конец цепочки directlyBeforeOf от act_root. */
+    private static ObjectDef traceTail(DomainModel situation) {
+        ObjectDef act = situation.getObjects().get("act_root");
+        for (ObjectDef next = findNextAct(act); next != null; next = findNextAct(next)) {
+            act = next;
+        }
+        return act;
+    }
+
+    private static @Nullable ObjectDef findNextAct(@NotNull ObjectDef act) {
+        return findLinkedObject(act, "directlyBeforeOf");
+    }
+
+    private static @Nullable ObjectDef findActValue(@NotNull ObjectDef act) {
+        return findLinkedObject(act, "hasValue");
+    }
+
+    private static @Nullable ObjectDef findLinkedObject(@NotNull ObjectDef object, @NotNull String relationship) {
+        return object.getRelationshipLinks().stream()
+                .filter(link -> link.getRelationshipName().equals(relationship))
+                .findFirst()
+                .map(link -> link.getObjects().getFirst())
+                .orElse(null);
+    }
+
+    private LearningSituation learningSituation(DomainModel situation) {
+        return new LearningSituation(situation, LearningSituation.collectDecisionTreeVariables(situation), domainSolvingModel);
+    }
+
+    /** Ответ на акт трассы: кнопка его действия либо пункт этого действия с выбранным значением. */
+    private static AnswerObjectData findAnswerObject(QuestionContentData q, ObjectDef act) {
+        String action = act.getRelationshipLink("hasAction").getObjects().getFirst().getName();
+        Optional<String> withValue = Optional.ofNullable(findActValue(act)).map(value -> action + "," + value.getName());
+        return q.getAnswerObjects().stream()
+                .filter(answer -> withValue.map(answer.getDomainInfo()::equals).orElse(false))
+                .findFirst()
+                .or(() -> q.getAnswerObjects().stream().filter(answer -> answer.getDomainInfo().equals(action)).findFirst())
+                .orElseThrow(() -> new IllegalStateException("No answer object for action " + action));
     }
 
     private static Map<String, Skill> buildSkills() {
         var b = new SkillsBuilder();
         var visible = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);
 
-        b.add("current_execution_point_understood", 0x1L, visible);
-        b.add("current_code_block_identified", 0x2L, visible);
-        b.add("action_execution_determined", 0x4L, visible);
-        b.add("unevaluated_conditions_between_points_present", 0x8L, visible);
-        b.add("transition_applicable_regardless_interruption", 0x10L, visible);
-        b.add("interruption_type_matched", 0x20L, visible);
-        b.add("applicable_transition_with_interruption_found", 0x40L, visible);
-        b.add("action_is_condition_recognized", 0x80L, visible);
-        b.add("required_condition_value_determined", 0x100L, visible);
-        b.add("applicable_transition_with_condition_found", 0x200L, visible);
-        b.add("action_is_function_call_recognized", 0x400L, visible);
-        b.add("function_body_completion_determined", 0x800L, visible);
-        b.add("nearest_function_call_in_trace_found", 0x1000L, visible);
-        b.add("transition_matches_interruption_mode", 0x2000L, visible);
-        b.add("compound_structure_boundaries_identified", 0x4000L, visible);
-        b.add("early_exit_from_compound_detected", 0x8000L, visible);
-        b.add("multiple_compound_exit_order_understood", 0x10000L, visible);
-        b.add("applicable_compound_exit_determined", 0x20000L, visible);
-        b.add("interruption_termination_recognized", 0x40000L, visible);
-        b.add("interruption_can_be_terminated_determined", 0x80000L, visible);
-
-        // для целей отладки, еще не удалены из дерева
-        b.add("unknown_incorrect", 0x100000L);  // неизвестная ошибка
-        b.add("unknown_correct", 0x200000L);   // не знает почему правильно
-        b.add("patch_stop_as_true", 0x400000L);
-        b.add("patch_auto_exit_interruption", 0x800000L);
-        b.add("patch_auto_exit_interruption_2", 0x1000000L);
-        b.add("patch_auto_exit_interruption_3", 0x2000000L);
-        b.add("selected_transition_without_any_constraint", 0x4000000L);
+        b.add("interruption_exits_constructs", 1L << 0, visible);
+        b.add("condition_value_selects_next", 1L << 1, visible);
+        b.add("construct_entered_before_inner", 1L << 2, visible);
+        b.add("inner_construct_finished_before_next", 1L << 3, visible);
+        b.add("passed_action_repeat", 1L << 4, visible);
+        b.add("containing_action_before_inner", 1L << 5, visible);
+        b.add("alternative_single_branch", 1L << 6, visible);
+        b.add("alternative_conditions_in_order", 1L << 7, visible);
+        b.add("actions_in_order", 1L << 8, visible);
+        b.add("no_early_exit_without_interruption", 1L << 9, visible);
+        // Метка завершения программы в графе, а не умение студента.
+        b.add("everything_evaluated", 1L << 10);
+        b.add("function_body_runs_on_call", 1L << 11, visible);
+        b.add("function_not_resumed_after_exit", 1L << 12, visible);
+        b.add("call_return_matches_activation", 1L << 13, visible);
 
         return b.build();
     }
@@ -149,56 +245,58 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         var invisible = EnumSet.of(DomainItemFlag.TARGET_ENABLED);
 
         Concept exprs = b.add("expressions");
-        b.add("pointers", 0x1L, List.of(exprs), flags);
-        b.add("bitwise", 0x2L, List.of(exprs), flags);
-        b.add("member_access", 0x4L, List.of(exprs), flags);
-        b.add("arrays", 0x8L, List.of(exprs), flags);
-        b.add("type_casts", 0x10L, List.of(exprs), flags);
-        b.add("io", 0x20L, List.of(exprs), flags);
-        b.add("logical", 0x40L, List.of(exprs), flags);
-        b.add("arithmetic", 0x80L, List.of(exprs), flags);
-        b.add("object_new", 0x400000000L, List.of(exprs), flags);
-        b.add("strings", 0x800000000L, List.of(exprs), flags);
-        b.add("map_collections", 0x1000000000L, List.of(exprs), flags);
-        b.add("ternary_conditions", 0x100L, List.of(exprs), flags);
-        Concept functionCall = b.add("function_call", List.of(exprs));
-        b.add("lib_function_call", 0x200L, List.of(functionCall), flags);     // функции в задаче нет
-        b.add("program_function_call", 0x400L, List.of(functionCall), flags); // функция определена в задаче
+        b.add("pointers", 1L << 0, List.of(exprs), flags);
+        b.add("bitwise", 1L << 1, List.of(exprs), flags);
+        b.add("member_access", 1L << 2, List.of(exprs), flags);
+        b.add("arrays", 1L << 3, List.of(exprs), flags);
+        b.add("type_casts", 1L << 4, List.of(exprs), flags);
+        b.add("io", 1L << 5, List.of(exprs), flags);
+        b.add("logical", 1L << 6, List.of(exprs), flags);
+        b.add("arithmetic", 1L << 7, List.of(exprs), flags);
+        b.add("ternary_conditions", 1L << 8, List.of(exprs), flags);
+        b.add("lib_function_call", 1L << 9, List.of(exprs), flags);
+        b.add("program_function_call", 1L << 10, List.of(exprs), flags);
+        b.add("var_declaration", 1L << 11, List.of(exprs), flags);
+        b.add("assignment", 1L << 12, List.of(exprs), flags);
+        b.add("delete", 1L << 16, List.of(exprs), flags);
+        b.add("strings", 1L << 17, List.of(exprs), flags);
+        b.add("list_collections", 1L << 18, List.of(exprs), flags);
+        b.add("map_collections", 1L << 19, List.of(exprs), flags);
+        b.add("object_new", 1L << 20, List.of(exprs), flags);
 
-        Concept plain = b.add("plain_statements");
-        b.add("var_declaration", 0x800L, List.of(plain), flags);
-        b.add("assignment", 0x1000L, List.of(plain), flags);
-        b.add("break", 0x2000L, List.of(plain), flags);
-        b.add("continue", 0x4000L, List.of(plain), flags);
-        b.add("return", 0x8000L, List.of(plain), flags);
-        b.add("delete", 0x10000L, List.of(plain), flags);
-
-        Concept structures = b.add("structures");
-        Concept function = b.add("function", 0x20000L, List.of(structures), flags);
-        b.add("recursion", 0x2000000000L, List.of(function), flags);
-        b.add("structure", 0x40000L, List.of(structures), flags);
-        Concept oop = b.add("objects", List.of(structures), flags);
-        b.add("class", 0x80000L, List.of(oop), invisible);
-        b.add("field", 0x100000L, List.of(oop), invisible);
-        b.add("method", 0x200000L, List.of(oop), invisible);
+        Concept units = b.add("units");
+        b.add("function", 1L << 21, List.of(units), flags);
+        b.add("structure", 1L << 22, List.of(units), flags);
+        b.add("interface", 1L << 23, List.of(units), invisible);
+        b.add("class", 1L << 24, List.of(units), invisible);
+        b.add("field", 1L << 25, List.of(units), invisible);
+        b.add("method", 1L << 26, List.of(units), invisible);
+        b.add("constructor", 1L << 27, List.of(units), invisible);
+        b.add("destructor", 1L << 28, List.of(units), invisible);
+        b.add("generic_type", 1L << 29, List.of(units), invisible);
+        b.add("return", 1L << 15, List.of(units), flags);
 
         Concept loops = b.add("loops");
-        b.add("loop_iteration", 0x4000000000L, List.of(loops), flags);
-        Concept forLoop = b.add("for_loop", List.of(loops));
-        Concept forGeneralLoop = b.add("general_for_loop", 0x400000L, List.of(forLoop), flags);
-        b.add("range_for_loop", 0x800000L, List.of(forGeneralLoop), flags);
-        b.add("for_each_loop", 0x1000000L, List.of(forLoop), flags);
-        b.add("while_loop", 0x2000000L, List.of(loops), flags);
-        b.add("do_while_loop", 0x4000000L, List.of(loops), flags);
-        b.add("infinite_loop", 0x8000000L, List.of(loops), flags);
+        b.add("general_for_loop", 1L << 30, List.of(loops), flags);
+        b.add("range_for_loop", 1L << 31, List.of(loops), flags);
+        b.add("for_each_loop", 1L << 32, List.of(loops), flags);
+        b.add("while_loop", 1L << 33, List.of(loops), flags);
+        b.add("do_while_loop", 1L << 34, List.of(loops), flags);
+        b.add("infinite_loop", 1L << 35, List.of(loops), flags);
+        b.add("break", 1L << 13, List.of(loops), flags);
+        b.add("continue", 1L << 14, List.of(loops), flags);
 
         Concept branches = b.add("branches");
-        b.add("if", 0x10000000L, List.of(branches), flags);
-        b.add("else", 0x20000000L, List.of(branches), flags);
-        b.add("elseif", 0x40000000L, List.of(branches), flags);
-        Concept switches = b.add("switch", 0x80000000L, List.of(branches), flags);
-        b.add("fallthrough_case", 0x100000000L, List.of(switches), flags);
-        b.add("default_case", 0x200000000L, List.of(switches), flags);
+        b.add("if", 1L << 36, List.of(branches), flags);
+        b.add("else", 1L << 37, List.of(branches), flags);
+        b.add("elseif", 1L << 38, List.of(branches), flags);
+        b.add("switch", 1L << 39, List.of(branches), flags);
+        b.add("fallthrough_case", 1L << 40, List.of(branches), flags);
+        b.add("default_case", 1L << 41, List.of(branches), flags);
+
+        b.add("recursion", 1L << 42, List.of(), flags);
+        b.add("loop_iteration", 1L << 43, List.of(), flags);
+        b.add("call_depth", 1L << 44, List.of(), flags);
 
         return b.build();
     }
@@ -215,261 +313,31 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             return null;
         }
 
-        ObjectDef findEndOfProgram(DomainModel model) {
-            return model.getObjects().stream()
-                    .filter(e -> e.getClassName().equals("Node"))
-                    .filter(e -> ((EnumValueRef) e.getPropertyValue("kind", Map.of())).getValueName().equals("END")
-                            && e.getRelationshipLink("hasMetadata")
-                            .getObjects().getFirst()
-                            .getRelationshipLink("belongsToASTNode")
-                            .getObjects().getFirst().getPropertyValue("ast_node", Map.of()).equals("program_entry_point")
-                    ).findFirst().get();
-        }
-
-        ObjectDef findStartOfProgram(DomainModel model) {
-            return model.getObjects()
-                    .stream()
-                    .filter(obj -> obj.getClassName().equals("TraceAct"))
-                    .filter(obj -> (Boolean) obj.getPropertyValue("is_known_correct", Map.of()))
-                    .findFirst().orElseThrow();
-        }
-
-        int calculateInteractionsLeftByTrace(ObjectDef currentTraceAct) {
-            int count = 0;
-            ObjectDef act = currentTraceAct;
-            while (act.getRelationshipLinks().stream()
-                    .anyMatch(rel -> rel.getRelationshipName().equals("directlyBeforeOf"))) {
-                act = act.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-                count++;
-            }
-            return count;
-        }
-
-        int calculateInteractionsLeftByPath(DomainModel model, ObjectDef lastCorrectTraceAct) {
-            ObjectDef lastCorrectNode = lastCorrectTraceAct.getRelationshipLink("hasCFGNode").getObjects().getFirst();
-            ObjectDef endOfProgram = findEndOfProgram(model);
-
-            var fromCorrect_toEnd = model.getObjects().stream()
-                    .filter(obj -> obj.getClassName().equals("PathInfo"))
-                    .filter(path ->
-                            path.getRelationshipLink("from_").getObjects().getFirst().equals(lastCorrectNode) &&
-                                    path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram))
-                    .max(Comparator.comparingInt(pi -> (Integer) pi.getPropertyValue("opaque_actions", Map.of())));
-
-            if (fromCorrect_toEnd.isPresent()) {
-                return (Integer) fromCorrect_toEnd.get().getPropertyValue("opaque_actions", Map.of());
-            }
-            return 5; // fallback
-        }
-
-        int calculateInteractionsLeft(DomainModel model, ObjectDef lastCorrectTraceAct) {
-            // По умолчанию: простой подсчёт по цепочке directlyBeforeOf
-            return calculateInteractionsLeftByTrace(lastCorrectTraceAct);
-
-            // Альтернатива (закомментировать):
-            // return calculateInteractionsLeftByPath(model, lastCorrectTraceAct);
-        }
-
         @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
-            ObjectDef L0TraceAct = backendOutput.situation().getDecisionTreeVariables().get("L0")
-                    .findIn(backendOutput.situation().getDomainModel());
-
-            // Если ответ правильный, берём следующий за L0 элемент трассы (идентичен A по позиции, но имеет связи трассы)
-            ObjectDef traceActForCount = interpretationResult.isAnswerCorrect
-                    ? L0TraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst()
-                    : L0TraceAct;
-
             interpretationResult.CountCorrectOptions = 1;
-            int finishButtonEnabled = 1; // Note: set 0 if using explicit "Finish the problem" button.
-
-            interpretationResult.IterationsLeft = calculateInteractionsLeft(
-                    backendOutput.situation().getDomainModel(),
-                    traceActForCount) - finishButtonEnabled;
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
         }
 
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags) {
-            if (question.getContent().getMetadata().getVersion() != 2) {
+            if (!Objects.equals(question.getContent().getMetadata().getVersion(), QUESTION_VERSION)) {
                 throw new UnsupportedOperationException("Unsupported version of CtrlFlow question");
             }
-            var domain = ControlFlowDTDomain.this;
-            var model = domain.getDomainSolvingModels().getFirst();
-
-            DomainModel questionModel = domain.prepareQuestionModel(question.getContent(), model);
-
-            // Строим трассу, попутно проверяя ее с теневой эталонной трассой
-            ObjectDef currentTraceAct = makeTrace(questionModel, responses, false);
-            ObjectDef referenceA = currentTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-
-            ObjectDef A = makeA(questionModel, responses.getLast().left().getDomainInfo(), referenceA);
-            ObjectDef L0 = currentTraceAct;
-
-            updateModelState(domain, questionModel, L0, A);
-
-            return new DecisionTreeReasonerBackend.Input(questionModel, model.getDecisionTree());
+            DomainModel situation = prepareSituationModel(question.getContent(), responses.subList(0, responses.size() - 1));
+            bindCheckVariables(situation, responses.getLast());
+            return new DecisionTreeReasonerBackend.Input(situation, domainSolvingModel.decisionTree(CHECK_TREE), domainSolvingModel);
         }
 
-        void updateModelState(ControlFlowDTDomain domain, DomainModel questionModel, ObjectDef L0, ObjectDef A) {
-            ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
-            ObjectDef traceActPtr = findStartOfProgram(questionModel);
-            ObjectDef prev;
-            while (true) {
-                if (traceActPtr.getName().equals(L0.getName())) {
-                    break;
-                }
-                prev = traceActPtr;
-                traceActPtr = traceActPtr.getRelationshipLink("directlyBeforeOf")
-                        .getObjects().getFirst();
-                @Nullable ObjectDef path = domain.findPathInfo(questionModel,
-                        prev.getRelationshipLink("hasCFGNode").getObjects().getFirst(),
-                        traceActPtr.getRelationshipLink("hasCFGNode").getObjects().getFirst()
-                ).orElse(null);
-                if (path == null || path.getRelationshipLinks().stream().noneMatch(r -> r.getRelationshipName().equals("hasEffects"))) continue;
-                var intrptStart = path.getRelationshipLink("hasEffects")
-                        .getObjects().getFirst()
-                        .getPropertyValue("interruption_start", Map.of());
-                var interptStop = path.getRelationshipLink("hasEffects")
-                        .getObjects().getFirst()
-                        .getPropertyValue("interruption_stop", Map.of());
-
-                EnumValueRef noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_interruption").getReference();
-                // Эффекты из узлов CFG.
-                // (Пока только для конечного узла.!)
-                if (interptStop.equals(noInterrupt)) {
-                    try {
-                    // Нет остановки прерывания на пути.
-                    // Попытаемся получить эффекты из узла.
-                    var targetNode = traceActPtr.getRelationshipLink("hasCFGNode").getObjects().getFirst();
-                    if (targetNode.getRelationshipLinks().stream().anyMatch(r -> r.getRelationshipName().equals("hasEffects"))) {
-
-                        var targetNodeEffects_L = targetNode.getRelationshipLink("hasEffects").getObjects();
-                        if (!targetNodeEffects_L.isEmpty()) {
-                            var targetNodeEffects = targetNodeEffects_L.getFirst();
-                            interptStop = targetNodeEffects.getPropertyValue("interruption_stop", Map.of());
-                        }
-                    }
-                    } catch (its.model.definition.DomainNonConformityException ignored) {}
-                }
-
-                PropertyValueStatement<ObjectDef> oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
-                Object oldInterpt_2 = null; // = oldInterpt.getValue();
-
-                if (!intrptStart.equals(oldInterpt.getValue())) {
-                    STATE.getDefinedPropertyValues().addOrReplace(
-                            new PropertyValueStatement<>(STATE, "interruption_state", ParamsValues.getEMPTY(), intrptStart)
-                    );
-                    // Запомним изменившееся состояние.
-                    oldInterpt_2 = intrptStart;
-                }
-                if (!interptStop.equals(noInterrupt) && (interptStop.equals(oldInterpt.getValue()) || interptStop.equals(oldInterpt_2))) {
-                    STATE.getDefinedPropertyValues().addOrReplace(
-                            new PropertyValueStatement<>(STATE, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
-                    );
-                }
-            }
-            ///
-            // System.out.println(STATE.getDefinedPropertyValues().stream().map(Statement::toString).collect(Collectors.joining()));
-            ///
-
-            // Выставляем итоговые переменные
-            questionModel.getVariables().add(new VariableDef("A", A.getName()));
-            questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
-        }
-
-        ObjectDef makeTrace(DomainModel questionModel, List<? extends AnswerData> responses, boolean includeLast) {
-            ObjectDef firstTraceAct = findStartOfProgram(questionModel);
-
-            ObjectDef currentTraceAct;
-            int end = includeLast ? responses.size() : responses.size() - 1;
-            if (end <= 0) {
-                currentTraceAct = firstTraceAct;
-            } else {
-                currentTraceAct = firstTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-            }
-            for (int i = 0; i < end; i++) {
-                AnswerData response = responses.get(i);
-                String domainInfo = response.left().getDomainInfo();
-                ObjectDef cfgNode = questionModel.getObjects().stream()
-                        .filter(obj -> obj.getClassName().equals("Node"))
-                        .filter(obj -> obj.getPropertyValue("id", Map.of()).equals(domainInfo))
-                        .findFirst().orElseThrow();
-                ObjectDef currentTraceActCFGNode = currentTraceAct.getRelationshipLink("hasCFGNode")
-                        .getObjects().getFirst();
-                if (currentTraceActCFGNode.equals(cfgNode)) {
-                    currentTraceAct.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(
-                            currentTraceAct,
-                            "is_known_correct",
-                            ParamsValues.getEMPTY(), true));
-                } else if (includeLast && (i + 1) != end) { // подавляем эту проверку, если мы намеренно встраиваем последний акт в трассу
-                    throw new DomainUseException("Invalid correct-trace: act is in already checked/used acts: currentTraceAct = %s with hasCFGNode.id = %s, expected that hasCFGNode.id = %s".formatted(currentTraceAct.getName(), currentTraceActCFGNode.getName(), domainInfo));
-                }
-                if ((i + 1) != end) {
-                    currentTraceAct = currentTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-                }
-            }
-            return currentTraceAct;
-        }
-
-        ObjectDef makeA(DomainModel questionModel, String cfgNodeId, @Nullable ObjectDef referenceTraceAct) {
-            ObjectDef result = DomainBuilderUtils.newObject(questionModel, "trace_act_A", "TraceAct");
-            ObjectDef cfgNode = questionModel.getObjects().stream()
-                    .filter(obj -> obj.getClassName().equals("Node"))
-                    .filter(obj -> obj.getPropertyValue("id", Map.of()).equals(cfgNodeId))
-                    .findFirst().orElseThrow();
-            ObjectDef metadata = cfgNode.getRelationshipLink("hasMetadata").getObjects().getFirst();
-            EnumValueRef noValue = questionModel.getEnums().get("OptionalBoolValue").getValues().get("no_value").getReference();
-            result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "is_known_correct", ParamsValues.getEMPTY(), false));
-            result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value", ParamsValues.getEMPTY(), noValue));
-            if (referenceTraceAct != null) {
-                String refCfgNodeId = (String) referenceTraceAct.getRelationshipLink("hasCFGNode")
-                        .getObjects()
-                        .getFirst()
-                        .getPropertyValue("id", Map.of());
-                if (refCfgNodeId.equals(cfgNodeId)) { // корректное действие выбрано как A
-                    result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value",
-                            ParamsValues.getEMPTY(), referenceTraceAct.getPropertyValue("condition_value", Map.of())
-                    ));
-                    if (referenceTraceAct.getRelationshipLinks().stream().anyMatch(r -> r.getRelationshipName().equals("hasRuntimeInfo"))
-                        && !referenceTraceAct.getRelationshipLink("hasRuntimeInfo").getObjects().isEmpty()) {
-                        result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasRuntimeInfo",
-                                List.of(referenceTraceAct.getRelationshipLink("hasRuntimeInfo").getObjects().getFirst().getName()),
-                                ParamsValues.getEMPTY()));
-                    }
-                }
-            }
-            result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasCFGNode", List.of(cfgNode.getName()), ParamsValues.getEMPTY()));
-            result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasActionSpec",
-                    List.of(metadata.getRelationshipLink("hasAbstractAction").getObjects().getFirst().getName()),
-                    ParamsValues.getEMPTY()));
-            result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasASTNode",
-                    List.of(metadata.getRelationshipLink("belongsToASTNode").getObjects().getFirst().getName()),
-                    ParamsValues.getEMPTY()));
-            result.getMetadata().addAll(cfgNode.getMetadata());
-            return result;
+        @Override
+        public List<BackendFactData> updateSolutionAfterJudge(QuestionData question, List<? extends AnswerData> responses,
+                                                              DecisionTreeReasonerBackend.Output backendOutput) {
+            return toSolutionFacts(backendOutput.situation().getDomainModel(), responses);
         }
 
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(QuestionContentData question, List<Tag> tags) {
             return null;
         }
-    }
-
-    @Nullable
-    public Optional<ObjectDef> findPathInfo(DomainModel questionModel, ObjectDef from, ObjectDef to) {
-        return questionModel.getObjects().stream()
-                .filter(obj -> obj.getClassName().equals("PathInfo"))
-                .filter(pathInfo ->
-                        pathInfo.getRelationshipLink("from_").getObjects().getFirst().equals(from)
-                                && pathInfo.getRelationshipLink("to_").getObjects().getFirst().equals(to)).findFirst();
     }
 
     public ControlFlowDTDomain(RandomProvider randomProvider,
@@ -509,21 +377,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public Collection<Fact> responseToFacts(QuestionData question, List<? extends AnswerData> responses) {
-        var questionDomainType = question.getContent().getQuestionDomainType();
-        if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
-            List<Fact> result = new ArrayList<>();
-            for (AnswerData response : responses) {
-                result.add(new Fact(
-                        "owl:NamedIndividual",
-                        response.left().getDomainInfo(),
-                        "hasAnswer",
-                        "xsd:string",
-                        response.right().getDomainInfo()
-                ));
-            }
-            return result;
-        }
-        return new ArrayList<>();
+        return List.of();
     }
 
     @Override
@@ -618,6 +472,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     public GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
                                               @NotNull List<Tag> tags, @NotNull Language userLang
     ) {
+        if (!Objects.equals(metadata.getVersion(), QUESTION_VERSION)) {
+            throw new IllegalArgumentException("Unsupported version %s of CtrlFlow question %s".formatted(metadata.getVersion(), metadata.getName()));
+        }
         var result = metadata.getData().toQuestion(this, metadata);
         return result.withContent(result.getContent().toBuilder()
                 .questionText(getMessage("question_prompt", userLang).concat(result.getContent().getQuestionText()))
@@ -634,6 +491,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return questionRequest.toBuilder()
                 .stepsMin(2)
                 .stepsMax(23)
+                .questionVersion(QUESTION_VERSION)
                 .build();
     }
 
@@ -647,69 +505,37 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return false;
     }
 
-    private static class Solver {
-        record SolveResult(boolean solved,
-                                  List<String> laws,
-                                  List<String> skills,
-                                  DecisionTreeTrace trace, LearningSituation situation) {}
-
-        private static void collectMeta(DecisionTreeTrace trace, List<String> skills, List<String> laws) {
-            for (DecisionTreeTraceElement<?, ?> res : trace) {
-                String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
-                        res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
-                String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
-                        res.getNode().getMetadata().get("law").toString().split(";") : new String[0];
-                Collections.addAll(skills, resSkill);
-                Collections.addAll(laws, resLaw);
-                for (var childTrace : Objects.requireNonNullElse(res.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
-                    collectMeta(childTrace, skills, laws);
-                }
-            }
-        }
-
-        static SolveResult solve(DecisionTree tree, DomainModel model) {
-            LearningSituation situation = new LearningSituation(model, model.getVariables()
-                    .stream().collect(Collectors.toMap(
-                            x -> x.getName(),
-                            x -> x.getValueObject().getReference()
-                    ))
-            );
-            DecisionTreeTrace trace = DecisionTreeReasoner.solve(tree, situation);
-            List<String> skills = new ArrayList<>();
-            List<String> laws = new ArrayList<>();
-            boolean solved = trace.getBranchResult().equals(BranchResult.CORRECT);
-            collectMeta(trace, skills, laws);
-            return new SolveResult(solved, laws, skills, trace, situation);
-        }
+    @Override
+    public InterpretSentenceResult judgeQuestion(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags, Language language) {
+        var result = super.judgeQuestion(question, responses, tags, language);
+        // Корректная трасса задачи единственна: осталось столько шагов решения, сколько ещё не засчитано.
+        int accepted = result.isAnswerCorrect ? responses.size() : responses.size() - 1;
+        result.IterationsLeft = Math.max(0, question.getContent().getMetadata().getSolutionSteps() - accepted);
+        return result;
     }
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
-        List<AnswerData> responses = q.findLatestCorrectAnswers();
-        var model = getDomainSolvingModels().getFirst();
-        ControlFlowDTDomain.DecisionTreeInterface treeInterface = (ControlFlowDTDomain.DecisionTreeInterface) getBackendInterface();
-        DomainModel questionModel = prepareQuestionModel(q.getContent(), model);
-        ObjectDef L0 = treeInterface.makeTrace(questionModel, responses, true);
+        DomainModel situation = prepareSituationModel(q.getContent(), q.findLatestCorrectAnswers());
+        bindVariable(situation, "P", traceTail(situation).getName());
+        situation.getVariables().remove("A");
+        situation.getVariables().remove("V");
+        var learningSituation = learningSituation(situation);
+        DecisionTreeTrace trace = DecisionTreeReasoner.solve(domainSolvingModel.decisionTree(FIND_CORRECT_TREE), learningSituation);
+        if (!DecisionTreeReasonerBackend.Interface.isCorrectAnswer(trace)) {
+            throw new IllegalStateException("No next correct action for CtrlFlow question " + q.getContent().getQuestionName());
+        }
+        // Найденный шаг студента становится новым P; после него граф мог добавить прозрачный вход в конструкцию.
+        ObjectDef step = learningSituation.getDecisionTreeVariables().get("P").findIn(situation);
+        AnswerObjectData answer = findAnswerObject(q.getContent(), step);
 
-        ObjectDef nextAnswer = L0.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-        ObjectDef endOfProgram = treeInterface.findEndOfProgram(questionModel);
         CorrectAnswer correctAnswer = new CorrectAnswer();
-        String cfgId = (String) nextAnswer.getRelationshipLink("hasCFGNode")
-                .getObjects().getFirst().getPropertyValue("id", Map.of());
-        ObjectDef A = treeInterface.makeA(questionModel, cfgId, nextAnswer);
-        treeInterface.updateModelState(this, questionModel, L0, A);
-        var solveRes = Solver.solve(ControlFlowDTDomain.this.getDomainSolvingModels().getFirst().getDecisionTree(), questionModel);
-        Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
-                Explanation.Type.HINT,
-                solveRes.trace(), questionModel,
-                this, language
-        );
-        AnswerObjectData answer = q.getContent().getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
         correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
         correctAnswer.question = q;
         correctAnswer.lawName = null;
-        correctAnswer.skillName = solveRes.skills();
-        correctAnswer.explanation = explanation;
+        correctAnswer.skillName = List.of();
+        correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+                Explanation.Type.HINT, trace, situation, this, language);
         return correctAnswer;
     }
 
@@ -749,124 +575,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return "<span class=\"%s\">%s</span>".formatted(style, text);
     }
 
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
-
-    /**
-     * Форматирует информацию RuntimeInfo для отображения в трассе.
-     * @param runtimeInfo объект RuntimeInfo из модели
-     * @return отформатированная строка или пустая строка, если нет данных
-     */
-    private String formatRuntimeInfo(ObjectDef runtimeInfo, Language lang) {
-        if (runtimeInfo == null) return "";
-        final int MAX_OUTPUT_LENGTH = 12;
-        final boolean DISABLE_PRINT = true;
-
-        StringBuilder sb = new StringBuilder();
-        String funcName = (String) runtimeInfo.getPropertyValue("function_name", Map.of());
-        String funcArgs = (String) runtimeInfo.getPropertyValue("function_args", Map.of());
-        String returnValue = (String) runtimeInfo.getPropertyValue("return_value", Map.of());
-        String printOutputs = (String) runtimeInfo.getPropertyValue("print_outputs", Map.of());
-
-        boolean hasFunc = funcName != null && !funcName.isEmpty() && funcArgs != null && !funcArgs.isEmpty();
-        boolean hasReturn = returnValue != null && !returnValue.isEmpty();
-        boolean hasPrint = printOutputs != null && !printOutputs.isEmpty();
-
-        Predicate<StringBuilder> isEmptySb = (StringBuilder s) -> s.toString().endsWith(" — ") || s.toString().endsWith("# ");
-
-        if (hasPrint || hasReturn) {
-            sb.append("# ");
-        } else {
-            sb.append(" — ");
-        }
-
-        // Формат вызова: fact(5)
-        if (hasFunc) {
-            sb.append(funcName).append("(");
-            // Парсим JSON {"n": 5} -> выводим значения: 5
-            try {
-                JsonNode json = jsonMapper.readTree(funcArgs);
-                List<String> values = new ArrayList<>();
-                json.properties().forEach(entry -> {
-                    JsonNode val = entry.getValue();
-                    String text = val.isTextual() ? val.asText() : val.toString();
-                    if (text.length() > MAX_OUTPUT_LENGTH) {
-                        values.add("...");
-                    } else {
-                        values.add(text);
-                    }
-                });
-                sb.append(String.join(", ", values));
-            } catch (Exception e) {
-                sb.append(funcArgs);
-            }
-            sb.append(")");
-        }
-
-        // Формат возврата: -> 120
-        if (hasReturn) {
-            if (!isEmptySb.test(sb)) sb.append(", ");
-            sb.append(getMessage("trace.template.return_value", lang)).append(": ").append(returnValue);
-        }
-
-        // Формат print: ["fact(5) = 120"] -> print: fact(5) = 120
-        if (hasPrint && !DISABLE_PRINT) {
-            if (!isEmptySb.test(sb)) sb.append(", ");
-            sb.append(getMessage("trace.template.print_value", lang)).append(": ");
-            try {
-                JsonNode arr = jsonMapper.readTree(printOutputs);
-                if (arr.isArray() && arr.valueStream()
-                        .map(JsonNode::asText)
-                        .collect(Collectors.summingInt(String::length)) <= 2 * MAX_OUTPUT_LENGTH
-                ) {
-                    for (JsonNode el : arr) {
-                        sb.append(el.asText());
-                    }
-                }
-            } catch (Exception e) {
-                sb.append(printOutputs);
-            }
-        }
-
-        return sb.toString();
-    }
-
-    protected List<ResponseData> responsesForTrace(QuestionData q, boolean allowLastIncorrect) {
-
-        List<ResponseData> responses = new ArrayList<>();
-        List<QuestionInteractionData> interactions = q.getInteractions();
-
-        if (interactions == null || interactions.isEmpty()) {
-            return responses; // empty so far
-            // early exit: no further checks for emptiness
-        }
-
-        responses = Optional.of(interactions).stream()
-                .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
-                .reduce((first, second) -> second)
-                .map(QuestionInteractionData::getResponses)
-                .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
-                .orElseGet(ArrayList::new);
-
-        if (allowLastIncorrect) {
-            val latestStudentResponse = Optional.of(interactions).stream()
-                    .flatMap(Collection::stream)
-                    .reduce((first, second) -> second).orElse(null);
-            if (latestStudentResponse != null && !latestStudentResponse.getViolations().isEmpty()) {
-                // lastInteraction is wrong
-                val responseNew = Optional.ofNullable(latestStudentResponse.getResponses())//.stream()
-                        .filter(resp -> resp.size() > 0)
-                        .map(resp -> resp.get(resp.size() - 1))
-                        .orElse(null);
-                if (responseNew != null) {
-                    responses.add(responseNew);
-                }
-            }
-        }
-        return responses;
-    }
-
-    public String getMessageWithSuffix(String rawName, String suffix, Language lang) {
+    private String getMessageWithSuffix(String rawName, String suffix, Language lang) {
         var rawNameFilled = rawName.concat(suffix);
         var message = getMessage(rawNameFilled, lang);
         if (message == null || message.isEmpty() || message.equals(rawNameFilled)) {
@@ -878,109 +587,73 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @NotNull
     @Override
     public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
+        DomainModel situation = prepareSituationModel(question.getContent(), question.findLatestCorrectAnswers());
+        Set<String> answeredActions = question.getContent().getAnswerObjects().stream()
+                .map(answer -> answer.getDomainInfo().split(",", 2)[0])
+                .collect(Collectors.toSet());
+        Map<String, Integer> repeats = new HashMap<>();
         List<HyperText> trace = new ArrayList<>();
-        var questionModel = prepareQuestionModel(question.getContent(), this.domainSolvingModel);
-        var treeInterface = (DecisionTreeInterface) getBackendInterface();
-        var responses = responsesForTrace(question, true);
-        var lastTraceObj = treeInterface.makeTrace(questionModel, responses.stream().map(ResponseData::getAnswer).toList(), false);
-        var referenceA = lastTraceObj.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-        ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getAnswer().left().getDomainInfo(), referenceA);
-        List<ObjectDef> traceObjects = new ArrayList<>(questionModel.getObjects()
-                .stream()
-                .filter(obj -> obj.getClassName().equals("TraceAct")).toList());
-        // WARNING! TODO: сейчас полагаемся на порядок сортировки в loqi файле. Это потенциально плохо! Исправить в будущем
-        if (A != null) {
-            questionModel.getVariables().add(new VariableDef("A", A.getName()));
-        }
-        var counters = new HashMap<String, Integer>();
-        for (var object : traceObjects) {
-            if ((Boolean) object.getPropertyValue("is_known_correct", Map.of()) ||
-                    (questionModel.getVariables().get("A") != null && questionModel.getVariables().get("A").getValueObject().getName().equals(object.getName()))
-            ) {
-                var action = object.getRelationshipLinks().stream().filter(x ->
-                        x.getRelationship().getName().equals("hasActionSpec")).findFirst().orElseThrow().getObjects().getFirst();
-                var construct = action.getRelationshipLinks().stream().filter(x ->
-                        x.getRelationship().getName().equals("hasConstruct")).findFirst().orElseThrow().getObjects().getFirst();
-                var cfgNode = object.getRelationshipLinks().stream().filter(x ->
-                        x.getRelationship().getName().equals("hasCFGNode")).findFirst().orElseThrow().getObjects().getFirst();
-                var cfgId = (String) cfgNode.getPropertyValue("id", Map.of());
-                int n = counters.merge(cfgId, 1, Integer::sum);
-                var constructKind = Arrays.stream(
-                        ((String) construct.getPropertyValue("kind", Map.of())).split("\\.")
-                ).toList();
-
-                var mainString = getMessage("trace.template", language);
-
-                var localeTraceName = (String) action.getPropertyValue("_locale_trace_name", Map.of());
-                if (localeTraceName.isEmpty()) {
-                    localeTraceName = (String) construct.getPropertyValue("_locale_trace_name", Map.of());
-                }
-                var localePronoun = (String) action.getPropertyValue("_locale_pronoun", Map.of());
-                if (localePronoun.isEmpty()) {
-                    localePronoun = (String) construct.getPropertyValue("_locale_pronoun", Map.of());
-                }
-
-                String actionState;
-                String condition = "";
-                String nodeKind = ((EnumValueRef) cfgNode.getPropertyValue("kind", Map.of())).getValueName();
-                String rawNameSuffix = "";
-                if (localeTraceName.equals("program")) {
-                    rawNameSuffix = "_program";
-                } else if (localePronoun.equals("he")) {
-                    rawNameSuffix = ".he";
-                } else if (localePronoun.equals("she")) {
-                    rawNameSuffix = ".she";
-                }
-                if (localeTraceName.startsWith("condition")) {
-                    String conditionEnumValue = ((EnumValueRef) object.getPropertyValue("condition_value", Map.of())).getValueName();
-                    if (conditionEnumValue.equals("true") || conditionEnumValue.equals("false")) {
-                        condition = " - ".concat(htmlStyleFormat(getMessage("trace.condition.%s".formatted(conditionEnumValue), language), "atom"));
-                    }
-                    actionState = getMessageWithSuffix("trace.evaluated", rawNameSuffix, language);
-                } else if (nodeKind.equals("atom")) {
-                    actionState = getMessageWithSuffix("trace.executed", rawNameSuffix, language);
-                } else {
-                    boolean isEnd = nodeKind.equals("END");
-                    if (isEnd) {
-                        actionState = getMessageWithSuffix("trace.ended", rawNameSuffix, language);
-                    } else {
-                        actionState = getMessageWithSuffix("trace.began", rawNameSuffix, language);
-                    }
-                }
-
-                // Извлечение RuntimeInfo
-                String runtimeInfoStr = "";
-                var runtimeInfoLinks = object.getRelationshipLinks().stream()
-                        .filter(x -> x.getRelationship().getName().equals("hasRuntimeInfo"))
-                        .findFirst();
-                if (runtimeInfoLinks.isPresent() && !runtimeInfoLinks.get().getObjects().isEmpty()) {
-                    ObjectDef runtimeInfo = runtimeInfoLinks.get().getObjects().getFirst();
-                    runtimeInfoStr = formatRuntimeInfo(runtimeInfo, language);
-                    if (!runtimeInfoStr.isEmpty()) {
-                        runtimeInfoStr = htmlStyleFormat(runtimeInfoStr,
-                                runtimeInfoStr.startsWith("#") ? "runtime-info-comment" : "runtime-info");
-                    }
-                }
-
-                String nthTime = htmlStyleFormat(formatNthTime(n, language), "number") + " " + getMessage("trace.template.time_text", language);
-                String definition = object.getMetadata().getString(language.toLocaleString(), LOCALIZED_NAME);
-                var substitutions = Map.of(
-                        "structure", htmlStyleFormat(definition, "action"),
-                        "action_state", htmlStyleFormat(actionState, "keyword"),
-                        "nth_time", nthTime,
-                        "runtime_extra", runtimeInfoStr,
-                        "condition", condition
-                );
-                var traceElementText = replaceInString(mainString, substitutions);
-                if (!(Boolean) object.getPropertyValue("is_known_correct", Map.of())
-                        && responses.getLast().isInteractionHasViolations()
-                ) {
-                    traceElementText = htmlStyleFormat(traceElementText, "warning");
-                }
-                trace.add(new HyperText(traceElementText));
+        for (ObjectDef act = situation.getObjects().get("act_root"); act != null; act = findNextAct(act)) {
+            ObjectDef action = act.getRelationshipLink("hasAction").getObjects().getFirst();
+            // Действия без кнопки проходятся автоматически: прозрачные и непрозрачные действия,
+            // раскрывающиеся в составную конструкцию (тело функции, ветвь, первый оператор блока).
+            if (!answeredActions.contains(action.getName())) {
+                continue;
             }
+            String line = formatTraceLine(action, findActValue(act), repeats.merge(action.getName(), 1, Integer::sum), language);
+            trace.add(new HyperText("<span class=\"trace-act\" data-action=\"%s\">%s</span>".formatted(action.getName(), line)));
         }
+        // Ошибочный ответ в трассу не вошёл: его строка не помечается актом трассы.
+        latestMistakenAnswer(question).ifPresent(answer -> {
+            String[] actionAndValue = answer.left().getDomainInfo().split(",", 2);
+            ObjectDef action = situation.getObjects().get(actionAndValue[0]);
+            ObjectDef value = actionAndValue.length > 1 ? situation.getObjects().get(actionAndValue[1]) : null;
+            int repeat = repeats.getOrDefault(action.getName(), 0) + 1;
+            trace.add(new HyperText(htmlStyleFormat(formatTraceLine(action, value, repeat, language), "warning")));
+        });
         return trace;
+    }
+
+    private static @NotNull Optional<AnswerData> latestMistakenAnswer(@NotNull QuestionData question) {
+        List<QuestionInteractionData> interactions = question.getInteractions();
+        if (interactions.isEmpty() || interactions.getLast().isCorrect() || interactions.getLast().getAnswers().isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(interactions.getLast().getAnswers().getLast());
+    }
+
+    /** BEGIN и END называют свою конструкцию, остальные действия — себя. */
+    private @NotNull String formatTraceLine(@NotNull ObjectDef action, @Nullable ObjectDef value, int repeat, @NotNull Language language) {
+        Object role = actionSpec(action).getPropertyValue("role", Map.of());
+        boolean begins = "BEGIN".equals(role);
+        boolean ends = "END".equals(role);
+        ObjectDef named = begins || ends ? action.getRelationshipLink("belongsTo").getObjects().getFirst() : action;
+        String state = begins ? "trace.began" : ends ? "trace.ended" : "trace.executed";
+        String pronoun = named.getMetadata().getString("pronoun");
+        return replaceInString(getMessage("trace.template", language), Map.of(
+                "structure", htmlStyleFormat(named.getMetadata().getString(language.toLocaleString(), "localizedName"), "action"),
+                "action_state", htmlStyleFormat(getMessageWithSuffix(state, pronoun == null ? "" : "." + pronoun, language), "keyword"),
+                "nth_time", htmlStyleFormat(formatNthTime(repeat, language), "number"),
+                "value", formatTraceValue(value, language)));
+    }
+
+    private static @NotNull ObjectDef actionSpec(@NotNull ObjectDef action) {
+        return action.getRelationshipLink("derivedFrom").getObjects().getFirst();
+    }
+
+    /** Значение после тире: его имя, без имени — подсказка, без обоих — ничего. */
+    private static @NotNull String formatTraceValue(@Nullable ObjectDef value, @NotNull Language language) {
+        if (value == null) {
+            return "";
+        }
+        String text = value.getMetadata().getString(language.toLocaleString(), "localizedName");
+        if (text == null || text.isEmpty()) {
+            text = value.getMetadata().getString("hint");
+        }
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        return " — " + htmlStyleFormat(StringEscapeUtils.escapeHtml4(text), "value-hint");
     }
 
     @Override

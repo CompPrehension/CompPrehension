@@ -1,0 +1,1215 @@
+// Проверка выбранного студентом действия по уже построенной части трассы.
+// Диаграмма в нотации TPG: ../docs/diagrams/check-tpg.drawio
+// Основная идея и алгоритм с контекстом проверок и ограничений, правилами оформления пояснений для студента: ../docs/check_graph_idea.md
+// Метки «Декомпозиция, п. N» относятся к разделу процедур этого документа.
+
+// Общие с графом поиска следующего действия лямбды привязаны к своему объявлению tpg.
+
+// Изменить состояние прерывания по эффекту действия или перехода.
+lambda applyInterruptionMode(E: Effect, S: TraceState) =
+    E.interruption_start != InterruptionType:none ?
+            S.interruption_mode = E.interruption_start                // начинается новое прерывание
+        : (
+            E.interruption_stop != InterruptionType:none and (
+                E.interruption_stop == InterruptionType:any or
+                S.interruption_mode == E.interruption_stop
+            )
+                ? S.interruption_mode = InterruptionType:none         // остановить текущее прерывание
+                : (S.interruption_mode = S.interruption_mode)         // ничего не делать (self-assign)
+    );
+
+// Ближайшее неиспользованное значение времени выполнения действия.
+lambda findUnusedValue(A: ConcreteAction) = findExtreme unused [
+    $unused == A->hasValue or $unused=>isCloserToThan(A->hasValue, $v)
+] among SemanticValue v {
+    A=>hasValue() and ($v=>afterOf(A->hasValue) or $v == A->hasValue) and not $v.used
+};
+
+// Значения действия — значения условия. Значения без bool_value только аннотируют акты трассы
+// (например, вызов factorial(5)) и в рассуждении не участвуют.
+lambda hasConditionValue(A: ConcreteAction) =
+    A=>hasValue() and A->hasValue.bool_value != OptionalBool:`null`;
+
+// Запасная цель перехода: первое присутствующее действие из цепочки запасных целей.
+// Если цепочки нет, используем основную цель.
+lambda toWhenAbsent(T: TransitionSpec, C: ConcreteConstruct) = if (T=>to_when_absent()) (findExtreme present [
+    $present=>isCloserToThan(T->to_when_absent, $ap) or $present == T->to_when_absent
+] among ActionSpecChainPlaceholder ap {
+    ($ap=>afterOf(T->to_when_absent) or $ap == T->to_when_absent) and
+    forAny ConcreteAction aa {C=>hasActions($aa) and $aa=>derivedFrom($ap->contains)}
+})->contains else T->to_;
+
+
+// ---------------------------------------------------------------------------
+//  Помощники графа проверок (декомпозиция из docs/check_graph_idea.md).
+// ---------------------------------------------------------------------------
+
+// Совпадает ли конструкция с проверяемым предком либо вложена в него.
+lambda isAncestorOrSelf(node: ConcreteConstruct, ancestor: ConcreteConstruct) =
+    node == ancestor or node=>hasAncestor(ancestor);
+
+// Декомпозиция, п. 1; шаг 4: наиболее вложенная общая конструкция обоих действий.
+lambda commonConstruct(actionA: ConcreteAction, actionP: ConcreteAction) = find ConcreteConstruct c {
+    isAncestorOrSelf(actionA->belongsTo, $c) and
+    isAncestorOrSelf(actionP->belongsTo, $c) and
+    not forAny ConcreteConstruct deeper {
+        $deeper != $c and
+        isAncestorOrSelf(actionA->belongsTo, $deeper) and
+        isAncestorOrSelf(actionP->belongsTo, $deeper) and
+        $deeper=>hasAncestor($c)
+    }
+};
+
+// Действие с ролью BEGIN в конструкции C (правило).
+lambda beginActionOf(C: ConcreteConstruct) = find ConcreteAction d {
+    $d->belongsTo == C and $d->derivedFrom.role == "BEGIN"
+};
+
+// Декомпозиция, п. 2; шаги 5.1.1-5.1.2: роль действия на уровне — оно само
+// или действие, внутри раскрытой конструкции которого оно находится.
+// Общий элемент AST связывает действие с раскрытием; сам уровень исключаем.
+// Связь через тело функции учитываем лишь при выполняющемся вызове, иначе поиск замкнётся.
+lambda containingAction(target: ConcreteAction, C: ConcreteConstruct) = find ConcreteAction d {
+    $d->belongsTo == C and (
+        $d == target or
+        target->belongsTo != C and forAny ConcreteConstruct cc {
+            $cc != C and
+            $cc.ast_id == $d.ast_id and
+            isAncestorOrSelf(target->belongsTo, $cc) and
+            ($cc=>hasAncestor(C) or callActive($d))
+        }
+    )
+};
+
+// Есть ли роль действия на этом уровне; иначе можно использовать вход.
+lambda hasContainingAction(target: ConcreteAction, C: ConcreteConstruct) = forAny ConcreteAction d {
+    $d->belongsTo == C and (
+        $d == target or
+        target->belongsTo != C and forAny ConcreteConstruct cc {
+            $cc != C and
+            $cc.ast_id == $d.ast_id and
+            isAncestorOrSelf(target->belongsTo, $cc) and
+            ($cc=>hasAncestor(C) or callActive($d))
+        }
+    )
+};
+
+// Если содержащего действия на уровне нет, используем вход в конструкцию.
+lambda roleActionOf(target: ConcreteAction, C: ConcreteConstruct) =
+    hasContainingAction(target, C) ? containingAction(target, C) : beginActionOf(C);
+
+// Последний акт внутри конструкции в текущем кадре, включая вложенные конструкции.
+// Условие поиска повторено: при подстановке вложенной лямбды затеняется переменная d.
+lambda lastActInside(C: ConcreteConstruct) = findExtreme latest [
+    not $latest=>beforeOf($t)
+] among TraceAct t {
+    $t->inFrame == frameOf(C) and
+    forAny ConcreteAction inner {
+        $inner->belongsTo == C and (
+            $inner == $t->hasAction or
+            $t->hasAction->belongsTo != C and forAny ConcreteConstruct innerCc {
+                $innerCc != C and
+                $innerCc.ast_id == $inner.ast_id and
+                isAncestorOrSelf($t->hasAction->belongsTo, $innerCc) and
+                ($innerCc=>hasAncestor(C) or callActive($inner))
+            }
+        )
+    }
+};
+
+// Если действие в вызванной функции вне открытой конструкции, роль восстанавливаем
+// по последнему акту внутри неё; для неоткрытой используем вход. См. шаг 5.1.
+lambda currentRoleActionOf(target: ConcreteAction, C: ConcreteConstruct) =
+    hasContainingAction(target, C) ? containingAction(target, C) : (
+        isConstructOpen(C) ? containingAction(lastActInside(C)->hasAction, C) : beginActionOf(C)
+    );
+
+// Декомпозиция, п. 10: кадры различают одновременные вызовы одной функции при рекурсии.
+
+// Кадр закрывает завершение его функции; корневой кадр — завершение программы.
+lambda frameClosed(X: TraceAct) = forAny TraceAct fe {
+    $fe->inFrame == X and
+    $fe->hasAction->derivedFrom.role == "END" and
+    $fe->hasAction.ast_id == X->hasAction.ast_id
+};
+
+// Незавершённый кадр относится к ближайшей охватывающей функции (либо программе).
+lambda frameServes(X: TraceAct, C: ConcreteConstruct) =
+    forAny TraceAct fxIn { $fxIn->inFrame == X } and
+    not frameClosed(X) and
+    forAny ConcreteConstruct fxFunc {
+        $fxFunc.ast_id == X->hasAction.ast_id and
+        isAncestorOrSelf(C, $fxFunc) and
+        not forAny ConcreteConstruct fxInner {
+            $fxInner != $fxFunc and
+            $fxInner->derivedFrom.name == "func_def_structure" and
+            isAncestorOrSelf(C, $fxInner) and
+            $fxInner=>hasAncestor($fxFunc)
+        }
+    };
+
+// Кадр акта действия A, добавляемого после логической точки prev: BEGIN после входа по переходу
+// с add_frame (действие func вызова) открывает кадр prev, остальные акты остаются в кадре prev.
+// Зеркало frameAfter в findCorrect.tpg и _frame_acts в serialization/adapters/situation.py.
+lambda frameOfNext(prev: TraceAct, A: ConcreteAction) = if (
+    A->derivedFrom.role == "BEGIN" and
+    prev=>hasTransition() and prev->hasTransition=>hasEffects() and
+    prev->hasTransition->hasEffects.call_stack == CallStackAction:add_frame
+) prev else prev->inFrame;
+
+// Текущий кадр — самый внутренний незавершённый вызов охватывающей функции.
+lambda frameOf(C: ConcreteConstruct) = findExtreme innermost [
+    not $innermost=>beforeOf($fx)
+] among TraceAct fx { frameServes($fx, C) };
+
+// Выполняется ли сейчас вызов функции, содержащей эту конструкцию.
+lambda hasLiveFrame(C: ConcreteConstruct) = forAny TraceAct fy { frameServes($fy, C) };
+
+// Акт относится к текущему вызову; если функция уже не выполняется,
+// подходят акты прошлых вызовов для уточнения причины ошибки.
+lambda inCurrentActivation(t: TraceAct, C: ConcreteConstruct) =
+    t->inFrame == frameOf(C) or not hasLiveFrame(C);
+
+// Вызов ещё выполняется: его действие открыло кадр с актами, но завершения ещё нет.
+lambda callActive(D: ConcreteAction) = forAny TraceAct cx {
+    $cx->hasAction == D and
+    $cx->inFrame == frameOf(D->belongsTo) and
+    forAny TraceAct cxIn { $cxIn->inFrame == $cx and $cxIn != $cx } and
+    not forAny TraceAct cxEnd {
+        $cxEnd->inFrame == $cx and
+        $cxEnd->hasAction->derivedFrom.role == "END" and
+        $cxEnd->hasAction.ast_id == $cx->hasAction.ast_id
+    }
+};
+
+// Декомпозиция, п. 3: последний акт роли в текущем кадре задаёт контекст раскрытия.
+lambda lastActOf(D: ConcreteAction) = findExtreme latest [
+    not $latest=>beforeOf($t)
+] among TraceAct t {
+    $t->hasAction == D and
+    $t->inFrame == frameOf(D->belongsTo)
+};
+
+// Конструкция ещё выполняется: в текущем кадре есть вход без последующего завершения.
+// Завершение рекурсивного вызова в другом кадре её не закрывает.
+lambda isConstructOpen(C: ConcreteConstruct) = forAny TraceAct b {
+    $b->inFrame == frameOf(C) and
+    $b->hasAction->belongsTo == C and $b->hasAction->derivedFrom.role == "BEGIN" and
+    not forAny TraceAct e {
+        $e->inFrame == $b->inFrame and
+        $e->hasAction->belongsTo == C and $e->hasAction->derivedFrom.role == "END" and
+        $e=>afterOf($b)
+    }
+};
+
+// Декомпозиция, п. 4; шаг 5.2.3: после инициировавшего действия есть завершение без нового входа.
+// Проверяем до конца трассы в том же кадре, а для тела функции — в открытом этим действием.
+lambda isClosedAfter(C: ConcreteConstruct, E: TraceAct) = forAny TraceAct e {
+    ($e->inFrame == E->inFrame or $e->inFrame == E) and
+    $e->hasAction->belongsTo == C and $e->hasAction->derivedFrom.role == "END" and
+    $e=>afterOf(E) and
+    not forAny TraceAct b {
+        $b->inFrame == $e->inFrame and
+        $b->hasAction->belongsTo == C and $b->hasAction->derivedFrom.role == "BEGIN" and
+        $b=>afterOf($e)
+    }
+};
+
+// Выбранная роль уже выполнялась после предыдущей в текущем кадре:
+// повторно требовать её перед вложенным действием не нужно (например, после вызова).
+lambda actAlreadyCurrent(Da: ConcreteAction, Dp: ConcreteAction) = forAny TraceAct t {
+    $t->hasAction == Da and
+    $t->inFrame == frameOf(Da->belongsTo) and
+    not forAny TraceAct u {
+        $u->inFrame == $t->inFrame and
+        $u->hasAction == Dp and
+        $u=>afterOf($t)
+    }
+};
+
+// Переход ведёт от предыдущей роли к выбранной на этом уровне.
+// Запасная цель учитывается, когда основной нет после предыдущей роли (как в findCorrect).
+lambda transitionLeads(t: TransitionSpec, fromA: ConcreteAction, toA: ConcreteAction, C: ConcreteConstruct) =
+    t->belongsTo == C->derivedFrom and
+    t->from_ == fromA->derivedFrom and
+    (
+        t->to_ == toA->derivedFrom or (
+            (not forAny ConcreteAction primary {
+                $primary->belongsTo == C and $primary->derivedFrom == t->to_ and
+                $primary=>afterOf(fromA)
+            }) and
+            toWhenAbsent(t, C) == toA->derivedFrom
+        )
+    );
+
+// Ограничение перехода по режиму прерывания выполняется.
+lambda interruptionOk(t: TransitionSpec, S: TraceState) =
+    not t=>hasConstraints() or
+    t->hasConstraints.interruption_mode == S.interruption_mode or
+    t->hasConstraints.interruption_mode == InterruptionType:any;
+
+// Ограничение перехода по значению условия выполнено. Условие, вычисленное последним (акт cur),
+// выбирает переход по значению своего акта: оно уже помечено израсходованным.
+// Иначе условие ещё ждёт вычисления (например, возврата из вызова в нём) и получит очередное значение.
+lambda conditionOk(t: TransitionSpec, fromA: ConcreteAction, cur: TraceAct) =
+    not t=>hasConstraints() or
+    not hasConditionValue(fromA) or
+    (if (cur->hasAction == fromA and cur=>hasValue()) cur->hasValue else findUnusedValue(fromA)).bool_value
+        == t->hasConstraints.condition_value;
+
+// Декомпозиция, п. 7; шаг 5.2.2.2: обе роли ведут сразу в завершение — это альтернативные ветви.
+lambda branchAlternatives(fromA: ConcreteAction, toA: ConcreteAction, C: ConcreteConstruct) =
+    forAny TransitionSpec t1 {
+        $t1->belongsTo == C->derivedFrom and
+        $t1->from_ == fromA->derivedFrom and
+        $t1->to_.role == "END"
+    } and
+    forAny TransitionSpec t2 {
+        $t2->belongsTo == C->derivedFrom and
+        $t2->from_ == toA->derivedFrom and
+        $t2->to_.role == "END"
+    };
+
+// Декомпозиция, п. 8; шаг 5.2.2.1: роль с прозрачным входом раскрываемой после неё
+// конструкции достраивается автоматически, даже если сама роль непрозрачна.
+lambda autoPassedByUnfold(D: ConcreteAction, C: ConcreteConstruct) = forAny ConcreteConstruct cc {
+    $cc != C and
+    $cc.ast_id == D.ast_id and
+    not $cc->derivedFrom.preorder and
+    not beginActionOf($cc)->derivedFrom.is_opaque
+};
+
+// --- Раскрытие конструкции до инициировавшего её действия ------------
+
+// Инициировавшее действие ищем по общему элементу AST в выполняющейся конструкции:
+// у вложенных выражений с вызовами этот элемент может совпадать (например, print(f(x))).
+lambda unfoldingActionOf(C: ConcreteConstruct) = find ConcreteAction x {
+    $x->belongsTo != C and
+    $x.ast_id == C.ast_id and
+    $x->derivedFrom.role != "BEGIN" and
+    $x->derivedFrom.role != "END" and
+    isConstructOpen($x->belongsTo)
+};
+
+lambda hasUnfoldingAction(C: ConcreteConstruct) = forAny ConcreteAction x {
+    $x->belongsTo != C and
+    $x.ast_id == C.ast_id and
+    $x->derivedFrom.role != "BEGIN" and
+    $x->derivedFrom.role != "END" and
+    isConstructOpen($x->belongsTo)
+};
+
+// Декомпозиция, п. 6; шаг 5.2.2.1: выбранное действие внутри раскрытия отложенной роли.
+// Роль выполняется после завершения раскрытия, поэтому сейчас она не пропущена.
+lambda isDeferredUnfoldAction(D: ConcreteAction, target: ConcreteAction) = forAny ConcreteConstruct cc {
+    $cc != D->belongsTo and
+    $cc.ast_id == D.ast_id and
+    $cc->derivedFrom.preorder and
+    isAncestorOrSelf(target->belongsTo, $cc)
+};
+
+// Декомпозиция, п. 5; шаг 5.1.3: раскрытая конструкция только что завершилась;
+// настала очередь отложенного действия, связанного с её записью входа.
+lambda isPendingUnfoldAction(target: ConcreteAction) = forAny TraceAct e {
+    $e->hasAction->derivedFrom.role == "END" and
+    $e->hasAction->belongsTo->derivedFrom.preorder and
+    $e->hasAction.ast_id == target.ast_id and
+    not forAny TraceAct later { $later=>afterOf($e) } and
+    forAny TraceAct b {
+        $b->hasAction->belongsTo == $e->hasAction->belongsTo and
+        $b->hasAction->derivedFrom.role == "BEGIN" and
+        $b=>beforeOf($e) and
+        $b->unfoldedFrom == target
+    }
+};
+
+// При раскрытии до инициировавшего действия завершение ищем ДО его акта:
+// само инициировавшее действие попадает в трассу после раскрытой конструкции.
+lambda isClosedBefore(C: ConcreteConstruct, E: TraceAct) = forAny TraceAct e {
+    ($e->inFrame == E->inFrame or $e->inFrame == E) and
+    $e->hasAction->belongsTo == C and $e->hasAction->derivedFrom.role == "END" and
+    $e=>beforeOf(E) and
+    not forAny TraceAct b {
+        $b->inFrame == $e->inFrame and
+        $b->hasAction->belongsTo == C and $b->hasAction->derivedFrom.role == "BEGIN" and
+        $b=>afterOf($e) and $b=>beforeOf(E)
+    }
+};
+
+// Декомпозиция, п. 9; шаг 5.2.2.2: конструкция, раскрытая до инициировавшей её роли, ещё выполняется.
+lambda awaitsUnfoldedConstruct(D: ConcreteAction, C: ConcreteConstruct) = forAny ConcreteConstruct cc {
+    $cc != C and
+    $cc.ast_id == D.ast_id and
+    $cc->derivedFrom.preorder and
+    isConstructOpen($cc)
+};
+
+// Декомпозиция, п. 4: завершение ищем до или после акта по порядку раскрытия.
+lambda unfoldedConstructFinished(C: ConcreteConstruct, E: TraceAct) =
+    C->derivedFrom.preorder ? isClosedBefore(C, E) : isClosedAfter(C, E);
+
+// Объекты для шаблонов объяснений; подставляем действия/конструкции, а не акты трассы.
+// Правила выбора и локализации: ../docs/check_graph_idea.md#локализованные-объяснения
+
+// Прерывание (break, continue, return) начинает эффект правила либо самого действия.
+lambda startsInterruption(D: ConcreteAction) =
+    (D->derivedFrom=>hasEffects() and D->derivedFrom->hasEffects.interruption_start != InterruptionType:none) or
+    (D=>hasEffects() and D->hasEffects.interruption_start != InterruptionType:none);
+
+// Акт END выхода по прерыванию: вынужденного (без перехода) или по переходу,
+// заданному для конкретного прерывания (break из тела цикла).
+lambda isInterruptionExit(t: TraceAct) =
+    t->hasAction->derivedFrom.role == "END" and (
+        not t=>hasTransition() or (
+            t->hasTransition=>hasConstraints() and
+            t->hasTransition->hasConstraints.interruption_mode != InterruptionType:any and
+            t->hasTransition->hasConstraints.interruption_mode != InterruptionType:none
+        )
+    );
+
+// Действие последнего акта трассы, начавшего прерывание.
+lambda lastInterrupterAction() = find ConcreteAction ia {
+    startsInterruption($ia) and
+    forAny TraceAct t {
+        $t->hasAction == $ia and
+        not forAny TraceAct later {
+            $later=>afterOf($t) and startsInterruption($later->hasAction)
+        }
+    }
+};
+
+// Вход в другую ветвь уровня выбранного действия; вход в тело функции сюда не относится.
+// Preorder-конструкция раскрывается до своего действия: оно ещё не выполнено, ветвь не выбрана.
+lambda entersSiblingBranch(t: TraceAct, A: ConcreteAction) =
+    t->hasAction->derivedFrom.role == "BEGIN" and
+    not t->hasAction->belongsTo->derivedFrom.preorder and
+    t->hasAction.ast_id != A.ast_id and
+    t->hasAction->belongsTo=>hasParent(A->belongsTo) and
+    forAny ConcreteAction sibling {
+        $sibling->belongsTo == A->belongsTo and
+        $sibling != A and
+        $sibling.ast_id == t->hasAction.ast_id
+    };
+
+
+// ---------------------------------------------------------------------------
+//  Фрагменты.
+// ---------------------------------------------------------------------------
+
+// Шаг 7: засчитать действие — добавить его в трассу, использовать значение и применить эффекты.
+// Прозрачный вход раскрываемой после действия конструкции добавляем вместе с ним.
+fragment commitCorrectAction() {
+    // Засчитываем умения, применённые при выборе действия, в том числе
+    // в части трассы, которую граф достроил после исходной точки P0.
+    agg and {
+        creditCondition -> {
+            ask (forAny TraceAct t {
+                $t=>afterOf(P0) and $t=>hasTransition() and
+                $t->hasTransition=>hasConstraints() and
+                $t->hasTransition->hasConstraints.condition_value != OptionalBool:`null`
+            }) out false else {
+                conclude: correct [ skill = "condition_value_selects_next" ; ];
+            };
+            conclude: correct;
+        };
+        creditInterruption -> {
+            ask (S.interruption_mode != InterruptionType:none or forAny TraceAct t {
+                $t=>afterOf(P0) and isInterruptionExit($t)
+            }) out false else {
+                conclude: correct [ skill = "interruption_exits_constructs" ; ];
+            };
+            conclude: correct;
+        };
+        creditRepeat -> {
+            ask (forAny TraceAct t { $t->hasAction == A }) out false else {
+                conclude: correct [ skill = "passed_action_repeat" ; ];
+            };
+            conclude: correct;
+        };
+        creditFunctionBody -> {
+            ask (forAny TraceAct t {
+                $t=>afterOf(P0) and
+                $t->hasAction->derivedFrom.role == "BEGIN" and
+                $t->hasAction->belongsTo->derivedFrom.name == "func_def_structure"
+            }) out false else {
+                conclude: correct [ skill = "function_body_runs_on_call" ; ];
+            };
+            conclude: correct;
+        };
+        creditFunctionExit -> {
+            ask (forAny TraceAct t {
+                $t=>afterOf(P0) and
+                $t->hasAction->derivedFrom.role == "END" and
+                $t->hasAction->belongsTo->derivedFrom.name == "func_def_structure"
+            }) out false else {
+                conclude: correct [ skill = "function_not_resumed_after_exit" ; ];
+            };
+            conclude: correct;
+        };
+        creditCallReturn -> {
+            // Шаг 6 уже сверил выбранное значение с текущим выполнением A.
+            ask (V != obj:NoValue) out false else {
+                conclude: correct [ skill = "call_return_matches_activation" ; ];
+            };
+            conclude: correct;
+        };
+    };
+    var Prev: TraceAct = findExtreme lastAct [not $lastAct=>beforeOf($a)] among TraceAct a {true};
+    // Роль предыдущего действия на уровне выбранного — источник перехода.
+    var DpFin: ConcreteAction = roleActionOf(P->hasAction, A->belongsTo);
+    var Tin: TransitionSpec = find TransitionSpec t {
+        transitionLeads($t, DpFin, A, A->belongsTo) and
+        interruptionOk($t, S) and
+        conditionOk($t, DpFin, P)
+    } out true else {
+        // При входе или вынужденном завершении без перехода применяем эффекты правила явно.
+        var ExpandsNT: ConcreteConstruct = find ConcreteConstruct cc {
+            A->derivedFrom.role != "BEGIN" and
+            A->derivedFrom.role != "END" and
+            $cc != A->belongsTo and
+            $cc.ast_id == A.ast_id and
+            not $cc->derivedFrom.preorder and // раскрытие после действия
+            not beginActionOf($cc)->derivedFrom.is_opaque
+        } out false else {
+            // Действие раскрывает конструкцию с прозрачным входом — добавляем оба акта сразу.
+            conclude: correct with ({
+                P = +obj : TraceAct (
+                    {
+                        hasAction(A);
+                        inFrame(frameOfNext(P, A));
+                        (A=>hasValue()) ? hasValue(findUnusedValue(A));
+                    }
+                );
+                Prev +=> directlyBeforeOf(P);
+                if (A=>hasValue()) P->hasValue.used = true;
+                if (A->derivedFrom=>hasEffects()) applyInterruptionMode(A->derivedFrom->hasEffects, S);
+                if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+                Prev = P;
+                P = +obj : TraceAct (
+                    {
+                        hasAction(beginActionOf(ExpandsNT));
+                        inFrame(frameOfNext(P, beginActionOf(ExpandsNT)));
+                    }
+                );
+                Prev +=> directlyBeforeOf(P);
+                if (beginActionOf(ExpandsNT)->derivedFrom=>hasEffects()) applyInterruptionMode(beginActionOf(ExpandsNT)->derivedFrom->hasEffects, S);
+                if (beginActionOf(ExpandsNT)=>hasEffects()) applyInterruptionMode(beginActionOf(ExpandsNT)->hasEffects, S)
+            }) [
+                RU.explanation = "Верно, следующим выполняется ${A}." ;
+                EN.explanation = "Correct, the ${A} is executed next." ;
+            ];
+        };
+        conclude: correct with ({
+            P = +obj : TraceAct (
+                {
+                    hasAction(A);
+                    inFrame(frameOfNext(P, A));
+                    // Запись входа сохраняет связь с инициировавшим действием, отложенным до завершения.
+                    (A->derivedFrom.role == "BEGIN" and hasUnfoldingAction(A->belongsTo)) ? unfoldedFrom(unfoldingActionOf(A->belongsTo));
+                    (A=>hasValue()) ? hasValue(findUnusedValue(A));
+                }
+            );
+            Prev +=> directlyBeforeOf(P);
+            if (A=>hasValue()) P->hasValue.used = true;
+            if (A->derivedFrom=>hasEffects()) applyInterruptionMode(A->derivedFrom->hasEffects, S);
+            if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S)
+        }) [
+            RU.explanation = "Верно, следующим выполняется ${A}." ;
+            EN.explanation = "Correct, the ${A} is executed next." ;
+        ];
+    };
+    // Сохраняем переход с эффектом добавления кадра, чтобы дальше можно было войти в функцию.
+    var Expands: ConcreteConstruct = find ConcreteConstruct cc {
+        A->derivedFrom.role != "BEGIN" and
+        A->derivedFrom.role != "END" and
+        $cc != A->belongsTo and
+        $cc.ast_id == A.ast_id and
+        // При раскрытии до инициировавшего действия вход уже добавлен; повторно его не создаём.
+        not $cc->derivedFrom.preorder and
+        not beginActionOf($cc)->derivedFrom.is_opaque
+    } out false else {
+        // Прозрачный вход добавляем сразу; непрозрачный обрабатывается отдельно.
+        conclude: correct with ({
+            P = +obj : TraceAct (
+                {
+                    hasAction(A);
+                    inFrame(frameOfNext(P, A));
+                    hasTransition(Tin);
+                    (A=>hasValue()) ? hasValue(findUnusedValue(A));
+                }
+            );
+            Prev +=> directlyBeforeOf(P);
+            if (A=>hasValue()) P->hasValue.used = true;
+            if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+            if (Tin=>hasEffects()) applyInterruptionMode(Tin->hasEffects, S);
+            Prev = P;
+            P = +obj : TraceAct (
+                {
+                    hasAction(beginActionOf(Expands));
+                    inFrame(frameOfNext(P, beginActionOf(Expands)));
+                }
+            );
+            Prev +=> directlyBeforeOf(P);
+            if (beginActionOf(Expands)->derivedFrom=>hasEffects()) applyInterruptionMode(beginActionOf(Expands)->derivedFrom->hasEffects, S);
+            if (beginActionOf(Expands)=>hasEffects()) applyInterruptionMode(beginActionOf(Expands)->hasEffects, S)
+        }) [
+            RU.explanation = "Верно, следующим выполняется ${A}." ;
+            EN.explanation = "Correct, the ${A} is executed next." ;
+        ];
+    };
+    conclude: correct with ({
+        P = +obj : TraceAct (
+            {
+                hasAction(A);
+                inFrame(frameOfNext(P, A));
+                hasTransition(Tin);
+                (A->derivedFrom.role == "BEGIN" and hasUnfoldingAction(A->belongsTo)) ? unfoldedFrom(unfoldingActionOf(A->belongsTo));
+                (A=>hasValue()) ? hasValue(findUnusedValue(A));
+            }
+        );
+        Prev +=> directlyBeforeOf(P);
+        if (A=>hasValue()) P->hasValue.used = true;
+        if (A=>hasEffects()) applyInterruptionMode(A->hasEffects, S);
+        if (Tin=>hasEffects()) applyInterruptionMode(Tin->hasEffects, S)
+    }) [
+        RU.explanation = "Верно, следующим выполняется ${A}." ;
+        EN.explanation = "Correct, the ${A} is executed next." ;
+    ];
+}
+
+// Уточнение ошибки после шага 2а: выяснить, почему выполнение покинуло конструкцию
+// с выбранным действием после исходной границы трассы. Завершение по прерыванию (без
+// перехода или по переходу для прерывания) — выход по прерыванию; по ограничению на условие —
+// выбор по его значению.
+fragment autoPassedRefinement() {
+    // После исходной границы прерывание вывело выполнение из конструкции с выбранным действием.
+    ask (forAny TraceAct t {
+        $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and
+        isInterruptionExit($t) and
+        isAncestorOrSelf(A->belongsTo, $t->hasAction->belongsTo)
+    }) out false else {
+        // Объясняем выход из самой внешней закрытой конструкции с выбранным действием.
+        var ForcedExit: ConcreteConstruct = findExtreme outer [isAncestorOrSelf($c, $outer)] among ConcreteConstruct c {
+            isAncestorOrSelf(A->belongsTo, $c) and
+            forAny TraceAct t {
+                $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and
+                isInterruptionExit($t) and
+                $t->hasAction->belongsTo == $c
+            }
+        } out true else {
+            conclude: error [ exception = true; exceptionName = "NoForcedExitConstruct"; ];
+        };
+        var ForcedBy: ConcreteAction = lastInterrupterAction() out true else {
+            conclude: error [ exception = true; exceptionName = "NoInterrupterAction"; ];
+        };
+        conclude: error [
+            skill = "interruption_exits_constructs" ;
+            RU.explanation = "После ${ForcedBy}[case='р'] оставшиеся действия внутри ${ForcedExit}[case='р'] пропускаются, поэтому ${A} сейчас не выполняется." ;
+            EN.explanation = "After the ${ForcedBy}, the remaining actions inside the ${ForcedExit} are skipped, so the ${A} is not executed now." ;
+        ];
+    };
+    // Значение условия вывело выполнение из конструкции или выбрало другую ветвь после границы.
+    ask (forAny TraceAct t {
+        $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and (
+            (
+                $t->hasAction->derivedFrom.role == "END" and
+                isAncestorOrSelf(A->belongsTo, $t->hasAction->belongsTo) and
+                // выход именно по значению условия, а не естественное завершение тела
+                $t=>hasTransition() and
+                $t->hasTransition=>hasConstraints() and
+                $t->hasTransition->hasConstraints.condition_value != OptionalBool:`null`
+            ) or entersSiblingBranch($t, A)
+        )
+    }) out false else {
+        // Для объяснения ищем завершённую конструкцию; иначе — последнюю выбранную ветвь.
+        var ValueExited: ConcreteConstruct = findExtreme outer [isAncestorOrSelf($c, $outer)] among ConcreteConstruct c {
+            isAncestorOrSelf(A->belongsTo, $c) and
+            forAny TraceAct t {
+                $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and
+                $t->hasAction->derivedFrom.role == "END" and
+                $t->hasAction->belongsTo == $c and
+                $t=>hasTransition() and
+                $t->hasTransition=>hasConstraints() and
+                $t->hasTransition->hasConstraints.condition_value != OptionalBool:`null`
+            }
+        } out false else {
+            // Решающее условие — последнее вычисленное в этой конструкции перед её завершением.
+            var ExitAct: TraceAct = findExtreme latest [not $latest=>beforeOf($t)] among TraceAct t {
+                $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and
+                $t->hasAction->derivedFrom.role == "END" and
+                $t->hasAction->belongsTo == ValueExited and
+                $t=>hasTransition() and
+                $t->hasTransition=>hasConstraints() and
+                $t->hasTransition->hasConstraints.condition_value != OptionalBool:`null`
+            } out true else {
+                conclude: error [ exception = true; exceptionName = "NoValueExitAct"; ];
+            };
+            var ExitDeciderAct: TraceAct = findExtreme latest [not $latest=>beforeOf($d)] among TraceAct d {
+                $d=>beforeOf(ExitAct) and
+                $d->inFrame == ExitAct->inFrame and
+                $d->hasAction->belongsTo == ValueExited and
+                $d=>hasValue() and $d->hasValue.bool_value != OptionalBool:`null`
+            } out true else {
+                conclude: error [ exception = true; exceptionName = "NoValueExitDecider"; ];
+            };
+            var ExitDecider: ConcreteAction = ExitDeciderAct->hasAction;
+            // Ограничение перехода связывает завершение с этим значением условия.
+            conclude: error [
+                skill = "condition_value_selects_next" ;
+                RU.explanation = "Так как ${ExitDecider} имеет значение ${ExitDeciderAct->hasValue.bool_value}, выполнение ${ValueExited}[case='р'] закончилось, поэтому ${A} сейчас не выполнится." ;
+                EN.explanation = "Because the ${ExitDecider} has the value ${ExitDeciderAct->hasValue.bool_value}, execution of the ${ValueExited} has ended, so the ${A} is not executed now." ;
+            ];
+        };
+        var ValueEntered: ConcreteConstruct = find ConcreteConstruct c {
+            forAny TraceAct t {
+                $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and
+                entersSiblingBranch($t, A) and
+                $t->hasAction->belongsTo == $c and
+                not forAny TraceAct u { $u=>afterOf($t) and $u->inFrame == $t->inFrame and entersSiblingBranch($u, A) }
+            }
+        } out false else {
+            // Решающее условие — последнее вычисленное на уровне выбранного действия перед входом в ветвь.
+            var EnterAct: TraceAct = findExtreme latest [not $latest=>beforeOf($t)] among TraceAct t {
+                $t=>afterOf(P0) and inCurrentActivation($t, A->belongsTo) and
+                entersSiblingBranch($t, A) and
+                $t->hasAction->belongsTo == ValueEntered
+            } out true else {
+                conclude: error [ exception = true; exceptionName = "NoValueEnterAct"; ];
+            };
+            var EnterDeciderAct: TraceAct = findExtreme latest [not $latest=>beforeOf($d)] among TraceAct d {
+                $d=>beforeOf(EnterAct) and
+                $d->inFrame == EnterAct->inFrame and
+                $d->hasAction->belongsTo == A->belongsTo and
+                $d=>hasValue() and $d->hasValue.bool_value != OptionalBool:`null`
+            } out true else {
+                conclude: error [ exception = true; exceptionName = "NoValueEnterDecider"; ];
+            };
+            var EnterDecider: ConcreteAction = EnterDeciderAct->hasAction;
+            var EnterOwner: ConcreteConstruct = A->belongsTo;
+            // Повтор самого условия преждевременен, пока выбранная им часть выполняется.
+            ask (EnterDecider == A) out false else {
+                conclude: error [
+                    skill = "condition_value_selects_next" ;
+                    RU.explanation = "Повторное выполнение ${A}[case='р'] сейчас невозможно, поскольку при значении ${EnterDeciderAct->hasValue.bool_value} в ${EnterOwner}[case='п'] выполняется ${ValueEntered}." ;
+                    EN.explanation = "The ${A} cannot be executed again now, because its value ${EnterDeciderAct->hasValue.bool_value} selects the ${ValueEntered} in the ${EnterOwner}." ;
+                ];
+            };
+            conclude: error [
+                skill = "condition_value_selects_next" ;
+                RU.explanation = "В ${EnterOwner}[case='п'], когда ${EnterDecider} имеет значение ${EnterDeciderAct->hasValue.bool_value}, выполняется ${ValueEntered}, а не ${A}." ;
+                EN.explanation = "In the ${EnterOwner}, when the ${EnterDecider} has the value ${EnterDeciderAct->hasValue.bool_value}, the ${ValueEntered} is executed, not the ${A}." ;
+            ];
+        };
+        conclude: error [ exception = true; exceptionName = "NoValueDecisionConstruct"; ];
+    };
+    conclude: null;
+}
+
+// Шаги 5.1-5.2.3: найти роли обоих действий и проверить один уровень иерархии.
+fragment checkLevel(C: ConcreteConstruct) {
+    // 5.1.1: найти роль выбранного действия на этом уровне.
+    var Da: ConcreteAction = currentRoleActionOf(A, C);
+    // 5.1.2-5.1.2.1: найти роль предыдущего действия; при выполняющемся вызове
+    // восстановить по трассе, для неоткрытой конструкции использовать вход.
+    var Dp: ConcreteAction = currentRoleActionOf(P->hasAction, C);
+
+    // 5.1.3: роли совпали — отдельно различаем вход, отложенное действие и повтор.
+    ask (Dp == Da) out false else {
+        // Выбран вход в саму конструкцию, а предыдущее действие ещё вне неё — уровень пройден.
+        ask (A == Dp and A->derivedFrom.role == "BEGIN" and not hasContainingAction(P->hasAction, C)) out false else {
+            conclude: correct [ skill = "construct_entered_before_inner" ; ];
+        };
+        // Раскрытая конструкция только что завершилась — настала очередь отложенного действия.
+        ask (A == Dp and isPendingUnfoldAction(A)) out false else {
+            conclude: correct [ skill = "inner_construct_finished_before_next" ; ];
+        };
+        ask (A == Dp) out false else {
+            // Повтор текущего действия; автоматический уход уже исключён уточнением ошибки.
+            var DccSame: ConcreteConstruct = find ConcreteConstruct cc {
+                $cc != C and
+                $cc.ast_id == Dp.ast_id
+            } {
+                false -> {
+                    conclude: error [
+                        skill = "passed_action_repeat" ;
+                        RU.explanation = "Повторное выполнение ${A}[case='р'] сейчас невозможно, поскольку это действие только что выполнилось." ;
+                        EN.explanation = "The ${A} cannot be repeated now, because this action has just been executed." ;
+                    ];
+                }
+                true -> {
+                    conclude: error [
+                        skill = "inner_construct_finished_before_next" ;
+                        RU.explanation = "Выполнение ${A}[case='р'] уже идёт и ещё не закончилось, поэтому повторно начать это действие сейчас нельзя." ;
+                        EN.explanation = "The ${A} is already in progress and has not finished yet, so this action cannot start again now." ;
+                    ];
+                }
+            };
+        };
+        // Роль раскрывает конструкцию с выбранным действием до себя и уже выполнилась:
+        // эта конструкция завершена, снова войти в неё можно только при новом выполнении роли.
+        ask (P->hasAction == Dp and isDeferredUnfoldAction(Dp, A)) out false else {
+            conclude: error [
+                skill = "passed_action_repeat" ;
+                RU.explanation = "Выполнение ${Dp}[case='р'] уже закончилось, поэтому ${A} сейчас повторно не выполняется." ;
+                EN.explanation = "The ${Dp} has already finished, so the ${A} is not executed again now." ;
+            ];
+        };
+        // Выбранное действие глубже совпавших ролей: ограничения проверят вложенные уровни.
+        conclude: correct;
+    };
+
+    // 5.2: независимые критерии — вход, переход к выбранной роли, завершённость предыдущей конструкции.
+    // Собираем ошибки всех ветвей; внутри пути возвращаем первую нарушенную проверку.
+    agg and {
+        levelEntered -> {
+            // 5.2.1: в конструкцию уже вошли либо её вход прозрачен и достроится автоматически.
+            ask (
+                hasContainingAction(P->hasAction, C) or
+                not beginActionOf(C)->derivedFrom.is_opaque
+            ) out true else {
+                conclude: error [
+                    skill = "construct_entered_before_inner" ;
+                    RU.explanation = "Выполнение ${C}[case='р'] ещё не началось, поэтому ${A} внутри этой конструкции сейчас не выполняется." ;
+                    EN.explanation = "Execution of the ${C} has not started yet, so the ${A} inside it is not executed now." ;
+                ];
+            };
+            conclude: correct;
+        };
+        transitionFromDp -> {
+            // 5.2.2: переход к выбранной роли проверяем последовательными уточнениями.
+            // 5.2.2.1: не пропущено действие, внутри которого находится выбранное.
+            ask (
+                Da == A or
+                not Da->derivedFrom.is_opaque or
+                // Роль с прозрачным входом раскрытия достраивается сама, даже если непрозрачна.
+                autoPassedByUnfold(Da, C) or
+                actAlreadyCurrent(Da, Dp) or
+                // Возврат назад классифицирует 5.2.2.2.
+                Da=>beforeOf(Dp) or
+                // Роль отложена до завершения конструкции с выбранным действием: пропуска нет.
+                isDeferredUnfoldAction(Da, A)
+            ) out true else {
+                conclude: error [
+                    skill = "containing_action_before_inner" ;
+                    RU.explanation = "Вложенные действия выполняются только во время выполнения той части, в которую они входят. Так как выполнение ${Da}[case='р'] ещё не началось, ${A} сейчас не выполняется." ;
+                    EN.explanation = "Nested actions are executed only while the part containing them runs. The ${Da} has not started yet, so the ${A} inside it is not executed now." ;
+                ];
+            };
+
+            // 5.2.2.2: есть ли переход от предыдущей роли к выбранной без учёта ограничений.
+            ask (forAny TransitionSpec t {
+                transitionLeads($t, Dp, Da, C)
+            }) out true else {
+                // другая ветвь того же ветвления: её исключило значение условия, а не пропуск
+                ask (branchAlternatives(Dp, Da, C)) out false else {
+                    conclude: error [
+                        skill = "alternative_single_branch" ;
+                        RU.explanation = "В ${C}[case='п'] выполнение ${Dp}[case='р'] исключает выполнение ${A}[case='р']. Так как выполнение уже перешло к первому из этих действий, выбранное действие сейчас не выполняется." ;
+                        EN.explanation = "In the ${C}, executing the ${Dp} rules out executing the ${A}. Since execution has already moved to the first of these actions, the selected action is not executed now." ;
+                    ];
+                };
+                // Пока выполняется вызов, раскрытый до инициировавшей его предыдущей роли, её акта ещё нет:
+                // старое выполнение выбранной роли можно принять за текущее, поэтому проверяем ожидание.
+                ask (Da=>beforeOf(Dp) and (not actAlreadyCurrent(Da, Dp) or awaitsUnfoldedConstruct(Dp, C))) out false else {
+                    conclude: error [
+                        skill = "passed_action_repeat" ;
+                        RU.explanation = "Внутри ${C}[case='р'] не предусмотрено выполнение уже пройденных действий. Так как выбранное действие стоит раньше ${Dp}[case='р'], ${A} сейчас не выполняется." ;
+                        EN.explanation = "Inside the ${C}, actions that have already been passed are not executed again. Since the selected action comes before the ${Dp}, the ${A} is not executed now." ;
+                    ];
+                };
+                ask (Da=>afterOf(Dp)) out false else {
+                    // Для ветвления с последовательными условиями объясняем пропуск ещё не проверенных условий.
+                    ask (C->derivedFrom.kind == "compound.alternative" and hasConditionValue(Dp)) out false else {
+                        conclude: error [
+                            skill = "alternative_conditions_in_order" ;
+                            RU.explanation = "В ${C}[case='п'] условия проверяются по порядку до первого истинного. Так как между ${Dp}[case='т'] и этим действием есть ещё не проверенные условия, ${A} сейчас не выполнится." ;
+                            EN.explanation = "In the ${C}, conditions are checked in order up to the first true one. Since there are unchecked conditions between the ${Dp} and this action, the ${A} is not executed now." ;
+                        ];
+                    };
+                    // Из предыдущей роли переходы ведут только в завершение конструкции.
+                    ask (forAny TransitionSpec tAny {
+                        $tAny->belongsTo == C->derivedFrom and
+                        $tAny->from_ == Dp->derivedFrom
+                    } and not forAny TransitionSpec tEnd {
+                        $tEnd->belongsTo == C->derivedFrom and
+                        $tEnd->from_ == Dp->derivedFrom and
+                        $tEnd->to_.role != "END"
+                    }) out false else {
+                        conclude: error [
+                            skill = "alternative_single_branch" ;
+                            RU.explanation = "После ${Dp}[case='р'] выполнение ${C}[case='р'] заканчивается, поэтому ${A} не выполнится." ;
+                            EN.explanation = "After the ${Dp}, the execution of the ${C} ends, so the ${A} will not be executed." ;
+                        ];
+                    };
+                    conclude: error [
+                        skill = "actions_in_order" ;
+                        RU.explanation = "Действия внутри ${C}[case='р'] выполняются по порядку. Между ${Dp}[case='т'] и выбранным действием есть ещё не выполненные действия, поэтому ${A} сейчас не выполняется." ;
+                        EN.explanation = "Actions inside the ${C} are executed in order. There are actions between the ${Dp} and the selected action that have not been executed yet, so the ${A} is not executed now." ;
+                    ];
+                };
+                conclude: error [
+                    skill = "actions_in_order" ;
+                    RU.explanation = "В ${C}[case='п'] после ${Dp}[case='р'] выполнение ${A}[case='р'] сейчас невозможно." ;
+                    EN.explanation = "In the ${C}, the ${A} cannot be executed after the ${Dp} now." ;
+                ];
+            };
+
+            // 5.2.2.3: соблюдён порядок в цепочке однотипных действий — выбрано ближайшее.
+            // Назад можно, если впереди подходящих нет либо выбранная роль уже выполнена в этом контексте.
+            ask (
+                not Dp=>directlyBeforeOf() or
+                actAlreadyCurrent(Da, Dp) or
+                (
+                    Da=>afterOf(Dp) and
+                    not forAny ConcreteAction mid {
+                        $mid != Da and
+                        $mid->derivedFrom == Da->derivedFrom and
+                        $mid->belongsTo == C and
+                        $mid=>afterOf(Dp) and
+                        Da=>afterOf($mid)
+                    }
+                ) or
+                (
+                    not forAny ConcreteAction fwd {
+                        $fwd->derivedFrom == Da->derivedFrom and
+                        $fwd->belongsTo == C and
+                        $fwd=>afterOf(Dp)
+                    }
+                )
+            ) out true else {
+                // Между ролями есть ещё не выполненные однотипные действия.
+                ask (C->derivedFrom.kind == "compound.alternative" and hasConditionValue(Dp)) out false else {
+                    conclude: error [
+                        skill = "alternative_conditions_in_order" ;
+                        RU.explanation = "В ${C}[case='п'] условия проверяются по порядку до первого истинного. Так как между ${Dp}[case='т'] и этим действием есть ещё не проверенные условия, ${A} сейчас не выполнится." ;
+                        EN.explanation = "In the ${C}, conditions are checked in order up to the first true one. Since there are unchecked conditions between the ${Dp} and this action, the ${A} is not executed now." ;
+                    ];
+                };
+                conclude: error [
+                    skill = "actions_in_order" ;
+                    RU.explanation = "Действия внутри ${C}[case='р'] выполняются по порядку. Между ${Dp}[case='т'] и выбранным действием есть ещё не выполненные действия, поэтому ${A} сейчас не выполняется." ;
+                    EN.explanation = "Actions inside the ${C} are executed in order. There are actions between the ${Dp} and the selected action that have not been executed yet, so the ${A} is not executed now." ;
+                ];
+            };
+
+            // 5.2.2.4: учтён режим прерывания — есть допускающий его переход.
+            ask (forAny TransitionSpec t {
+                transitionLeads($t, Dp, Da, C) and
+                interruptionOk($t, S)
+            }) out true else {
+                // Прерывания нет, а переход к выбранной роли требует досрочного выхода.
+                ask (S.interruption_mode == InterruptionType:none) out false else {
+                    conclude: error [
+                        skill = "no_early_exit_without_interruption" ;
+                        RU.explanation = "После ${Dp}[case='р'] выполнение ${A}[case='р'] возможно только при досрочном выходе из ${C}[case='р']. Так как досрочного выхода не было, выбранное действие сейчас не выполняется." ;
+                        EN.explanation = "After the ${Dp}, the ${A} can be executed only on an early exit from the ${C}. Since there was no early exit, the selected action is not executed now." ;
+                    ];
+                };
+                // Прерывание активно: начавшее его действие уже есть в трассе.
+                var LevelInterrupter: ConcreteAction = lastInterrupterAction() out true else {
+                    conclude: error [ exception = true; exceptionName = "NoInterrupterAction"; ];
+                };
+                conclude: error [
+                    skill = "interruption_exits_constructs" ;
+                    RU.explanation = "После ${LevelInterrupter}[case='р'] оставшиеся действия в покидаемых конструкциях пропускаются, поэтому ${A} сейчас не выполняется." ;
+                    EN.explanation = "After the ${LevelInterrupter}, the remaining actions in the constructs being exited are skipped, so the ${A} is not executed now." ;
+                ];
+            };
+
+            // 5.2.2.5: учтено также значение условия предыдущей роли.
+            ask (forAny TransitionSpec t {
+                transitionLeads($t, Dp, Da, C) and
+                interruptionOk($t, S) and
+                conditionOk($t, Dp, P)
+            }) out true else {
+                // В объяснение подставляем требуемое переходом значение, а не фактическое.
+                // Подходящий режим прерывания уже гарантирован проверкой 5.2.2.4.
+                var ValueTransition: TransitionSpec = find TransitionSpec t {
+                    transitionLeads($t, Dp, Da, C) and
+                    interruptionOk($t, S) and
+                    $t=>hasConstraints() and
+                    $t->hasConstraints.condition_value != OptionalBool:`null`
+                } out true else {
+                    conclude: error [ exception = true; exceptionName = "NoValueConstrainedTransition"; ];
+                };
+                conclude: error [
+                    skill = "condition_value_selects_next" ;
+                    RU.explanation = "В ${C}[case='п'] выбранное действие следует за ${Dp}[case='т'] только при значении ${ValueTransition->hasConstraints.condition_value} этого условия, поэтому ${A} сейчас не выполняется." ;
+                    EN.explanation = "In the ${C}, the selected action follows the ${Dp} only when this condition has the value ${ValueTransition->hasConstraints.condition_value}, so the ${A} is not executed now." ;
+                ];
+            };
+            // Засчитываем умение, определившее переход: прерывание, значение условия или порядок.
+            ask (S.interruption_mode != InterruptionType:none) out false else {
+                conclude: correct [ skill = "interruption_exits_constructs" ; ];
+            };
+            ask (hasConditionValue(Dp) and forAny TransitionSpec t {
+                transitionLeads($t, Dp, Da, C) and
+                interruptionOk($t, S) and
+                conditionOk($t, Dp, P) and
+                $t=>hasConstraints() and
+                $t->hasConstraints.condition_value != OptionalBool:`null`
+            }) out false else {
+                conclude: correct [ skill = "condition_value_selects_next" ; ];
+            };
+            conclude: correct [ skill = "actions_in_order" ; ];
+        };
+        dpConstructFinished -> {
+            // 5.2.3: предыдущая конструкция — раскрытая предыдущей ролью — должна быть завершена.
+            // Возврат к пройденной роли без перехода уже объяснён в 5.2.2.2: вперёд от Dp студент не идёт.
+            ask (Da=>beforeOf(Dp) and not forAny TransitionSpec t { transitionLeads($t, Dp, Da, C) }) out false else {
+                conclude: correct;
+            };
+            var Dcc: ConcreteConstruct = find ConcreteConstruct cc {
+                $cc != C and
+                $cc.ast_id == Dp.ast_id
+            } {
+                false -> {
+                    // Предыдущая роль ничего не раскрывает: завершать нечего.
+                    conclude: correct;
+                }
+                true -> {
+                    // Раскрытая до Dp конструкция только что завершилась, а сама Dp ещё не выполнена.
+                    // Акт Dp из прошлой итерации цикла её текущее выполнение не заменяет.
+                    ask (isPendingUnfoldAction(Dp)) out false else {
+                        conclude: error [
+                            skill = "inner_construct_finished_before_next" ;
+                            RU.explanation = "Выполнение ${Dp}[case='р'] ещё не завершено, поэтому ${A} сейчас не выполняется." ;
+                            EN.explanation = "The ${Dp} has not finished yet, so the ${A} is not executed now." ;
+                        ];
+                    };
+                    var DpAct: TraceAct = lastActOf(Dp) out true else {
+                        // При раскрытии до инициировавшего действия его акт появляется только после завершения,
+                        // поэтому отсутствие акта означает, что раскрытая конструкция ещё выполняется.
+                        ask (Dcc->derivedFrom.preorder) {
+                            true -> {
+                                conclude: error [
+                                    skill = "inner_construct_finished_before_next" ;
+                                    RU.explanation = "Выполнение ${Dcc}[case='р'] ещё не закончилось, поэтому ${A} сейчас не выполняется." ;
+                                    EN.explanation = "The execution of the ${Dcc} has not finished yet, so the ${A} cannot be executed." ;
+                                ];
+                            }
+                            false -> {
+                                conclude: error [ exception = true; exceptionName = "NoActForRoleAction"; ];
+                            }
+                        };
+                    };
+                    ask (unfoldedConstructFinished(Dcc, DpAct)) {
+                        true -> { conclude: correct [ skill = "inner_construct_finished_before_next" ; ]; }
+                        false -> {
+                            conclude: error [
+                                skill = "inner_construct_finished_before_next" ;
+                                RU.explanation = "Выполнение ${Dcc}[case='р'] ещё не закончилось, поэтому ${A} сейчас не выполняется." ;
+                                EN.explanation = "The execution of the ${Dcc} has not finished yet, so the ${A} cannot be executed." ;
+                            ];
+                        }
+                    };
+                }
+            };
+        };
+    };
+    conclude: correct;
+}
+
+
+// ---------------------------------------------------------------------------
+//  Дерево проверок.
+//    S — состояние трассировки, P — последний корректный акт частичной трассы,
+//    A — выбранное студентом конкретное действие,
+//    V — значение, которое студент выбрал вместе с A (вызов, из которого он возвращается);
+//        без выбора — NoValue.
+// ---------------------------------------------------------------------------
+tpg CtrlFlow_check(S: TraceState, P: TraceAct, A: ConcreteAction, V: SemanticValue = obj:NoValue) {
+    // Запоминаем границу: последний акт до автоматического достраивания.
+    var P0: TraceAct = P;
+    // Шаг 1: достроить прозрачные действия и обновить текущую точку и состояние.
+    // Этот режим останавливает граф поиска следующего действия перед шагом студента.
+    // Изменения трассы сохраняются; текущую точку затем находим заново.
+    eval(obj:TraceConfig.stop_on_opaque = false);
+    subcall_mut("findCorrect", false, S, P);
+    eval(obj:TraceConfig.stop_on_opaque = true);
+    eval(P = findExtreme lastAct [not $lastAct=>beforeOf($a)] among TraceAct a {true});
+    // После завершения тела функции точка отсчёта — акт вызова в кадре вызывающего.
+    eval(P = if (P->inFrame->inFrame != P->inFrame and frameClosed(P->inFrame)) P->inFrame else P);
+
+    // Шаг 2а: программа уже полностью вычислена.
+    ask (
+        P->hasAction->belongsTo->derivedFrom.name == "global_statements_structure" and
+        P->hasAction->derivedFrom.role == "END"
+    ) out false else {
+        var Program: ConcreteConstruct = P->hasAction->belongsTo;
+        conclude: true [
+            skill = "everything_evaluated" ;
+            RU.explanation = "Выполнение ${Program}[case='р'] уже закончилось, поэтому ${A} больше не выполнится." ;
+            EN.explanation = "The ${Program} has already finished, so the ${A} will not be executed anymore." ;
+        ];
+    };
+    // Уточнение ошибки после 2а: автоматический уход из конструкции важнее исчерпания значений.
+    `fragment`:autoPassedRefinement() out null;
+    // Шаг 3.1: в функцию ещё не входили либо она уже завершилась.
+    // До 2б: закрытое тело функции объясняет ошибку точнее, чем израсходованные значения.
+    ask (forAny ConcreteConstruct fd {
+        $fd->derivedFrom.name == "func_def_structure" and
+        isAncestorOrSelf(A->belongsTo, $fd) and
+        not isConstructOpen($fd)
+    }) out false else {
+        ask (forAny ConcreteConstruct fd {
+            $fd->derivedFrom.name == "func_def_structure" and
+            isAncestorOrSelf(A->belongsTo, $fd) and
+            not forAny TraceAct b {
+                $b->hasAction->belongsTo == $fd and
+                $b->hasAction->derivedFrom.role == "BEGIN"
+            }
+        }) {
+            true -> {
+                // Для объяснения выбираем самую внешнюю функцию с выбранным действием без вызова.
+                var UncalledFunc: ConcreteConstruct = findExtreme outer [isAncestorOrSelf($c, $outer)] among ConcreteConstruct c {
+                    $c->derivedFrom.name == "func_def_structure" and
+                    isAncestorOrSelf(A->belongsTo, $c) and
+                    not forAny TraceAct b {
+                        $b->hasAction->belongsTo == $c and
+                        $b->hasAction->derivedFrom.role == "BEGIN"
+                    }
+                } out true else {
+                    conclude: error [ exception = true; exceptionName = "NoUncalledFunction"; ];
+                };
+                conclude: error [
+                    skill = "function_body_runs_on_call" ;
+                    RU.explanation = "Действия внутри ${UncalledFunc}[case='р'] выполняются только во время вызова. Так как это действие находится там, а вызова ещё не было, ${A} сейчас не выполнится." ;
+                    EN.explanation = "Actions inside the ${UncalledFunc} are executed only during a call. Since this action is there and there has been no call yet, the ${A} is not executed now." ;
+                ];
+            }
+            false -> {
+                // Для объяснения выбираем самую внешнюю завершившуюся функцию с выбранным действием.
+                var FinishedFunc: ConcreteConstruct = findExtreme outer [isAncestorOrSelf($c, $outer)] among ConcreteConstruct c {
+                    $c->derivedFrom.name == "func_def_structure" and
+                    isAncestorOrSelf(A->belongsTo, $c) and
+                    not isConstructOpen($c)
+                } out true else {
+                    conclude: error [ exception = true; exceptionName = "NoFinishedFunction"; ];
+                };
+                conclude: error [
+                    skill = "function_not_resumed_after_exit" ;
+                    RU.explanation = "Действия внутри ${FinishedFunc}[case='р'] выполняются только во время вызова. Так как вызов уже закончился, ${A} не выполнится до следующего вызова этой функции." ;
+                    EN.explanation = "Actions inside the ${FinishedFunc} are executed only during a call. Since the call has already finished, the ${A} inside it will not be executed until the next call of this function." ;
+                ];
+            }
+        };
+    };
+
+    // Шаг 2б: условие не может вычисляться повторно — не осталось неиспользованных значений.
+    ask (
+        forAny TraceAct t {$t->hasAction == A} and
+        hasConditionValue(A) and not forAny SemanticValue v {
+            ($v == A->hasValue or $v=>afterOf(A->hasValue)) and not $v.used
+        }
+    ) out false else {
+        conclude: error [
+            skill = "passed_action_repeat" ;
+            RU.explanation = "К ${A}[case='д'] выполнение больше не возвращается, поэтому повторить это действие сейчас нельзя." ;
+            EN.explanation = "Execution does not return to the ${A} anymore, so this action cannot be repeated now." ;
+        ];
+    };
+
+    // Шаг 3.1а: конструкция, раскрытая до выбранного действия, ещё выполняется — выбирать его рано.
+    ask (forAny ConcreteConstruct cc {
+        $cc != A->belongsTo and
+        $cc.ast_id == A.ast_id and
+        $cc->derivedFrom.preorder and
+        isConstructOpen($cc)
+    }) out false else {
+        // Для объяснения выбираем самую внутреннюю выполняющуюся конструкцию раскрытия.
+        var Blocking: ConcreteConstruct = findExtreme inner [isAncestorOrSelf($inner, $c)] among ConcreteConstruct c {
+            isConstructOpen($c) and
+            forAny ConcreteConstruct cc {
+                $cc != A->belongsTo and
+                $cc.ast_id == A.ast_id and
+                $cc->derivedFrom.preorder and
+                isConstructOpen($cc) and
+                isAncestorOrSelf($c, $cc)
+            }
+        } out true else {
+            conclude: error [ exception = true; exceptionName = "NoBlockingConstruct"; ];
+        };
+        // Раскрытие самого A названо так же, как A: объясняем через вложенные вызовы.
+        ask (Blocking.ast_id == A.ast_id) out false else {
+            conclude: error [
+                skill = "inner_construct_finished_before_next" ;
+                RU.explanation = "Вызовы функций внутри ${A}[case='р'] выполняются раньше самого этого действия. Так как выполнены ещё не все из них, ${A} сейчас не выполняется." ;
+                EN.explanation = "The function calls inside the ${A} are executed before this action itself. Since not all of them have been executed yet, the ${A} is not executed now." ;
+            ];
+        };
+        conclude: error [
+            skill = "inner_construct_finished_before_next" ;
+            RU.explanation = "Выполнение ${Blocking}[case='р'] ещё не закончилось, поэтому ${A} сейчас не выполнится." ;
+            EN.explanation = "The execution of the ${Blocking} has not finished yet, so the ${A} is not executed now." ;
+        ];
+    };
+
+    // Шаг 3.2: при активном прерывании допустимо только завершение конструкции с предыдущим действием.
+    ask (
+        S.interruption_mode != InterruptionType:none and
+        not (
+            A->derivedFrom.role == "END" and
+            isConstructOpen(A->belongsTo) and
+            isAncestorOrSelf(P->hasAction->belongsTo, A->belongsTo)
+        )
+    ) out false else {
+        // Объяснение связывает текущий режим с начавшим его действием.
+        var Interrupter: ConcreteAction = lastInterrupterAction() out true else {
+            conclude: error [ exception = true; exceptionName = "NoInterrupterAction"; ];
+        };
+        conclude: error [
+            skill = "interruption_exits_constructs" ;
+            RU.explanation = "После ${Interrupter}[case='р'] оставшиеся действия в покидаемых конструкциях пропускаются, поэтому ${A} сейчас не выполняется." ;
+            EN.explanation = "After the ${Interrupter}, the remaining actions in the constructs being exited are skipped, so the ${A} is not executed now." ;
+        ];
+    };
+
+    // Шаг 4: найти наиболее вложенную общую конструкцию выбранного и предыдущего действий.
+    var Common: ConcreteConstruct = commonConstruct(A, P->hasAction) out true else {
+        conclude: error [ exception = true; exceptionName = "NoCommonConstruct"; ];
+    };
+
+    // Шаг 5: проверить каждый уровень от общей конструкции до конструкции выбранного действия.
+    // Все уровни должны пройти проверку; ошибка любого из них отклоняет ответ.
+    cycle and (
+        isAncestorOrSelf(A->belongsTo, $C) and
+        isAncestorOrSelf($C, Common)
+    ) with ConcreteConstruct C {
+        body -> {
+            `fragment`:checkLevel(C);
+        };
+        correct -> {
+            // Шаг 6: значение, выбранное вместе с действием (вызов, из которого возвращается
+            // студент), должно быть значением текущего выполнения A. Без выбора V = NoValue.
+            ask (
+                V != obj:NoValue and A=>hasValue() and V != findUnusedValue(A)
+            ) out false else {
+                // Объяснение — почему выбранный вызов не подходит, без подсказки верного.
+                // Значения END расходуются в порядке выхода: used — вызов уже завершился,
+                // иначе он ещё ждёт вызовы, начатые внутри него.
+                ask (V.used) {
+                    true -> {
+                        conclude: error [
+                            skill = "call_return_matches_activation" ;
+                            RU.explanation = "Вызов ${V} уже завершился, вернуться из него ещё раз нельзя." ;
+                            EN.explanation = "The call ${V} has already finished, so it cannot be returned from again." ;
+                        ];
+                    }
+                    false -> {
+                        conclude: error [
+                            skill = "call_return_matches_activation" ;
+                            RU.explanation = "Вызов ${V} ещё не может завершиться: сначала завершаются вызовы, начатые внутри него." ;
+                            EN.explanation = "The call ${V} cannot finish yet: the calls started inside it finish first." ;
+                        ];
+                    }
+                };
+            };
+            // Шаг 7: все уровни пройдены — засчитать выбранное действие.
+            `fragment`:commitCorrectAction();
+        };
+        error -> {
+            conclude: error;
+        };
+    };
+}
