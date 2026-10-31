@@ -1,14 +1,12 @@
 import {observer} from "mobx-react";
 import React, {useEffect, useMemo} from "react";
 import {Answer} from "../../../types/answer";
-import {OrderQuestionFeedback} from "../../../types/feedback";
+import {Feedback} from "../../../types/feedback";
 import {OrderQuestion} from "../../../types/question";
-import {isNullOrUndefined} from "../../../utils/helpers";
-import {Optional} from "../optional";
 
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
-    getFeedback: () => OrderQuestionFeedback | undefined, 
+    getFeedback: () => Feedback | undefined, 
     answers: Answer[],
     getAnswers: () => Answer[],
     onChanged: (newAnswers: Answer[]) => void,
@@ -110,22 +108,10 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         // every render, the count changes only when a step is taken
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [question.questionId, answersCount])
-    
-    const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
-    const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;
 
     return (
         <div id={`question_${question.questionId}`}>
             <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
-            <Optional isVisible={isTraceVisible}>
-                <div>
-                    <table className="comp-ph-trace">
-                        <tbody>                            
-                            {trace?.map((t, idx) => <tr key={idx}><td dangerouslySetInnerHTML={{ __html: t }}></td></tr>)}                            
-                        </tbody>
-                    </table>
-                </div>
-            </Optional>
         </div>
     );
 })

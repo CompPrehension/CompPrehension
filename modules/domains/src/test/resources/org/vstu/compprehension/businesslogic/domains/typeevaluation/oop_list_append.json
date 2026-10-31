@@ -1,0 +1,89 @@
+{
+  "id": 11,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "method_call",
+      "lists"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "oop_list_append",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">grades</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">4</span><span class=\"p\">]</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:1\"><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">grades</span><span class=\"comp-ph-expr-token\">.</span><span class=\"comp-ph-expr-token\">append</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-token\">3</span><span class=\"comp-ph-expr-token\">)</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "grades.append(3)",
+          "domainInfo": "op_append",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "None",
+          "domainInfo": "t_none",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "list[int]",
+          "domainInfo": "t_list_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "AttributeError",
+          "domainInfo": "t_attribute_error",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_none : py_NoneType {}\nobj t_list_int : py_list { elementType(t_int); declares(m_append); }\nobj t_error : py_TypeError {}\nobj t_attribute_error : py_AttributeError {}\nobj m_append : Method { returns(t_none); isStatic = false; visibility = Visibility:public; mutatesReceiver = true; } [ text = \"append\" ]\nobj grades : Variable { hasType(t_list_int); } [ text = \"grades\" ]\nobj op_append : py_method_call { hasOperand<OperandPlacement:left>(grades); accesses(m_append); } [ text = \"grades.append(3)\"; expectedType = \"t_none\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "oop_list_append",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 67584,
+  "skillBits": 1572864,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 1
+}

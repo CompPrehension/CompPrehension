@@ -13,11 +13,9 @@ class QuestionAttemptContextMapper implements Mapper<ExerciseAttemptEntity, Exer
 
     @Override
     public @NotNull ExerciseAttemptContextData map(@NotNull ExerciseAttemptEntity source) {
-        var exercise = source.getExercise();
         return new ExerciseAttemptContextData(
                 source.getId(),
                 source.getUser().getPreferred_language(),
-                exercise.getStrategyId(),
-                exercise.getStages() == null ? List.of() : List.copyOf(exercise.getStages()));
+                List.copyOf(source.getExerciseSnapshot().stages()));
     }
 }

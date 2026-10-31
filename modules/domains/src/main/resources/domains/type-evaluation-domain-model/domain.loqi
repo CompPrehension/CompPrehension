@@ -1,0 +1,479 @@
+//-------------------STATIC (CLASS) SECTION-------------------
+//------------------------------------------------------------
+
+////// Перечисления //////
+
+enum OperandPlacement {
+	left [
+		RU.localizedName = "левый" ;
+		EN.localizedName = "left" ;
+	],
+	right [
+		RU.localizedName = "правый" ;
+		EN.localizedName = "right" ;
+	],
+} [
+	RU.localizedName = "положение операнда" ;
+	EN.localizedName = "operand position" ;
+]
+
+enum OperationGroup {
+	arithmetic [
+		RU.localizedName = "арифметическая операция" ;
+		EN.localizedName = "arithmetic operation" ;
+	],
+	comparison [
+		RU.localizedName = "сравнение" ;
+		EN.localizedName = "comparison" ;
+	],
+	logical [
+		RU.localizedName = "логическая операция" ;
+		EN.localizedName = "logical operation" ;
+	],
+	indexing [
+		RU.localizedName = "обращение по индексу" ;
+		EN.localizedName = "indexing" ;
+	],
+	slicing [
+		RU.localizedName = "срез" ;
+		EN.localizedName = "slicing" ;
+	],
+	call [
+		RU.localizedName = "вызов функции" ;
+		EN.localizedName = "function call" ;
+	],
+	memberAccess [
+		RU.localizedName = "обращение к члену" ;
+		EN.localizedName = "member access" ;
+	],
+	construction [
+		RU.localizedName = "создание объекта" ;
+		EN.localizedName = "object creation" ;
+	],
+} [
+	RU.localizedName = "вид операции" ;
+	EN.localizedName = "operation kind" ;
+]
+
+// Как операция над нечисловыми операндами применяется к последовательностям.
+enum SequenceUse {
+	concatenation [
+		RU.localizedName = "склеивание" ;
+		EN.localizedName = "concatenation" ;
+	],
+	repetition [
+		RU.localizedName = "повторение" ;
+		EN.localizedName = "repetition" ;
+	],
+	inapplicable [
+		RU.localizedName = "неприменима" ;
+		EN.localizedName = "inapplicable" ;
+	],
+	textConversion [
+		RU.localizedName = "склеивание с превращением числа в строку" ;
+		EN.localizedName = "concatenation with number-to-text conversion" ;
+	],
+	numericText [
+		RU.localizedName = "сложение строк из цифр как чисел" ;
+		EN.localizedName = "adding digit strings as numbers" ;
+	],
+	elementwise [
+		RU.localizedName = "поэлементное применение" ;
+		EN.localizedName = "elementwise application" ;
+	],
+} [
+	RU.localizedName = "применение к последовательностям" ;
+	EN.localizedName = "sequence use" ;
+]
+
+enum ComparisonKind {
+	equality [
+		RU.localizedName = "проверка на равенство" ;
+		EN.localizedName = "equality check" ;
+	],
+	ordering [
+		RU.localizedName = "сравнение по порядку" ;
+		EN.localizedName = "ordering comparison" ;
+	],
+	membership [
+		RU.localizedName = "проверка вхождения" ;
+		EN.localizedName = "membership test" ;
+	],
+} [
+	RU.localizedName = "вид сравнения" ;
+	EN.localizedName = "comparison kind" ;
+]
+
+enum ArgumentRequirement {
+	none [
+		RU.localizedName = "без аргумента" ;
+		EN.localizedName = "no argument" ;
+	],
+	any [
+		RU.localizedName = "любой аргумент" ;
+		EN.localizedName = "any argument" ;
+	],
+	sized [
+		RU.localizedName = "коллекция или строка" ;
+		EN.localizedName = "collection or string" ;
+	],
+	numberOrText [
+		RU.localizedName = "число или строка" ;
+		EN.localizedName = "number or string" ;
+	],
+} [
+	RU.localizedName = "требование к аргументу" ;
+	EN.localizedName = "argument requirement" ;
+]
+
+enum FixedResult {
+	number [
+		RU.localizedName = "число" ;
+		EN.localizedName = "number" ;
+	],
+	text [
+		RU.localizedName = "строка" ;
+		EN.localizedName = "string" ;
+	],
+} [
+	RU.localizedName = "тип результата функции" ;
+	EN.localizedName = "function result type" ;
+]
+
+enum Visibility {
+	public [
+		RU.localizedName = "открытый" ;
+		EN.localizedName = "public" ;
+	],
+	protected [
+		RU.localizedName = "защищённый" ;
+		EN.localizedName = "protected" ;
+	],
+	private [
+		RU.localizedName = "закрытый" ;
+		EN.localizedName = "private" ;
+	],
+} [
+	RU.localizedName = "видимость" ;
+	EN.localizedName = "visibility" ;
+]
+
+////// Итоги вычисления //////
+
+// Итог вычисления части выражения — ответ студента: значение какого-то типа или ошибка.
+// Итоги в ситуации интернированы: одинаковый итог — один объект, поэтому равенство итогов — равенство объектов.
+class Outcome {
+} [
+	RU.localizedName = "итог вычисления" ;
+	EN.localizedName = "evaluation outcome" ;
+]
+
+// Ранг задаёт порядок арифметических преобразований и сравним только внутри одного языка.
+class Type : Outcome {
+	class prop isArithmetic: bool = false ;
+	class prop conversionRank: int = 0 ;
+	// Значение такого типа может быть ключом словаря.
+	class prop isHashable: bool = true ;
+
+	rel declares(Member) ;
+} [
+	RU.localizedName = "тип" ;
+	EN.localizedName = "type" ;
+]
+
+class NumericType : Type {
+} [
+	RU.localizedName = "числовой тип" ;
+	EN.localizedName = "numeric type" ;
+]
+
+class IntegerType : NumericType {
+	isArithmetic = true ;
+} [
+	RU.localizedName = "целый тип" ;
+	EN.localizedName = "integer type" ;
+]
+
+class FloatingType : NumericType {
+	isArithmetic = true ;
+} [
+	RU.localizedName = "вещественный тип" ;
+	EN.localizedName = "floating-point type" ;
+]
+
+class BooleanType : Type {
+} [
+	RU.localizedName = "логический тип" ;
+	EN.localizedName = "boolean type" ;
+]
+
+class SequenceType : Type {
+	rel elementType(Type) ;
+} [
+	RU.localizedName = "последовательность" ;
+	EN.localizedName = "sequence" ;
+]
+
+class TextType : SequenceType {
+} [
+	RU.localizedName = "строковый тип" ;
+	EN.localizedName = "string type" ;
+]
+
+class ListType : SequenceType {
+} [
+	RU.localizedName = "список" ;
+	EN.localizedName = "list" ;
+]
+
+class TupleType : SequenceType {
+	rel itemType<index : int>(Type) ;
+} [
+	RU.localizedName = "кортеж" ;
+	EN.localizedName = "tuple" ;
+]
+
+class MappingType : Type {
+	rel keyType(Type) ;
+	rel valueType(Type) ;
+} [
+	RU.localizedName = "словарь" ;
+	EN.localizedName = "dictionary" ;
+]
+
+class NoneType : Type {
+} [
+	RU.localizedName = "отсутствие значения" ;
+	EN.localizedName = "no value" ;
+]
+
+// Класс, объявленный в коде задачи. Члены бывают у любого типа, в том числе у встроенных.
+class ClassType : Type {
+	rel directlyInheritsFrom(ClassType) : partial ;
+	rel inheritsFrom(ClassType) : transitive to directlyInheritsFrom ;
+} [
+	RU.localizedName = "класс" ;
+	EN.localizedName = "class" ;
+]
+
+// Ошибку задаёт тег языка. В компилируемых языках код вопроса всегда компилируется, и класса ошибки в теге нет.
+class EvaluationError : Outcome {
+} [
+	RU.localizedName = "ошибка" ;
+	EN.localizedName = "error" ;
+]
+
+// Операция неприменима к операндам: их типы не подходят или не хватает операнда (метод объекта вызван через класс).
+class InapplicableOperationError : EvaluationError {
+} [
+	RU.localizedName = "ошибка неприменимой операции" ;
+	EN.localizedName = "inapplicable operation error" ;
+]
+
+class MissingMemberError : EvaluationError {
+} [
+	RU.localizedName = "ошибка отсутствующего члена" ;
+	EN.localizedName = "missing member error" ;
+]
+
+////// Элементы кода //////
+
+// То, что в коде называется по имени: студент может спутать похожие имена.
+class CodeElement {
+	// Сходство имён считает генератор вопроса (в LOQI нет строк) и пишет его в одну сторону.
+	rel looksLike(CodeElement) ;
+	rel lookedLikeBy(CodeElement) : opposite to looksLike ;
+} [
+	RU.localizedName = "элемент кода" ;
+	EN.localizedName = "code element" ;
+]
+
+////// Члены типов //////
+
+class Member : CodeElement {
+	obj prop isStatic: bool ;
+	obj prop visibility: Visibility ;
+} [
+	RU.localizedName = "член типа" ;
+	EN.localizedName = "type member" ;
+]
+
+class Field : Member {
+	rel hasType(Type) ;
+} [
+	RU.localizedName = "поле" ;
+	EN.localizedName = "field" ;
+]
+
+// Тип результата обобщённого метода генератор подставляет по типу объекта: pop у list[int] возвращает int.
+class Method : Member {
+	rel returns(Outcome) ;
+	// Метод наследника, заменяющий метод родителя с тем же именем.
+	rel overrides(Method) ;
+	// Метод изменяет объект, у которого его вызвали (append, sort, pop).
+	obj prop mutatesReceiver: bool ;
+} [
+	RU.localizedName = "метод" ;
+	EN.localizedName = "method" ;
+]
+
+////// Выражения //////
+
+// Факты о значениях известны студенту: программа остановлена в точке, где вычисляется выражение.
+class Expr : CodeElement {
+	obj prop isTruthy: bool ;
+	obj prop isNumericText: bool ;
+	obj prop intValue: int ;
+
+	// Только для уже решённых подвыражений: тип проверяемой операции в ситуацию не попадает.
+	rel hasType(Type) ;
+} [
+	RU.localizedName = "выражение" ;
+	EN.localizedName = "expression" ;
+]
+
+// Переменные условия, а не только выражения: студент может спутать операнд с переменной из кода.
+class Variable : Expr {
+} [
+	RU.localizedName = "переменная" ;
+	EN.localizedName = "variable" ;
+]
+
+// Имя класса в выражении: обращение к статическому члену или создание объекта.
+class ClassReference : Expr {
+	rel refersTo(ClassType) ;
+} [
+	RU.localizedName = "имя класса" ;
+	EN.localizedName = "class name" ;
+]
+
+class Literal : Expr {
+} [
+	RU.localizedName = "литерал" ;
+	EN.localizedName = "literal" ;
+]
+
+class Operation : Expr {
+	class prop group: OperationGroup ;
+
+	rel hasOperand<placement : OperandPlacement>(Expr) ;
+	// Выражение стоит в методе этого класса; без связи — вне классов.
+	rel enclosedIn(ClassType) ;
+	// Как ещё студент может прочитать операцию: похожий оператор или та же запись по правилам другого языка.
+	// Такие прочтения — операции с теми же операндами вне выражения; генератор кладёт в ситуацию те, которые студент
+	// этого уровня ещё может спутать.
+	rel similarOperatorOf(Operation) ;
+	rel similarOperator(Operation) : opposite to similarOperatorOf ;
+	rel foreignVariantOf(Operation) ;
+	rel foreignVariant(Operation) : opposite to foreignVariantOf ;
+} [
+	RU.localizedName = "операция" ;
+	EN.localizedName = "operation" ;
+]
+
+// Ранг результата — наибольший из рангов операндов и minResultRank.
+class ArithmeticOperation : Operation {
+	class prop minResultRank: int ;
+	class prop isTrueDivision: bool = false ;
+	class prop concatenatesSequences: bool = false ;
+	class prop repeatsSequence: bool = false ;
+	class prop isFloorDivision: bool = false ;
+	// Свойства операций из других языков: в коде вопроса их нет, ими студент может прочитать операцию.
+	class prop convertsNumberToText: bool = false ;
+	class prop addsNumericText: bool = false ;
+	class prop appliesElementwise: bool = false ;
+	class prop truncatesIntegerDivision: bool = false ;
+
+	group = OperationGroup:arithmetic ;
+} [
+	RU.localizedName = "арифметическая операция" ;
+	EN.localizedName = "arithmetic operation" ;
+]
+
+class ComparisonOperation : Operation {
+	class prop comparisonKind: ComparisonKind ;
+	class prop comparesAnyTypes: bool = false ;
+
+	group = OperationGroup:comparison ;
+} [
+	RU.localizedName = "сравнение" ;
+	EN.localizedName = "comparison" ;
+]
+
+class LogicalOperation : Operation {
+	class prop returnsOperand: bool = false ;
+	class prop returnsLeftWhenLeftTruthy: bool = false ;
+
+	group = OperationGroup:logical ;
+} [
+	RU.localizedName = "логическая операция" ;
+	EN.localizedName = "logical operation" ;
+]
+
+class NegationOperation : Operation {
+	group = OperationGroup:logical ;
+} [
+	RU.localizedName = "логическое отрицание" ;
+	EN.localizedName = "logical negation" ;
+]
+
+class IndexingOperation : Operation {
+	group = OperationGroup:indexing ;
+} [
+	RU.localizedName = "обращение по индексу" ;
+	EN.localizedName = "indexing" ;
+]
+
+class SlicingOperation : Operation {
+	group = OperationGroup:slicing ;
+} [
+	RU.localizedName = "срез" ;
+	EN.localizedName = "slicing" ;
+]
+
+class CallOperation : Operation {
+	class prop fixedResult: FixedResult ;
+	// Ранг типа результата, как у Type.conversionRank: 0 — результат не число.
+	class prop resultRank: int ;
+	class prop argumentRequirement: ArgumentRequirement ;
+	class prop readsUserInput: bool = false ;
+
+	group = OperationGroup:call ;
+} [
+	RU.localizedName = "вызов функции" ;
+	EN.localizedName = "function call" ;
+]
+
+// Обращение к члену объекта или класса: левый операнд — объект или имя класса.
+class MemberAccess : Operation {
+	// Защищённый член доступен только классу и наследникам.
+	class prop protectedRestricted: bool ;
+
+	rel accesses(Member) ;
+
+	group = OperationGroup:memberAccess ;
+} [
+	RU.localizedName = "обращение к члену" ;
+	EN.localizedName = "member access" ;
+]
+
+class FieldAccess : MemberAccess {
+} [
+	RU.localizedName = "обращение к полю" ;
+	EN.localizedName = "field access" ;
+]
+
+// Правый операнд — аргумент, если от него зависит ответ; остальные аргументы в ситуацию не попадают.
+class MethodCall : MemberAccess {
+} [
+	RU.localizedName = "вызов метода" ;
+	EN.localizedName = "method call" ;
+]
+
+// Левый операнд — имя класса; аргументы в ситуацию не попадают.
+class ConstructorCall : Operation {
+	group = OperationGroup:construction ;
+} [
+	RU.localizedName = "создание объекта" ;
+	EN.localizedName = "object creation" ;
+]

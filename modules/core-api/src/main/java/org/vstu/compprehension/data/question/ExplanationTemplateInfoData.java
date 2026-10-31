@@ -1,6 +1,8 @@
 package org.vstu.compprehension.data.question;
 
 import lombok.AllArgsConstructor;
+
+import java.io.Serializable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExplanationTemplateInfoData {
+public class ExplanationTemplateInfoData implements Serializable {
     private Long id;
     private String fieldName;
     private String value;

@@ -1,0 +1,97 @@
+{
+  "id": 10,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "object_creation",
+      "field_access",
+      "strings"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "student_name",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"k\">class</span> <span class=\"nc\">Student</span><span class=\"p\">:</span>\n    <span class=\"k\">def</span> <span class=\"fm\">__init__</span><span class=\"p\">(</span><span class=\"bp\">self</span><span class=\"p\">,</span> <span class=\"n\">name</span><span class=\"p\">:</span> <span class=\"nb\">str</span><span class=\"p\">):</span>\n        <span class=\"bp\">self</span><span class=\"o\">.</span><span class=\"n\">name</span> <span class=\"o\">=</span> <span class=\"n\">name</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">Student</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-token\">&quot;Ann&quot;</span><span class=\"comp-ph-expr-token\">)</span></span><span class=\"comp-ph-expr-token\">.</span><span class=\"comp-ph-expr-token\">name</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "Student(\"Ann\")",
+          "domainInfo": "op_new",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 1,
+          "hyperText": "Student(\"Ann\").name",
+          "domainInfo": "op_name",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "Student",
+          "domainInfo": "t_student",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "None",
+          "domainInfo": "t_none",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "AttributeError",
+          "domainInfo": "t_attribute_error",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_str : py_str { elementType(t_str); }\nobj t_none : py_NoneType {}\nobj t_error : py_TypeError {}\nobj t_attribute_error : py_AttributeError {}\nobj name : Field { hasType(t_str); isStatic = false; visibility = Visibility:public; } [ text = \"name\" ]\nobj t_student : py_class { declares(name); } [ text = \"Student\" ]\nobj Student : ClassReference { refersTo(t_student); } [ text = \"Student\" ]\nobj op_new : py_constructor_call { hasOperand<OperandPlacement:left>(Student); } [ text = \"Student(\\\"Ann\\\")\"; expectedType = \"t_student\" ]\nobj op_name : py_field_access { hasOperand<OperandPlacement:left>(op_new); accesses(name); } [ text = \"Student(\\\"Ann\\\").name\"; expectedType = \"t_str\"; value = \"'Ann'\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "student_name",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 164864,
+  "skillBits": 393216,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 2
+}

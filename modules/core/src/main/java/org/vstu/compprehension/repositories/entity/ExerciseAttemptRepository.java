@@ -21,19 +21,11 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
 
     @Query("""
             select a from ExerciseAttemptEntity a
-            inner join fetch a.exercise
             left join fetch a.user
             where a.id in (select q.exerciseAttempt.id from QuestionEntity q
                            where q.id = :questionId and q.exerciseAttempt is not null)
             """)
-    Optional<ExerciseAttemptEntity> findByQuestionIdFetchingExerciseAndUser(@Param("questionId") long questionId);
-
-    @Query("""
-            select a from ExerciseAttemptEntity a
-            join fetch a.exercise
-            where a.id = :attemptId
-            """)
-    Optional<ExerciseAttemptEntity> findByIdFetchingExercise(@Param("attemptId") long attemptId);
+    Optional<ExerciseAttemptEntity> findByQuestionIdFetchingUser(@Param("questionId") long questionId);
 
     @Query("""
             select a from ExerciseAttemptEntity a

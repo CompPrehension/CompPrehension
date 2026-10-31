@@ -88,6 +88,10 @@ public class QuestionEntity {
     @Nullable
     private ExerciseAttemptEntity exerciseAttempt;
 
+    /** Этап упражнения, для которого вопрос задан в попытке. */
+    @Column(name = "stage_index")
+    private @Nullable Integer stageIndex;
+
     @Column(name = "domain_name", nullable = false)
     private String domainId;
 

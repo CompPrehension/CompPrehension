@@ -1,11 +1,9 @@
 package org.vstu.compprehension.businesslogic.strategies;
 
-import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.enums.SearchDirections;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.frontend.dto.ExerciseConceptDto;
 import org.vstu.compprehension.frontend.dto.ExerciseLawDto;
 import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
@@ -14,8 +12,9 @@ import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.domains.Domain;
-import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
+import org.vstu.compprehension.businesslogic.settings.SettingsType;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptStageData;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 
 import java.util.*;
@@ -24,14 +23,15 @@ import java.util.stream.Stream;
 
 public abstract class StrategyBase implements AbstractStrategy {
 
-    private final ExerciseAttemptDataService exerciseAttemptService;
+    private final @NotNull SettingsType<?> settingsType;
 
-    protected StrategyBase(ExerciseAttemptDataService exerciseAttemptService) {
-        this.exerciseAttemptService = exerciseAttemptService;
+    protected StrategyBase(@NotNull SettingsType<?> settingsType) {
+        this.settingsType = settingsType;
     }
 
-    protected @NotNull ExerciseAttemptWithQuestionsData getAttempt(long exerciseAttemptId) {
-        return exerciseAttemptService.getAttemptWithQuestions(exerciseAttemptId);
+    @Override
+    public @NotNull SettingsType<?> getSettingsType() {
+        return settingsType;
     }
 
     @NotNull
@@ -92,48 +92,10 @@ public abstract class StrategyBase implements AbstractStrategy {
         return deniedQuestions;
     }
 
-    /** Find exercise stage for next question in an attempt
-     * @param exerciseAttempt attempt in progress
-     * @return stage applied for next question generated for this attempt
-     */
-    protected ExerciseStageData getStageForNextQuestion(ExerciseAttemptWithQuestionsData exerciseAttempt) {
-        if (exerciseAttempt == null || exerciseAttempt.questions() == null) {
-            return null;
-        }
-
-        List<ExerciseStageData> stages = exerciseAttempt.exercise().stages();
-        int nQuestions = exerciseAttempt.questions().size();
-        int questionsInStagesCumulative = 0;
-
-//        int nStages = stages.size();
-//        int stageIndex = 0;
-//        for (; stageIndex < nStages; ++stageIndex) {
-//            st = stages.get(stageIndex);
-        ExerciseStageData lastStage = null;
-        for (ExerciseStageData currStage : stages) {
-            questionsInStagesCumulative += currStage.getNumberOfQuestions();
-            if (nQuestions < questionsInStagesCumulative) {  // not `<=` since we want `next` question
-                return currStage;
-            }
-            lastStage = currStage;
-        }
-        // get last one if we go over the last stage
-        return lastStage;
-    }
-
-    /** Get total number of questions defined by exercise stages
-     * @param exercise exercise with stages
-     * @return sum of stages' question counts
-     */
-    protected int getNumberOfQuestionsToAsk(AttemptExerciseData exercise) {
-        if (exercise == null || exercise.stages() == null) {
-            return -1;
-        }
-        return exercise.stages().stream().map(ExerciseStageData::getNumberOfQuestions).reduce(Integer::sum).orElse(0);
-    }
-
-    /** Fill target and denied concepts and laws, complexity and denied questions from the attempt */
-    protected QuestionRequest initQuestionRequest(ExerciseAttemptWithQuestionsData exerciseAttempt, ExerciseStageData exerciseStage, Domain domain) {
+    /** Fill target and denied concepts and laws, complexity and denied questions from the stage of the attempt */
+    protected QuestionRequest initQuestionRequest(AttemptStageData attemptStage, Domain domain) {
+        var exerciseAttempt = attemptStage.getAttempt();
+        var exerciseStage = attemptStage.getStage();
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
         Set<Concept> allowed = new HashSet<>(getExerciseStageConceptsWithChildren(exConcepts, domain, RoleInExercise.PERMITTED));
         allowed.addAll(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getChildrenOfConcept(ec.getName()).stream()).collect(Collectors.toSet()));
@@ -172,11 +134,11 @@ public abstract class StrategyBase implements AbstractStrategy {
                 .build();
     }
 
-    /** Balance targets (concepts and laws) so to show as many of questions with them as possible within the attempt */
-    protected QuestionRequest adjustQuestionRequest(QuestionRequest qr, ExerciseAttemptWithQuestionsData exerciseAttempt) {
+    /** Balance targets (concepts and laws) so to show as many of questions with them as possible within the stage */
+    protected QuestionRequest adjustQuestionRequest(QuestionRequest qr, AttemptStageData attemptStage) {
 
-        val attemptQuestions = exerciseAttempt.questions();
-        if (attemptQuestions == null || attemptQuestions.isEmpty()) {
+        val attemptQuestions = attemptStage.getQuestions();
+        if (attemptQuestions.isEmpty()) {
             // don't change targets since nothing shown yet
             return qr;
         }

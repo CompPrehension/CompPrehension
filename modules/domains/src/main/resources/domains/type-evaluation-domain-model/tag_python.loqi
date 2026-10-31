@@ -1,0 +1,343 @@
+//-------------------STATIC (CLASS) SECTION-------------------
+//------------------------------------------------------------
+
+////// Типы //////
+
+class py_int : IntegerType {
+	conversionRank = 2 ;
+} [
+	text = "int" ;
+]
+
+class py_float : FloatingType {
+	conversionRank = 3 ;
+} [
+	text = "float" ;
+]
+
+// bool в Python — подтип int и участвует в арифметике.
+class py_bool : BooleanType {
+	isArithmetic = true ;
+	conversionRank = 1 ;
+} [
+	text = "bool" ;
+]
+
+class py_str : TextType {
+} [
+	text = "str" ;
+]
+
+class py_list : ListType {
+	isHashable = false ;
+} [
+	text = "list" ;
+]
+
+class py_tuple : TupleType {
+} [
+	text = "tuple" ;
+]
+
+class py_dict : MappingType {
+	isHashable = false ;
+} [
+	text = "dict" ;
+]
+
+class py_NoneType : NoneType {
+} [
+	text = "None" ;
+]
+
+// Имя класса — метаданные text объекта типа.
+class py_class : ClassType {
+}
+
+class py_TypeError : InapplicableOperationError {
+} [
+	RU.localizedName = "ошибка (TypeError)" ;
+	EN.localizedName = "error (TypeError)" ;
+]
+
+class py_AttributeError : MissingMemberError {
+} [
+	RU.localizedName = "ошибка (AttributeError)" ;
+	EN.localizedName = "error (AttributeError)" ;
+]
+
+////// Арифметика //////
+
+class py_add : ArithmeticOperation {
+	minResultRank = 2 ;
+	concatenatesSequences = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_sub : ArithmeticOperation {
+	minResultRank = 2 ;
+} [
+	text = "-" ;
+	RU.localizedName = "оператор <code>-</code>" ;
+	EN.localizedName = "operator <code>-</code>" ;
+]
+
+class py_mul : ArithmeticOperation {
+	minResultRank = 2 ;
+	repeatsSequence = true ;
+} [
+	text = "*" ;
+	RU.localizedName = "оператор <code>*</code>" ;
+	EN.localizedName = "operator <code>*</code>" ;
+]
+
+class py_truediv : ArithmeticOperation {
+	isTrueDivision = true ;
+	minResultRank = 3 ;
+} [
+	text = "/" ;
+	RU.localizedName = "оператор <code>/</code>" ;
+	EN.localizedName = "operator <code>/</code>" ;
+]
+
+class py_floordiv : ArithmeticOperation {
+	minResultRank = 2 ;
+	isFloorDivision = true ;
+} [
+	text = "//" ;
+	RU.localizedName = "оператор <code>//</code>" ;
+	EN.localizedName = "operator <code>//</code>" ;
+]
+
+class py_mod : ArithmeticOperation {
+	minResultRank = 2 ;
+} [
+	text = "%" ;
+	RU.localizedName = "оператор <code>%</code>" ;
+	EN.localizedName = "operator <code>%</code>" ;
+]
+
+////// Операции других языков //////
+// В коде вопроса их нет: так студент может прочитать операцию, перенося опыт другого языка.
+
+class py_add_text_conversion : ArithmeticOperation {
+	minResultRank = 2 ;
+	concatenatesSequences = true ;
+	convertsNumberToText = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_add_numeric_text : ArithmeticOperation {
+	minResultRank = 2 ;
+	addsNumericText = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_add_elementwise : ArithmeticOperation {
+	minResultRank = 2 ;
+	concatenatesSequences = true ;
+	appliesElementwise = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_integer_division : ArithmeticOperation {
+	minResultRank = 2 ;
+	truncatesIntegerDivision = true ;
+} [
+	text = "/" ;
+	RU.localizedName = "оператор <code>/</code>" ;
+	EN.localizedName = "operator <code>/</code>" ;
+]
+
+////// Сравнения //////
+
+class py_eq : ComparisonOperation {
+	comparisonKind = ComparisonKind:equality ;
+	comparesAnyTypes = true ;
+} [
+	text = "==" ;
+	RU.localizedName = "оператор <code>==</code>" ;
+	EN.localizedName = "operator <code>==</code>" ;
+]
+
+class py_ne : ComparisonOperation {
+	comparisonKind = ComparisonKind:equality ;
+	comparesAnyTypes = true ;
+} [
+	text = "!=" ;
+	RU.localizedName = "оператор <code>!=</code>" ;
+	EN.localizedName = "operator <code>!=</code>" ;
+]
+
+class py_lt : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = "<" ;
+	RU.localizedName = "оператор <code>&lt;</code>" ;
+	EN.localizedName = "operator <code>&lt;</code>" ;
+]
+
+class py_le : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = "<=" ;
+	RU.localizedName = "оператор <code>&lt;=</code>" ;
+	EN.localizedName = "operator <code>&lt;=</code>" ;
+]
+
+class py_gt : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = ">" ;
+	RU.localizedName = "оператор <code>&gt;</code>" ;
+	EN.localizedName = "operator <code>&gt;</code>" ;
+]
+
+class py_ge : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = ">=" ;
+	RU.localizedName = "оператор <code>&gt;=</code>" ;
+	EN.localizedName = "operator <code>&gt;=</code>" ;
+]
+
+class py_in : ComparisonOperation {
+	comparisonKind = ComparisonKind:membership ;
+} [
+	text = "in" ;
+	RU.localizedName = "оператор <code>in</code>" ;
+	EN.localizedName = "operator <code>in</code>" ;
+]
+
+////// Логика //////
+
+class py_or : LogicalOperation {
+	returnsOperand = true ;
+	returnsLeftWhenLeftTruthy = true ;
+} [
+	text = "or" ;
+	RU.localizedName = "оператор <code>or</code>" ;
+	EN.localizedName = "operator <code>or</code>" ;
+]
+
+class py_and : LogicalOperation {
+	returnsOperand = true ;
+	returnsLeftWhenLeftTruthy = false ;
+} [
+	text = "and" ;
+	RU.localizedName = "оператор <code>and</code>" ;
+	EN.localizedName = "operator <code>and</code>" ;
+]
+
+class py_not : NegationOperation {
+} [
+	text = "not" ;
+	RU.localizedName = "оператор <code>not</code>" ;
+	EN.localizedName = "operator <code>not</code>" ;
+]
+
+////// Индексация, срез //////
+
+class py_index : IndexingOperation {
+} [
+	text = "[]" ;
+	RU.localizedName = "обращение по индексу" ;
+	EN.localizedName = "indexing" ;
+]
+
+class py_slice : SlicingOperation {
+} [
+	text = "[:]" ;
+	RU.localizedName = "срез" ;
+	EN.localizedName = "slice" ;
+]
+
+////// Встроенные функции //////
+
+class py_len : CallOperation {
+	fixedResult = FixedResult:number ;
+	resultRank = 2 ;
+	argumentRequirement = ArgumentRequirement:sized ;
+} [
+	text = "len" ;
+	RU.localizedName = "функция <code>len</code>" ;
+	EN.localizedName = "function <code>len</code>" ;
+]
+
+class py_input : CallOperation {
+	fixedResult = FixedResult:text ;
+	resultRank = 0 ;
+	argumentRequirement = ArgumentRequirement:none ;
+	readsUserInput = true ;
+} [
+	text = "input" ;
+	RU.localizedName = "функция <code>input</code>" ;
+	EN.localizedName = "function <code>input</code>" ;
+]
+
+class py_int_call : CallOperation {
+	fixedResult = FixedResult:number ;
+	resultRank = 2 ;
+	argumentRequirement = ArgumentRequirement:numberOrText ;
+} [
+	text = "int" ;
+	RU.localizedName = "функция <code>int</code>" ;
+	EN.localizedName = "function <code>int</code>" ;
+]
+
+class py_float_call : CallOperation {
+	fixedResult = FixedResult:number ;
+	resultRank = 3 ;
+	argumentRequirement = ArgumentRequirement:numberOrText ;
+} [
+	text = "float" ;
+	RU.localizedName = "функция <code>float</code>" ;
+	EN.localizedName = "function <code>float</code>" ;
+]
+
+class py_str_call : CallOperation {
+	fixedResult = FixedResult:text ;
+	resultRank = 0 ;
+	argumentRequirement = ArgumentRequirement:any ;
+} [
+	text = "str" ;
+	RU.localizedName = "функция <code>str</code>" ;
+	EN.localizedName = "function <code>str</code>" ;
+]
+
+////// Члены классов //////
+
+// Защищённость — только соглашение об именах (_x): интерпретатор обращение не запрещает.
+class py_field_access : FieldAccess {
+	protectedRestricted = false ;
+} [
+	text = "." ;
+	RU.localizedName = "обращение к полю" ;
+	EN.localizedName = "field access" ;
+]
+
+class py_method_call : MethodCall {
+	protectedRestricted = false ;
+} [
+	text = "." ;
+	RU.localizedName = "вызов метода" ;
+	EN.localizedName = "method call" ;
+]
+
+class py_constructor_call : ConstructorCall {
+} [
+	RU.localizedName = "создание объекта" ;
+	EN.localizedName = "object creation" ;
+]

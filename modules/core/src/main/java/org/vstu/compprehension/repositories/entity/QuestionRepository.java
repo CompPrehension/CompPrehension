@@ -52,12 +52,7 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
             """)
     List<QuestionEntity> findAllByAttemptIdFetchingMetadata(@Param("attemptId") long attemptId);
 
-    /**
-     * Порядковый номер вопроса внутри попытки, считая с единицы.
-     */
-    @Query("""
-            select count(q) from QuestionEntity q
-            where q.exerciseAttempt.id = :attemptId and q.id <= :questionId
-            """)
-    long countUpToQuestionInAttempt(@Param("attemptId") long attemptId, @Param("questionId") long questionId);
+    /** Этап упражнения, для которого задан вопрос; пусто, если вопрос задан не для этапа. */
+    @Query("select q.stageIndex from QuestionEntity q where q.id = :questionId")
+    Optional<Integer> findStageIndex(@Param("questionId") long questionId);
 }

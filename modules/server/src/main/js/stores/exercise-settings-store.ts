@@ -1,8 +1,8 @@
-import { IReactionDisposer, autorun, makeAutoObservable, observable, untracked } from "mobx";
+import { IReactionDisposer, autorun, makeAutoObservable, observable, toJS, untracked } from "mobx";
 import { courseController, exerciseSettingsController } from "../controllers";
-import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, SettingsForm, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { ExerciseOptions } from "../types/exercise-options";
+import { ExerciseOptions, SettingValues } from "../types/exercise-options";
 import { RequestError } from "../types/request-error";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
@@ -12,7 +12,6 @@ export type ExerciseCardViewModel = {
     id: number,
     name: string,
     domainId: string,
-    strategyId: string,
     backendId: string,
     tags: string[],
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
@@ -25,6 +24,8 @@ export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
 
 export class ExerciseStageStore implements Disposable {
     card: ExerciseCardViewModel
+    strategyId: string
+    strategySettings: SettingValues
     concepts: ExerciseCardConcept[]
     laws: ExerciseCardLaw[]
     skills: ExerciseCardSkill[]
@@ -37,6 +38,8 @@ export class ExerciseStageStore implements Disposable {
 
     constructor(private readonly courseId: number | null,
                 card: ExerciseCardViewModel, stage: ExerciseStage) {
+        this.strategyId = stage.strategyId;
+        this.strategySettings = stage.strategySettings;
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
         this.skills     = stage.skills;
@@ -106,6 +109,7 @@ export class ExerciseSettingsStore {
     domains: Domain[] | null = null;
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
+    answerReactionSettings: SettingsForm | null = null;
     currentCard: ExerciseCardViewModel | null = null;
     courseId: number | null = null;
     storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError } = { tag: 'VALID' };
@@ -150,7 +154,7 @@ export class ExerciseSettingsStore {
             ...card,
             stages: pipe(
                 card.stages,
-                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
+                NEA.map(stage => ({ strategyId: stage.strategyId, strategySettings: stage.strategySettings, concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
             ),
         }
     }
@@ -163,13 +167,14 @@ export class ExerciseSettingsStore {
         this.storeState = { tag: 'VALID' };
         this.exercisesLoadStatus = 'LOADING';
         this.courseId = courseId;
-        const [rawExercises, domains, backends, strategies] = await Promise.all([
+        const [rawExercises, domains, backends, strategies, answerReactionSettings] = await Promise.all([
             exerciseSettingsController.listExercises(courseId),
             exerciseSettingsController.getDomains(),
             exerciseSettingsController.getBackends(),
-            exerciseSettingsController.getStrategies()
+            exerciseSettingsController.getStrategies(),
+            exerciseSettingsController.getAnswerReactionSettings(),
         ])
-        const failed = [rawExercises, domains, backends, strategies].find(E.isLeft);
+        const failed = [rawExercises, domains, backends, strategies, answerReactionSettings].find(E.isLeft);
         if (failed) {
             this.storeState = { tag: 'ERROR', error: failed.left };
             this.exercisesLoadStatus = 'NONE';
@@ -180,6 +185,7 @@ export class ExerciseSettingsStore {
         this.domains = (domains as E.Right<Domain[]>).right;
         this.backends = (backends as E.Right<string[]>).right;
         this.strategies = (strategies as E.Right<Strategy[]>).right;
+        this.answerReactionSettings = (answerReactionSettings as E.Right<SettingsForm>).right;
         this.exercisesLoadStatus = 'LOADED';
     }
 
@@ -322,18 +328,31 @@ export class ExerciseSettingsStore {
 
     }
     
-    setCardStrategy(strategyId: string) {
+    setStageStrategy(stageIdx: number, strategyId: string) {
+        const stage = this.currentCard?.stages[stageIdx];
+        if (!stage || stage.strategyId === strategyId)
+            return;
+        stage.strategyId = strategyId;
+        // Settings of one strategy mean nothing to another one.
+        stage.strategySettings = copyDefaults(this.strategies?.find(s => s.id === strategyId)?.settings);
+    }
+
+    /** Sets one setting of the stage strategy; the path leads through setting groups to the field. */
+    setStageStrategySetting(stageIdx: number, path: string[], value: boolean | number | string) {
+        const stage = this.currentCard?.stages[stageIdx];
+        if (!stage)
+            return;
+        stage.strategySettings = putSetting(stage.strategySettings, path, value);
+    }
+
+    /** Sets one setting of the reaction to answers; the path leads through setting groups to the field. */
+    setCardAnswerReactionSetting(path: string[], value: boolean | number | string) {
         if (!this.currentCard)
             return;
-        if (this.currentCard.strategyId !== strategyId) {
-            this.currentCard.stages[0].laws = [];
-            this.currentCard.stages[0].concepts = [];
-            this.currentCard.stages.splice(1);
-            this.currentCard.strategyId = strategyId;
-        }
-        
+        const settings = this.currentCard.options.answerReaction ?? copyDefaults(this.answerReactionSettings);
+        this.currentCard.options.answerReaction = putSetting(settings, path, value);
     }
-    
+
     setCardStageComplexity(stageIdx: number, rawComplexity: string) {
         if (!this.currentCard || !this.currentCard.stages[stageIdx])
             return;
@@ -569,10 +588,14 @@ export class ExerciseSettingsStore {
             .filter(l => l.kind !== 'PERMITTED' && sharedDomainLaws.some(x => x.name === l.name));
         */
 
+        // A new stage usually goes on the way the previous one did, so it starts with the same strategy.
+        const previousStage = card.stages[card.stages.length - 1];
         const newStage = new ExerciseStageStore(
             this.courseId,
             card,
             {
+                strategyId: previousStage.strategyId,
+                strategySettings: structuredClone(toJS(previousStage.strategySettings)),
                 numberOfQuestions: 10,
                 complexity: 0.5,
                 laws: [],
@@ -595,4 +618,21 @@ export class ExerciseSettingsStore {
 
         this.currentCard.stages.splice(stageIdx, 1);
     }
+}
+
+function copyDefaults(form: SettingsForm | null | undefined): SettingValues {
+    return structuredClone(toJS(form?.defaults ?? {}));
+}
+
+/** Puts the value at the path, creating the setting groups on the way. */
+function putSetting(settings: SettingValues, path: string[], value: boolean | number | string): SettingValues {
+    let group = settings;
+    for (const name of path.slice(0, -1)) {
+        if (typeof group[name] !== 'object') {
+            group[name] = {};
+        }
+        group = group[name] as SettingValues;
+    }
+    group[path[path.length - 1]] = value;
+    return settings;
 }

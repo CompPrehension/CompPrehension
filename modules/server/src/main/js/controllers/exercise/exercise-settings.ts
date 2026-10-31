@@ -1,4 +1,4 @@
-import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseList, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, QuestionBankSearchResult, SettingsForm, Strategy, TDomain, TExerciseCard, TExerciseList, TQuestionBankSearchResult, TSettingsForm, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
@@ -38,6 +38,10 @@ export class ExerciseSettingsController {
 
     getStrategies() : PromiseEither<RequestError, Strategy[]> {
         return ajaxGet(`${API_URL}/api/refTables/strategies`, io.array(TStrategy));
+    }
+
+    getAnswerReactionSettings() : PromiseEither<RequestError, SettingsForm> {
+        return ajaxGet(`${API_URL}/api/refTables/answerReactionSettings`, TSettingsForm);
     }
 
     getBackends() : PromiseEither<RequestError, string[]> {

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Попытка идёт по настройкам упражнения, какими они были при её начале. С какими настройками начинались уже
+        существующие попытки, неизвестно: им достаются текущие настройки упражнения. Теги в упражнении хранятся строкой
+        через запятую, в снимке — списком.
+    -->
+    <changeSet id="2026-10-13-02-attempt-exercise-snapshot" author="Artem Prokudin">
+        <sql>
+            alter table exercise_attempt
+                add column exercise_snapshot_json json null;
+
+            update exercise_attempt a
+                join exercise e on e.id = a.exercise_id
+            set a.exercise_snapshot_json = json_object(
+                    'domainId', e.domain_id,
+                    'stages', e.stages_json,
+                    'tags', if(trim(e.tags) = '', json_array(),
+                               cast(concat('["', regexp_replace(trim(e.tags), '[[:space:]]*,[[:space:]]*', '","'), '"]')
+                                   as json)),
+                    'answerReaction', json_extract(e.options_json, '$.answerReaction'));
+
+            alter table exercise_attempt
+                modify column exercise_snapshot_json json not null;
+        </sql>
+        <rollback>
+            <sql>
+                alter table exercise_attempt
+                    drop column exercise_snapshot_json;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

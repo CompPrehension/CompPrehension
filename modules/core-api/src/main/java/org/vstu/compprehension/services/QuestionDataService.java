@@ -28,6 +28,9 @@ public interface QuestionDataService {
 
      void gradeInteraction(long interactionId, float grade);
 
+     /** Записать ответ студента на уточняющий вопрос взаимодействия: идентификатор выбранного рассуждения, без него — другая причина. */
+     void answerClarification(long interactionId, @Nullable Integer chosenReasoning);
+
      QuestionData getQuestion(Long questionId);
 
      QuestionData getSolvedQuestion(Long questionId);

@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.jetbrains.annotations.Nullable;
 
 @Data
 @NoArgsConstructor @AllArgsConstructor
@@ -23,4 +24,6 @@ public class QuestionDto {
     private QuestionAnswerDto[] answers = new QuestionAnswerDto[0];
     private AnswerDto[] responses;
     private FeedbackDto feedback;
+    @Nullable
+    private String[] initialTrace;
 }

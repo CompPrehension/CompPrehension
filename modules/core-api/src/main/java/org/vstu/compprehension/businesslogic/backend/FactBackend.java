@@ -8,12 +8,14 @@ import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.enums.FeedbackType;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -101,9 +103,12 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
     public static class Interface<Back extends FactBackend> implements DomainToBackendAdapter<Input, Collection<Fact>, Back>
     {
         private final Domain domain;
+        // Разбор нарушений — своё у каждого домена онтологии, общего для доменов контракта у него нет.
+        private final BiFunction<Collection<Fact>, Language, Judgement> violationsInterpreter;
 
-        public Interface(Domain domain) {
+        public Interface(Domain domain, BiFunction<Collection<Fact>, Language, Judgement> violationsInterpreter) {
             this.domain = domain;
+            this.violationsInterpreter = violationsInterpreter;
         }
 
         @Override
@@ -123,14 +128,12 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         }
 
         @Override
-        public Domain.InterpretSentenceResult interpretJudgeOutput(
+        public Judgement interpretJudgeOutput(
             QuestionData judgedQuestion,
             Collection<Fact> backendOutput,
             Language language
         ) {
-            Domain.InterpretSentenceResult result = domain.interpretSentence(backendOutput);
-            result.explanation = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, language);
-            return result;
+            return violationsInterpreter.apply(backendOutput, language);
         }
 
         @Override

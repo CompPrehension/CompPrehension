@@ -30,8 +30,8 @@
                             <DecisionTreeVarDecl name="currentToken" type="Token"/>
                             <Outcome value="Found">
                                 <CycleAggregationNode _id="3"
-                                                      _alias="While currentToken has previous Token&#10;AND&#10;whileTmp"
-                                                      operator="AND">
+                                                      _alias="While currentToken has previous Token&#10;OR&#10;whileTmp"
+                                                      operator="OR">
                                     <SelectorExpression>
                                         <ExistenceQuantifier type="Token" varName="previousToken">
                                             <CheckClass>

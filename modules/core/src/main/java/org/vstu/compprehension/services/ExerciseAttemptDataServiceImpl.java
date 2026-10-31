@@ -52,21 +52,10 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     }
 
     private @NotNull ExerciseStageData resolveQuestionStage(@NotNull ExerciseAttemptContextData attempt, long questionId) {
-        var stages = attempt.stages();
-        if (stages.isEmpty()) {
-            throw new IllegalStateException(
-                    "Exercise of attempt " + attempt.attemptId() + " has no stages, question " + questionId);
-        }
-
-        long questionNumber = exerciseAttemptDataRepository
-                .countQuestionsUpTo(attempt.attemptId(), questionId);
-        int questionsPassed = 0;
-        ExerciseStageData stage = stages.getFirst();
-        for (int i = 0; i < stages.size() && questionsPassed < questionNumber; i++) {
-            stage = stages.get(i);
-            questionsPassed += stage.getNumberOfQuestions();
-        }
-        return stage;
+        int stageIndex = exerciseAttemptDataRepository.findQuestionStageIndex(questionId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Question " + questionId + " of attempt " + attempt.attemptId() + " is not asked for a stage"));
+        return attempt.stages().get(stageIndex);
     }
 
     @Transactional(readOnly = true)
