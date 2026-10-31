@@ -856,7 +856,9 @@ fragment checkLevel(C: ConcreteConstruct) {
 
             // 5.2.2.3: соблюдён порядок в цепочке однотипных действий — выбрано ближайшее.
             // Назад можно, если впереди подходящих нет либо выбранная роль уже выполнена в этом контексте.
+            // При strict_order = false годится любое действие роли: повтор отсекают проверки passed_action_repeat.
             ask (
+                not Da->derivedFrom.strict_order or
                 not Dp=>directlyBeforeOf() or
                 actAlreadyCurrent(Da, Dp) or
                 (

@@ -53,6 +53,27 @@ lambda valueFits(t: TransitionSpec, L: TraceAct) =
         L->hasValue.bool_value == t->hasConstraints.condition_value
     );
 
+// Действие уже выполнено в текущем проходе по роли: его акт позже последней границы
+// (акта той же конструкции с другим правилом — BEGIN или предыдущая фаза).
+// Следующий проход (новый BEGIN цикла) начинает отсчёт заново.
+lambda doneInCurrentPass(A: ConcreteAction, frame: TraceAct) =
+    forAny TraceAct done {
+        $done->inFrame == frame and
+        $done->hasAction == A and
+        forAny TraceAct boundary {
+            $boundary->inFrame == frame and
+            $boundary->hasAction->belongsTo == A->belongsTo and
+            $boundary->hasAction->derivedFrom != A->derivedFrom and
+            $boundary=>beforeOf($done) and
+            not forAny TraceAct later {
+                $later->inFrame == frame and
+                $later->hasAction->belongsTo == A->belongsTo and
+                $later->hasAction->derivedFrom != A->derivedFrom and
+                $later=>afterOf($boundary)
+            }
+        }
+    };
+
 // BEGIN-действие (правило) конструкта C
 lambda beginActionOf(C: ConcreteConstruct) = find ConcreteAction d {
     $d->belongsTo == C and $d->derivedFrom.role == "BEGIN"
@@ -563,11 +584,14 @@ tpg CtrlFlow_findCorrect(S: TraceState, P: TraceAct) {
             };
 
             // По найденному переходу ищем конкретное действие
+            // (при strict_order = false — самое раннее в цепочке ещё не выполненное действие роли:
+            // это порядок подсказки, проверка принимает и остальные)
             var N: ConcreteAction = find ConcreteAction a {
                 $a != L->hasAction and
                 $a->derivedFrom == T->to_ and
                 $a->belongsTo == L->hasAction->belongsTo and
                 (
+                    not T->to_.strict_order or
                     not L->hasAction=>directlyBeforeOf() // либо действие не в цепочке, либо выбираем такое, которое сразу после L
                     or ( // если вдруг одни и те же действия идут подряд в одной цепочке
                         $a=>afterOf(L->hasAction) and
@@ -585,6 +609,17 @@ tpg CtrlFlow_findCorrect(S: TraceState, P: TraceAct) {
                             $fwd->derivedFrom == T->to_ and
                             $fwd->belongsTo == L->hasAction->belongsTo and
                             $fwd=>afterOf(L->hasAction)
+                        }
+                    )
+                ) and (
+                    T->to_.strict_order or (
+                        not doneInCurrentPass($a, L->inFrame) and
+                        not forAny ConcreteAction earlier {
+                            $earlier != $a and
+                            $earlier->derivedFrom == T->to_ and
+                            $earlier->belongsTo == $a->belongsTo and
+                            not doneInCurrentPass($earlier, L->inFrame) and
+                            $a=>afterOf($earlier)
                         }
                     )
                 )

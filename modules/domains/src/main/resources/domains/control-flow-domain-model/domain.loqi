@@ -81,6 +81,8 @@ class ActionSpec : AbstractSpec {
 	obj prop generalization: string ; // по факту не должно использоваться - автоматическое разворачивание
 	obj prop kind: string ;
 	obj prop is_opaque: bool ;
+	// false: конкретные действия этой роли можно выполнять в любом порядке; цепочка остаётся порядком подсказки
+	obj prop strict_order: bool ;
 
 	rel belongsTo(ConstructSpec) : {* -> 1} ;
 	rel hasEffects(Effect) : {* -> 1} ; // нужен только для отслеживания завершения прерываний (но в переходы также встраивается, поэтому применяется только в прерываниях!!)
