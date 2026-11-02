@@ -381,6 +381,11 @@ lambda lastInterrupterAction() = find ConcreteAction ia {
 // Вход в другую ветвь уровня выбранного действия; вход в тело функции сюда не относится.
 // Preorder-конструкция раскрывается до своего действия: оно ещё не выполнено, ветвь не выбрана.
 lambda entersSiblingBranch(t: TraceAct, A: ConcreteAction) =
+    // Переход хранится у действия ветви перед BEGIN её раскрытого блока.
+    t=>directlyAfterOf() and
+    t->directlyAfterOf=>hasTransition() and
+    t->directlyAfterOf->hasTransition=>hasConstraints() and
+    t->directlyAfterOf->hasTransition->hasConstraints.condition_value != OptionalBool:`null` and
     t->hasAction->derivedFrom.role == "BEGIN" and
     not t->hasAction->belongsTo->derivedFrom.preorder and
     t->hasAction.ast_id != A.ast_id and
