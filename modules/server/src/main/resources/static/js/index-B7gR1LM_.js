@@ -1849,14 +1849,15 @@ var QuestionStore = class {
 		this.setQuestionState("LOADED");
 		if (isLeft(feedbackEither)) {
 			this.setErrorStoreState(feedbackEither.left);
-			return;
+			return false;
 		}
 		this.onAnswerEvaluated(feedbackEither.right);
+		return true;
 	};
 	sendAnswers = async () => {
 		const { question, lastAnswer } = this;
-		if (!question) return;
-		await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
+		if (!question) return false;
+		return await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
 	};
 	onAnswersChanged = async (answer, sendAnswers = true) => {
 		this.answersHistory.push(answer);
@@ -1874,13 +1875,13 @@ var QuestionStore = class {
 		if (prevLastAnswer.length > 0) this.answersHistory.push(prevLastAnswer);
 		if (!sendAnswers) return true;
 		try {
-			await this.sendAnswers();
-			return true;
-		} catch {
-			this.lastAnswer = prevLastAnswer;
-			if (prevLastAnswer.length > 0) this.answersHistory.pop();
-			return false;
+			if (await this.sendAnswers()) return true;
+		} catch (error) {
+			this.setErrorStoreState({ message: error instanceof Error ? error.message : String(error) });
 		}
+		this.lastAnswer = prevLastAnswer;
+		if (prevLastAnswer.length > 0) this.answersHistory.pop();
+		return false;
 	};
 	isAnswerChanged = (newAnswer) => {
 		const { lastAnswer, question } = this;
@@ -3000,7 +3001,7 @@ var Question = observer((props) => {
 		className: "mt-2",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {})
 	});
-	if (!questionData) return null;
+	if (!questionData) return store.storeState.tag === "ERROR" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InlineError, { error: store.storeState.error }) : null;
 	const onChanged = async (newHistory) => {
 		if (await store.setFullAnswer(newHistory)) ParentOnChanged?.(newHistory);
 	};
@@ -3014,7 +3015,7 @@ var Question = observer((props) => {
 		getFeedback,
 		isFeedbackLoading: store.questionState === "ANSWER_EVALUATING",
 		isQuestionFreezed: store.isQuestionFreezed
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Feedback, {
+	}), store.storeState.tag === "ERROR" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InlineError, { error: store.storeState.error }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Feedback, {
 		store,
 		showExtendedFeedback
 	})] });
