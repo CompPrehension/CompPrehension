@@ -16,6 +16,10 @@ import java.util.Optional;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
 
+    static {
+        DecisionTreeReasonerBackend.installDeclensionFixes();
+    }
+
     protected DecisionTreeReasoningDomain(String domainId, RandomProvider randomProvider, DomainStructure structure) {
         super(domainId, randomProvider, structure);
     }

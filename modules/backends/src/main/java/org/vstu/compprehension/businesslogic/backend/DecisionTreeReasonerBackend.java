@@ -69,6 +69,41 @@ public class DecisionTreeReasonerBackend
             ))
     );
 
+    /**
+     * Формы Nom…Pre для лемм, которые не склоняются или склоняются с опечаткой.
+     */
+    private static final Map<String, List<String>> CASE_PARADIGMS = Map.of(
+            "оператор", List.of("оператор", "оператора", "оператору", "оператора", "оператором", "операторе"),
+            "начало", List.of("начало", "начала", "началу", "начало", "началом", "начале"),
+            "конец", List.of("конец", "конца", "концу", "конец", "концом", "конце"),
+            "блок", List.of("блок", "блока", "блоку", "блок", "блоком", "блоке")
+    );
+
+    /** Ошибочная форма Padeg → лемма из {@link #CASE_PARADIGMS}. */
+    private static final Map<String, String> CASE_MISTAKES = Map.ofEntries(
+            Map.entry("операто", "оператор"),
+            Map.entry("конеца", "конец"),
+            Map.entry("конецу", "конец"),
+            Map.entry("конецом", "конец"),
+            Map.entry("конеце", "конец"),
+            Map.entry("блка", "блок"),
+            Map.entry("блку", "блок"),
+            Map.entry("блком", "блок"),
+            Map.entry("блке", "блок")
+    );
+
+    /** Замены без падежа: английская лемма и запасной путь для «операто». */
+    private static final Map<String, String> SPELLING_FIXES = Map.of(
+            "операто", "оператор",
+            "operato", "operator"
+    );
+
+    /** Словари читает склонение внутри шаблона, поэтому их задают до первой шаблонизации. */
+    public static void installDeclensionFixes() {
+        TemplatingUtils.setCaseOverrides(CASE_PARADIGMS, CASE_MISTAKES);
+        TemplatingUtils.setSpellingFixes(SPELLING_FIXES);
+    }
+
     @NotNull
     @Override
     public String getBackendId() {
@@ -369,18 +404,7 @@ public class DecisionTreeReasonerBackend
             Object meta = dt.getMainBranch().getMetadata().get(localizationCode,
                     (type == Explanation.Type.HINT ? "hint" : "error") + "_prefix");
             String rawPrefix = meta != null ? meta.toString() : "";
-            String expanded = TemplatingUtils.interpret(rawPrefix, situation, localizationCode, Map.of());
-            {
-                if (expanded.contains("операто ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("операто ", "оператор ");
-                }
-                if (expanded.contains("operato ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("operato ", "operator ");
-                }
-            }
-            return expanded;
+            return TemplatingUtils.interpret(rawPrefix, situation, localizationCode, Map.of());
         }
 
         static boolean isCorrectAnswer(@NotNull DecisionTreeTrace trace) {
@@ -399,16 +423,6 @@ public class DecisionTreeReasonerBackend
             String prefix = getCommonExplanationPrefix(learningSituation, resultNode.getDecisionTree(), type, localizationCode);
             String explanationTemplate = explanation == null ? "WRONG" : prefix.concat(explanation.toString());
             String expanded = TemplatingUtils.interpret(explanationTemplate, learningSituation, localizationCode, Map.of());
-            {
-                if (expanded.contains("операто ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("операто ", "оператор ");
-                }
-                if (expanded.contains("operato ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("operato ", "operator ");
-                }
-            }
             Explanation expl = new Explanation(type, expanded);
             if (resultNode.getMetadata().containsAny("skill")) {
                 String skillName = resultNode.getMetadata().getString("skill");
