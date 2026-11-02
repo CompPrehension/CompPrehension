@@ -9,6 +9,7 @@ import its.model.definition.DomainModel;
 import its.model.nodes.*;
 import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
+import its.reasoner.ReasoningException;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
@@ -344,6 +345,16 @@ public class DecisionTreeReasonerBackend
             result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
             result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
+                if (Boolean.TRUE.equals(res.getNode().getMetadata().get("exception"))) {
+                    var message = "Reasoning failed for question (metadata id: %d): exception %s"
+                            .formatted(judgedQuestion.getContent().getMetadata().getId(),
+                                    res.getNode().getMetadata().get("exceptionName"));
+                    var line = res.getNode().getMetadata().get("line");
+                    if (line != null) {
+                        message += " [line=" + line + "]";
+                    }
+                    throw new ReasoningException(message);
+                }
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
                         res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
                 String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
@@ -368,6 +379,10 @@ public class DecisionTreeReasonerBackend
                         })
                         .collect(Collectors.toList());
                 result.violations = mistakes;
+                if (mistakes.isEmpty()) {
+                    throw new ReasoningException("Rejected answer has no diagnosed violation for question "
+                            + judgedQuestion.getContent().getQuestionName());
+                }
             } else {
                 result.violations = List.of();
             }

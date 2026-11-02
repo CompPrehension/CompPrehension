@@ -371,8 +371,8 @@ class ControlFlowDTDomainJudgeTest {
 
     /** Сбой графа не превращается в засчитанный ответ без нарушений. */
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void reasoningFailureDoesNotProduceAcceptedAnswer(boolean markedException) {
+    @CsvSource({"true, true", "true, false", "false, false"})
+    void reasoningFailureDoesNotProduceAcceptedAnswer(boolean markedException, boolean withLine) {
         // Arrange.
         var isolatedDomain = new ControlFlowDTDomain(new DomainFixtures.SeededRandomProvider(),
                 new DomainFixtures.BundleLocalizationService("domains/control-flow"), null);
@@ -380,6 +380,9 @@ class ControlFlowDTDomainJudgeTest {
         if (markedException) {
             outcome.getMetadata().add("exception", true);
             outcome.getMetadata().add("exceptionName", "MissingConditionValue");
+        }
+        if (withLine) {
+            outcome.getMetadata().add("line", 42);
         }
         isolatedDomain.getDomainSolvingModels().getFirst().getDecisionTrees()
                 .put("", new DecisionTree(List.of(), List.of(), new ThoughtBranch(outcome)));
@@ -389,8 +392,14 @@ class ControlFlowDTDomainJudgeTest {
         // Act & Assert.
         var failure = assertThrows(ReasoningException.class,
                 () -> isolatedDomain.judgeQuestion(question, given, List.of(), Language.RUSSIAN));
-        assertTrue(failure.getMessage().contains(question.getContent().getQuestionName()));
+        assertTrue(failure.getMessage().contains(markedException
+                ? "metadata id: " + question.getContent().getMetadata().getId()
+                : question.getContent().getQuestionName()));
         assertTrue(failure.getMessage().contains(markedException ? "MissingConditionValue" : "no diagnosed violation"));
+        assertEquals(withLine, failure.getMessage().contains(" [line="));
+        if (withLine) {
+            assertTrue(failure.getMessage().contains("[line=42]"));
+        }
         assertTrue(question.getContent().getSolutionFacts().isEmpty());
         assertTrue(question.getInteractions().isEmpty());
     }
