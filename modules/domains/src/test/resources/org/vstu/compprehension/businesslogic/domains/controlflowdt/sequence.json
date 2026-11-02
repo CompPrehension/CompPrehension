@@ -422,6 +422,13 @@
         {
           "subjectType": "",
           "subject": "action_BEGIN",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "program"
@@ -492,6 +499,13 @@
         {
           "subjectType": "",
           "subject": "action_END",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "program"
@@ -555,6 +569,13 @@
         {
           "subjectType": "",
           "subject": "action_first",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "auto"
@@ -591,6 +612,13 @@
           "subjectType": "",
           "subject": "action_next",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },

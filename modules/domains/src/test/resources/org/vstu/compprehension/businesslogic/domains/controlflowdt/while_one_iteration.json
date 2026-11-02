@@ -464,6 +464,13 @@
         {
           "subjectType": "",
           "subject": "action_BEGIN",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "program"
@@ -534,6 +541,13 @@
         {
           "subjectType": "",
           "subject": "action_BEGIN_2",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_2",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "BEGIN"
@@ -586,6 +600,13 @@
           "verb": "is_opaque",
           "objectType": "xsd:boolean",
           "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_3",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
         },
         {
           "subjectType": "",
@@ -646,6 +667,13 @@
         {
           "subjectType": "",
           "subject": "action_BEGIN_4",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_BEGIN_4",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "BEGIN"
@@ -698,6 +726,13 @@
           "verb": "is_opaque",
           "objectType": "xsd:boolean",
           "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
         },
         {
           "subjectType": "",
@@ -772,6 +807,13 @@
         {
           "subjectType": "",
           "subject": "action_END_2",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_2",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "END"
@@ -824,6 +866,13 @@
           "verb": "is_opaque",
           "objectType": "xsd:boolean",
           "object": "false"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_3",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
         },
         {
           "subjectType": "",
@@ -884,6 +933,13 @@
         {
           "subjectType": "",
           "subject": "action_END_4",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_END_4",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "END"
@@ -933,6 +989,13 @@
         {
           "subjectType": "",
           "subject": "action_body",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_body",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "compound"
@@ -976,6 +1039,13 @@
           "subjectType": "",
           "subject": "action_cond",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_cond",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },
@@ -1038,6 +1108,13 @@
         {
           "subjectType": "",
           "subject": "action_else",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_else",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "compound"
@@ -1074,6 +1151,13 @@
           "subjectType": "",
           "subject": "action_else_branch",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_else_branch",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },
@@ -1122,6 +1206,13 @@
         {
           "subjectType": "",
           "subject": "action_first",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "auto"
@@ -1158,6 +1249,13 @@
           "subjectType": "",
           "subject": "action_first_2",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_2",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },
@@ -1214,6 +1312,13 @@
           "subjectType": "",
           "subject": "action_first_cond",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_first_cond",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },
@@ -1283,6 +1388,13 @@
         {
           "subjectType": "",
           "subject": "action_if_branch",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_if_branch",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "compound"
@@ -1325,6 +1437,13 @@
         {
           "subjectType": "",
           "subject": "action_next",
+          "verb": "strict_order",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next",
           "verb": "kind",
           "objectType": "xsd:string",
           "object": "auto"
@@ -1361,6 +1480,13 @@
           "subjectType": "",
           "subject": "action_next_2",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_2",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },
@@ -1417,6 +1543,13 @@
           "subjectType": "",
           "subject": "action_next_cond",
           "verb": "is_opaque",
+          "objectType": "xsd:boolean",
+          "object": "true"
+        },
+        {
+          "subjectType": "",
+          "subject": "action_next_cond",
+          "verb": "strict_order",
           "objectType": "xsd:boolean",
           "object": "true"
         },

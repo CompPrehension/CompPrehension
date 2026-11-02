@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains.controlflowdt;
 
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures.BundleLocalizationService;
@@ -88,9 +89,26 @@ final class ControlFlowDtDomainFixture {
                     "global_statements_structure_action_next_ast57"),
             Set.of("if_structure_action_first_cond_ast8"));
 
+    static final @NotNull BankQuestion RECURSION_RANGE_SUM = new BankQuestion("recursion_range_sum",
+            List.of("global_statements_structure_action_first_ast59", "global_statements_structure_action_next_ast72",
+                    "func_call_structure_action_BEGIN_ast86", "if_structure_action_first_cond_ast12",
+                    "func_call_structure_action_BEGIN_ast32", "if_structure_action_first_cond_ast12",
+                    "func_call_structure_action_BEGIN_ast32", "if_structure_action_first_cond_ast12",
+                    "func_call_structure_action_BEGIN_ast32", "if_structure_action_first_cond_ast12",
+                    "block_structure_action_first_ast14",
+                    "func_call_structure_action_END_ast32,semantic_value_action_32_32_END_0",
+                    "block_structure_action_next_ast36", "block_structure_action_next_ast47",
+                    "func_call_structure_action_END_ast32,semantic_value_action_32_32_END_1",
+                    "block_structure_action_next_ast36", "block_structure_action_next_ast47",
+                    "func_call_structure_action_END_ast32,semantic_value_action_32_32_END_2",
+                    "block_structure_action_next_ast36", "block_structure_action_next_ast47",
+                    "func_call_structure_action_END_ast86,semantic_value_action_86_86_END_0",
+                    "global_statements_structure_action_next_ast90", "global_statements_structure_action_next_ast104"),
+            Set.of("if_structure_action_first_cond_ast12"));
+
     static final List<BankQuestion> BANK = List.of(
             SEQUENCE, WHILE_NOT_ENTERED, IF_ELIF, IF_THEN, WHILE_ONE_ITERATION, BREAK_IN_FOR,
-            NESTED_CALLS, RECURSION_FACTORIAL);
+            NESTED_CALLS, RECURSION_FACTORIAL, RECURSION_RANGE_SUM);
 
     private static final String BANK_LOCATION = "org/vstu/compprehension/businesslogic/domains/controlflowdt/";
     static final List<String> BUNDLES = List.of("domains/control-flow");

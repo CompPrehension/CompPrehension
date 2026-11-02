@@ -1,9 +1,17 @@
 package org.vstu.compprehension.businesslogic.domains.controlflowdt;
 
+import its.model.nodes.BranchResult;
+import its.model.nodes.BranchResultNode;
+import its.model.nodes.DecisionTree;
+import its.model.nodes.ThoughtBranch;
+import its.reasoner.ReasoningException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.vstu.compprehension.businesslogic.HyperText;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BankQuestion;
@@ -35,6 +43,7 @@ import static org.vstu.compprehension.businesslogic.domains.controlflowdt.Contro
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.IF_THEN;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.NESTED_CALLS;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.RECURSION_FACTORIAL;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.RECURSION_RANGE_SUM;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.SEQUENCE;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_NOT_ENTERED;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_ONE_ITERATION;
@@ -327,6 +336,64 @@ class ControlFlowDTDomainJudgeTest {
     }
 
     // ---- сохранённое решение ----
+
+    /** Преждевременный return отклоняется, а следующий верный шаг продолжает ту же трассу. */
+    @ParameterizedTest
+    @CsvSource({"3,false", "3,true", "5,false", "5,true"})
+    void prematureReturnDoesNotCorruptFunctionTrace(int acceptedSteps, boolean savedSolution) {
+        // Arrange.
+        var question = bankQuestion(RECURSION_RANGE_SUM);
+        var accepted = trace(question, RECURSION_RANGE_SUM, acceptedSteps);
+        if (savedSolution) {
+            question = withSolution(question, judge(question, accepted).updatedSolutionFacts);
+        }
+        question = withCorrectSteps(question, accepted, RECURSION_RANGE_SUM);
+        var given = withMistake(question, RECURSION_RANGE_SUM, acceptedSteps, "block_structure_action_next_ast47");
+
+        // Act.
+        var rejected = judge(question, given);
+        var afterMistake = question.withInteraction(interaction(acceptedSteps + 1L, given, rejected.violations, rejected.IterationsLeft));
+        var displayedTrace = texts(domain().getFullSolutionTrace(afterMistake, Language.RUSSIAN));
+        var continued = judge(afterMistake, trace(question, RECURSION_RANGE_SUM, acceptedSteps + 1));
+
+        // Assert.
+        assertFalse(rejected.isAnswerCorrect);
+        assertTrue(lawNames(rejected.violations).contains("inner_construct_finished_before_next"));
+        assertFalse(rejected.explanation.toHyperText(Language.RUSSIAN).getText().isBlank());
+        assertNull(rejected.updatedSolutionFacts);
+        assertEquals(acceptedSteps, afterMistake.findLatestCorrectAnswers().size());
+        assertEquals(acceptedSteps + 1, displayedTrace.size());
+        assertTrue(displayedTrace.getLast().startsWith("<span class=\"warning\">"));
+        assertTrue(continued.isAnswerCorrect);
+        assertEquals(answerIds(trace(question, RECURSION_RANGE_SUM, acceptedSteps + 1)),
+                solutionKey(continued.updatedSolutionFacts));
+    }
+
+    /** Сбой графа не превращается в засчитанный ответ без нарушений. */
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void reasoningFailureDoesNotProduceAcceptedAnswer(boolean markedException) {
+        // Arrange.
+        var isolatedDomain = new ControlFlowDTDomain(new DomainFixtures.SeededRandomProvider(),
+                new DomainFixtures.BundleLocalizationService("domains/control-flow"), null);
+        var outcome = new BranchResultNode(BranchResult.ERROR, null);
+        if (markedException) {
+            outcome.getMetadata().add("exception", true);
+            outcome.getMetadata().add("exceptionName", "MissingConditionValue");
+        }
+        isolatedDomain.getDomainSolvingModels().getFirst().getDecisionTrees()
+                .put("", new DecisionTree(List.of(), List.of(), new ThoughtBranch(outcome)));
+        var question = bankQuestion(SEQUENCE);
+        var given = answers(action(question, SEQUENCE.action(0)));
+
+        // Act & Assert.
+        var failure = assertThrows(ReasoningException.class,
+                () -> isolatedDomain.judgeQuestion(question, given, List.of(), Language.RUSSIAN));
+        assertTrue(failure.getMessage().contains(question.getContent().getQuestionName()));
+        assertTrue(failure.getMessage().contains(markedException ? "MissingConditionValue" : "no diagnosed violation"));
+        assertTrue(question.getContent().getSolutionFacts().isEmpty());
+        assertTrue(question.getInteractions().isEmpty());
+    }
 
     /** Засчитанный ответ сохраняет решение с ответами, по которым оно построено; незасчитанный решение не меняет. */
     @Test
