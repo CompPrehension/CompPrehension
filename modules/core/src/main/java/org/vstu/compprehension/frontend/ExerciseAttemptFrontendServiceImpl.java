@@ -120,7 +120,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val violations = judgeResult.violations.stream()
                 .map(v -> new AnswerFeedbackData.Law(v.getLawName(), domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())))
                 .toList();
-        Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
+        Collection<Explanation> explanationSource = judgeResult.isAnswerCorrect ? List.of()
+                : judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
         val errors = explanationSource.stream().map(e -> Pair.of(
                 violations.stream().filter(v -> e.getDomainLawNames().contains(v.name())).toList(),
                 e.toHyperText(locale).getText())).toList();
@@ -196,7 +197,6 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
         val correctAnswer = domain.getAnyNextCorrectAnswer(question, language);
-        muteDeniedExplanations(correctAnswer.explanation, context);
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
@@ -224,7 +224,10 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         // build feedback message
         val locale = questionLanguage(context);
-        val messages = correctAnswer.explanation.getChildren().stream()
+        val explanation = correctAnswer.explanation.isEmpty() && judgeResult.isAnswerCorrect
+                ? judgeResult.explanation : correctAnswer.explanation;
+        muteDeniedExplanations(explanation, context);
+        val messages = explanation.getChildren().stream()
                 .map(e -> AnswerFeedbackData.Message.success(e.toHyperText(locale).getText(),
                         e.getDomainLawNames().stream().map(law -> new AnswerFeedbackData.Law(law, false)).toList()))
                 .toList();
