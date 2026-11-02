@@ -1,6 +1,6 @@
-// Проверка выбранного студентом действия по уже построенной части трассы.
-// Диаграмма в нотации TPG: ../docs/diagrams/check-tpg.drawio
-// Основная идея и алгоритм с контекстом проверок и ограничений, правилами оформления пояснений для студента: ../docs/check_graph_idea.md
+// Проверка выбранного студентом действия по уже построенной части трассы из репозитория github.com/2pizzaed/render-meaning-tree
+// Диаграмма в нотации TPG в этом репозитории: docs/diagrams/check-tpg.drawio
+// Основная идея и алгоритм с контекстом проверок и ограничений, правилами оформления пояснений для студента в репозитории: docs/check_graph_idea.md
 // Метки «Декомпозиция, п. N» относятся к разделу процедур этого документа.
 
 // Общие с графом поиска следующего действия лямбды привязаны к своему объявлению tpg.
@@ -413,7 +413,11 @@ fragment commitCorrectAction() {
                 $t->hasTransition=>hasConstraints() and
                 $t->hasTransition->hasConstraints.condition_value != OptionalBool:`null`
             }) out false else {
-                conclude: correct [ skill = "condition_value_selects_next" ; ];
+                conclude: correct [
+                    skill = "condition_value_selects_next" ;
+                    RU.explanation = "Значение условия определяет дальнейший ход выполнения. Выбранное действие соответствует этому значению." ;
+                    EN.explanation = "The condition's value determines how execution continues. The selected action follows the continuation chosen by that value." ;
+                ];
             };
             conclude: correct;
         };
@@ -421,13 +425,21 @@ fragment commitCorrectAction() {
             ask (S.interruption_mode != InterruptionType:none or forAny TraceAct t {
                 $t=>afterOf(P0) and isInterruptionExit($t)
             }) out false else {
-                conclude: correct [ skill = "interruption_exits_constructs" ; ];
+                conclude: correct [
+                    skill = "interruption_exits_constructs" ;
+                    RU.explanation = "После прерывания оставшиеся действия в покидаемых конструкциях пропускаются. Выбранное действие учитывает этот выход." ;
+                    EN.explanation = "After an interruption, the remaining actions in the constructs being exited are skipped. The selected action respects this exit." ;
+                ];
             };
             conclude: correct;
         };
         creditRepeat -> {
             ask (forAny TraceAct t { $t->hasAction == A }) out false else {
-                conclude: correct [ skill = "passed_action_repeat" ; ];
+                conclude: correct [
+                    skill = "passed_action_repeat" ;
+                    RU.explanation = "Действие повторяется, когда выполнение снова доходит до него. Сейчас порядок выполнения допускает повтор ${A}[case='р']." ;
+                    EN.explanation = "An action repeats when execution reaches it again. The execution order now allows the ${A} to repeat." ;
+                ];
             };
             conclude: correct;
         };
@@ -437,7 +449,11 @@ fragment commitCorrectAction() {
                 $t->hasAction->derivedFrom.role == "BEGIN" and
                 $t->hasAction->belongsTo->derivedFrom.name == "func_def_structure"
             }) out false else {
-                conclude: correct [ skill = "function_body_runs_on_call" ; ];
+                conclude: correct [
+                    skill = "function_body_runs_on_call" ;
+                    RU.explanation = "Тело функции выполняется только после вызова. Начавшийся вызов требует входа в её тело." ;
+                    EN.explanation = "A function body runs only after a call. The call has started, so execution enters its body." ;
+                ];
             };
             conclude: correct;
         };
@@ -447,14 +463,22 @@ fragment commitCorrectAction() {
                 $t->hasAction->derivedFrom.role == "END" and
                 $t->hasAction->belongsTo->derivedFrom.name == "func_def_structure"
             }) out false else {
-                conclude: correct [ skill = "function_not_resumed_after_exit" ; ];
+                conclude: correct [
+                    skill = "function_not_resumed_after_exit" ;
+                    RU.explanation = "После завершения вызова выполнение продолжается вне его тела. Этот вызов уже завершён." ;
+                    EN.explanation = "After a call finishes, execution continues outside its body. This call has already finished." ;
+                ];
             };
             conclude: correct;
         };
         creditCallReturn -> {
             // Шаг 6 уже сверил выбранное значение с текущим выполнением A.
             ask (V != obj:NoValue) out false else {
-                conclude: correct [ skill = "call_return_matches_activation" ; ];
+                conclude: correct [
+                    skill = "call_return_matches_activation" ;
+                    RU.explanation = "Вызов завершается после вызовов, начатых внутри него. Для ${V}[case='р'] они уже завершились, поэтому сейчас можно вернуться из выбранного вызова." ;
+                    EN.explanation = "A call finishes after the calls started inside it. Those calls have finished for the ${V}, so execution can now return from the selected call." ;
+                ];
             };
             conclude: correct;
         };
@@ -722,11 +746,19 @@ fragment checkLevel(C: ConcreteConstruct) {
     ask (Dp == Da) out false else {
         // Выбран вход в саму конструкцию, а предыдущее действие ещё вне неё — уровень пройден.
         ask (A == Dp and A->derivedFrom.role == "BEGIN" and not hasContainingAction(P->hasAction, C)) out false else {
-            conclude: correct [ skill = "construct_entered_before_inner" ; ];
+            conclude: correct [
+                skill = "construct_entered_before_inner" ;
+                RU.explanation = "Перед выполнением вложенных действий нужно войти в ${C}, поэтому сейчас выполняется ${A}." ;
+                EN.explanation = "The ${C} must be entered before its nested actions can run, so the ${A} is executed now." ;
+            ];
         };
         // Раскрытая конструкция только что завершилась — настала очередь отложенного действия.
         ask (A == Dp and isPendingUnfoldAction(A)) out false else {
-            conclude: correct [ skill = "inner_construct_finished_before_next" ; ];
+            conclude: correct [
+                skill = "inner_construct_finished_before_next" ;
+                RU.explanation = "Вложенные действия выполняются раньше ${A}[case='р']. Они завершены, поэтому теперь выполняется выбранное действие." ;
+                EN.explanation = "Nested actions run before the ${A}. They have finished, so the selected action is executed now." ;
+            ];
         };
         ask (A == Dp) out false else {
             // Повтор текущего действия; автоматический уход уже исключён уточнением ошибки.
@@ -947,7 +979,11 @@ fragment checkLevel(C: ConcreteConstruct) {
             };
             // Засчитываем умение, определившее переход: прерывание, значение условия или порядок.
             ask (S.interruption_mode != InterruptionType:none) out false else {
-                conclude: correct [ skill = "interruption_exits_constructs" ; ];
+                conclude: correct [
+                    skill = "interruption_exits_constructs" ;
+                    RU.explanation = "После прерывания оставшиеся действия в покидаемых конструкциях пропускаются, поэтому сейчас выполняется ${A}." ;
+                    EN.explanation = "After an interruption, the remaining actions in the constructs being exited are skipped, so the ${A} is executed now." ;
+                ];
             };
             ask (hasConditionValue(Dp) and forAny TransitionSpec t {
                 transitionLeads($t, Dp, Da, C) and
@@ -956,9 +992,17 @@ fragment checkLevel(C: ConcreteConstruct) {
                 $t=>hasConstraints() and
                 $t->hasConstraints.condition_value != OptionalBool:`null`
             }) out false else {
-                conclude: correct [ skill = "condition_value_selects_next" ; ];
+                conclude: correct [
+                    skill = "condition_value_selects_next" ;
+                    RU.explanation = "Дальнейший ход выполнения определяется значением условия. При текущем значении ${Dp}[case='р'] выполняется выбранное продолжение." ;
+                    EN.explanation = "The condition's value determines how execution continues. The current value of the ${Dp} selects the chosen continuation." ;
+                ];
             };
-            conclude: correct [ skill = "actions_in_order" ; ];
+            conclude: correct [
+                skill = "actions_in_order" ;
+                RU.explanation = "Действия внутри ${C}[case='р'] выполняются по порядку. Выбранное действие этот порядок соблюдает." ;
+                EN.explanation = "Actions inside the ${C} are executed in order. The selected action follows this order." ;
+            ];
         };
         dpConstructFinished -> {
             // 5.2.3: предыдущая конструкция — раскрытая предыдущей ролью — должна быть завершена.
@@ -1001,7 +1045,13 @@ fragment checkLevel(C: ConcreteConstruct) {
                         };
                     };
                     ask (unfoldedConstructFinished(Dcc, DpAct)) {
-                        true -> { conclude: correct [ skill = "inner_construct_finished_before_next" ; ]; }
+                        true -> {
+                            conclude: correct [
+                                skill = "inner_construct_finished_before_next" ;
+                                RU.explanation = "Перед продолжением должна завершиться вложенная конструкция. Выполнение ${Dcc}[case='р'] уже закончилось." ;
+                                EN.explanation = "The nested construct must finish before execution can continue. The ${Dcc} has already finished." ;
+                            ];
+                        }
                         false -> {
                             conclude: error [
                                 skill = "inner_construct_finished_before_next" ;
