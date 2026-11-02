@@ -309,6 +309,19 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
+        public @NotNull InterpretSentenceResult interpretJudgeOutput(@NotNull QuestionData judgedQuestion,
+                                                                    @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                                                    @NotNull Language language) {
+            var result = DecisionTreeReasonerBackend.Interface.super.interpretJudgeOutput(judgedQuestion, backendOutput, language);
+            if (result.isAnswerCorrect) {
+                result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+                        Explanation.Type.HINT, backendOutput.results(), backendOutput.situation().getDomainModel(),
+                        getDomain(), language);
+            }
+            return result;
+        }
+
+        @Override
         public InterpretSentenceResult interpretJudgeNotPerformed(QuestionData judgedQuestion, LearningSituation preparedSituation, Language language) {
             return null;
         }
