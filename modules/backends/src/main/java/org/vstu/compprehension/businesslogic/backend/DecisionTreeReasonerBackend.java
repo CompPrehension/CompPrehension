@@ -187,7 +187,11 @@ public class DecisionTreeReasonerBackend
                 domainModel, annotationProcessor, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
-            result.setRawMessage(new HyperText(prefix.trim().concat(":")));
+            String header = prefix.trim();
+            if (header.endsWith(",")) {
+                header = header.substring(0, header.length() - 1);
+            }
+            result.setRawMessage(new HyperText(header.concat(":")));
         }
         // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
         if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
