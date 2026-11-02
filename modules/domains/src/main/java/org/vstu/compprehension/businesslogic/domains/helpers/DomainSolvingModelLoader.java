@@ -7,6 +7,7 @@ import its.model.definition.loqi.DomainLoqiBuilder;
 import its.model.definition.loqi.TreeLoqiBuilder;
 import its.model.nodes.DecisionTree;
 import its.model.nodes.xml.DecisionTreeXMLBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,9 +30,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class DomainSolvingModelLoader {
+    private static final boolean DEBUG_ENABLED = isDebugEnabled();
     private static final Pattern TAG_FILE = Pattern.compile("tag_(\\S+)\\.loqi");
     private static final Pattern TREE_XML_FILE = Pattern.compile("tree(_\\S+|)\\.xml");
     private static final Pattern TREE_LOQI_FILE = Pattern.compile("tree(_\\S+|)\\.loqi");
+    private static final Pattern TPG_FILE = Pattern.compile("(\\S+)\\.tpg");
+    private static final String MAIN_TPG_NAME = "main";
 
     private DomainSolvingModelLoader() {
     }
@@ -46,12 +50,20 @@ public final class DomainSolvingModelLoader {
         return new DomainSolvingModel(domainModel, tags, collectTrees(directory, fileNames));
     }
 
-    public static DomainSolvingModel loadFromClasspath(ClassLoader classLoader, String directory, DomainSolvingModel.BuildMethod buildMethod) {
+    public static @NotNull DomainSolvingModel loadFromClasspath(@NotNull ClassLoader classLoader, @NotNull String directory,
+                                                               @NotNull DomainSolvingModel.BuildMethod buildMethod,
+                                                               boolean validate) {
         var directoryUrl = classLoader.getResource(directory);
         if (directoryUrl == null) {
             throw new IllegalStateException("Domain model directory '" + directory + "' is not found in classpath");
         }
-        return load(directoryUrl, buildMethod);
+        var model = load(directoryUrl, buildMethod);
+        return validate ? model.validate(DEBUG_ENABLED) : model;
+    }
+
+    private static boolean isDebugEnabled() {
+        var value = Objects.requireNonNullElse(System.getenv("TPG_DEBUG"), "").strip();
+        return "true".equalsIgnoreCase(value) || "1".equals(value);
     }
 
     private static Map<String, DomainModel> collectTags(URL directory, List<String> fileNames) {
@@ -81,6 +93,11 @@ public final class DomainSolvingModelLoader {
             var loqiMatch = TREE_LOQI_FILE.matcher(fileName);
             if (loqiMatch.matches()) {
                 trees.put(treeName(loqiMatch), readLoqiTree(directory, fileName));
+                continue;
+            }
+            var tpgMatch = TPG_FILE.matcher(fileName);
+            if (tpgMatch.matches()) {
+                trees.put(tpgName(tpgMatch), readLoqiTree(directory, fileName));
             }
         }
         return trees;
@@ -104,7 +121,7 @@ public final class DomainSolvingModelLoader {
     private static DecisionTree readLoqiTree(URL directory, String fileName) {
         var file = child(directory, fileName);
         try (Reader reader = openReader(file)) {
-            return TreeLoqiBuilder.buildTree(reader);
+            return TreeLoqiBuilder.buildTree(reader, DEBUG_ENABLED);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot read decision tree file '" + fileName + "' from " + directory, e);
         }
@@ -113,6 +130,11 @@ public final class DomainSolvingModelLoader {
     private static String treeName(Matcher match) {
         var name = match.group(1);
         return name.startsWith("_") ? name.substring(1) : name;
+    }
+
+    private static String tpgName(Matcher match) {
+        var name = match.group(1);
+        return name.equals(MAIN_TPG_NAME) ? "" : name;
     }
 
     private static List<String> listFileNames(URL directory) {

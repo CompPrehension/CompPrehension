@@ -30,14 +30,14 @@ class ControlFlowDTDomainLocalizationTest extends DecisionTreeDomainLocalization
         return key.endsWith(".he") || key.endsWith(".she") || key.endsWith("_program");
     }
 
-    /** Загружается единственное дерево домена. */
+    /** Загружаются графы проверки ответа и поиска правильного шага. */
     @Test
-    void decisionTreeIsLoaded() {
+    void checkAndFindCorrectGraphsAreLoaded() {
         // Act.
         var trees = domain().getDomainSolvingModels().getFirst().getDecisionTrees();
 
         // Assert.
-        assertEquals(1, trees.size(), trees.keySet().toString());
+        assertEquals(Set.of("", "findCorrect"), trees.keySet());
         assertTrue(decisionTreeElements().size() > 50);
     }
 

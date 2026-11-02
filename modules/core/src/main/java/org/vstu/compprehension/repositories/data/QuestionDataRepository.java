@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
@@ -75,6 +76,11 @@ public class QuestionDataRepository {
     @Transactional(readOnly = true)
     public @NotNull Optional<Long> findOwnerUserId(long questionId) {
         return questionRepository.findOwnerUserId(questionId);
+    }
+
+    @Transactional
+    public void saveSolutionFacts(long questionId, @NotNull List<BackendFactData> solutionFacts) {
+        questionRepository.updateSolutionFacts(questionId, solutionFacts);
     }
 
     @Transactional

@@ -18,8 +18,8 @@ import static org.vstu.compprehension.businesslogic.domains.controlflowdt.Contro
 
 class ControlFlowDTDomainStructureTest extends DecisionTreeDomainStructureContract {
 
-    private static final String CONDITION_SKILL = "required_condition_value_determined";
-    private static final String DEBUG_SKILL = "unknown_incorrect";
+    private static final String CONDITION_SKILL = "condition_value_selects_next";
+    private static final String COMPLETION_MARKER = "everything_evaluated";
     private static final String LOOPS_CONCEPT = "loops";
     private static final String WHILE_CONCEPT = "while_loop";
     private static final String RANGE_FOR_CONCEPT = "range_for_loop";
@@ -39,21 +39,21 @@ class ControlFlowDTDomainStructureTest extends DecisionTreeDomainStructureContra
         assertFalse(domain().requiresSolving());
     }
 
-    /** Умения преподавателю видны, отладочные — нет. */
+    /** Умения преподавателю видны, метка завершения программы — нет. */
     @Test
-    void teacherSeesLearningSkillsButNotDebugOnes() {
+    void teacherSeesLearningSkillsButNotCompletionMarker() {
         // Act.
         var teacherSkills = domain().getSkillSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER).keySet();
         var condition = domain().getSkill(CONDITION_SKILL);
-        var debug = domain().getSkill(DEBUG_SKILL);
+        var completion = domain().getSkill(COMPLETION_MARKER);
 
         // Assert.
-        assertEquals(20, teacherSkills.size());
+        assertEquals(13, teacherSkills.size());
         assertNotNull(condition);
         assertTrue(teacherSkills.contains(condition));
-        assertNotNull(debug);
-        assertFalse(teacherSkills.contains(debug));
-        assertTrue(debug.getBitmask() != 0);
+        assertNotNull(completion);
+        assertFalse(teacherSkills.contains(completion));
+        assertTrue(completion.getBitmask() != 0);
     }
 
     /** Концепты образуют иерархию конструкций языка. */

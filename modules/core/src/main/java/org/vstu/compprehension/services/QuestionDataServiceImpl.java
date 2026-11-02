@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.QuestionContentData;
@@ -188,5 +189,9 @@ class QuestionDataServiceImpl implements QuestionDataService {
                                               @Nullable QuestionRequestLogData questionRequestLog,
                                               @Nullable Long exerciseAttemptId) {
         return questionDataRepository.save(question, questionRequestLog, exerciseAttemptId);
+    }
+
+    public void saveSolutionFacts(long questionId, @NotNull List<BackendFactData> solutionFacts) {
+        questionDataRepository.saveSolutionFacts(questionId, solutionFacts);
     }
 }

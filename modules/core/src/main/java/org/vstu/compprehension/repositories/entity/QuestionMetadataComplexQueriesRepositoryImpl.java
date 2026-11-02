@@ -58,6 +58,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var query = entityManager.createNativeQuery(
                 "select count(*) as number from questions_meta q where " +
                     "q.domain_shortname = :domainShortname " +
+                    "AND (:questionVersion IS NULL OR q._version = :questionVersion) " +
                     "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
                     "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
                     "AND q.concept_bits & :deniedConceptBits = 0 " +
@@ -72,6 +73,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                     "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
+                .setParameter("questionVersion", qr.getQuestionVersion())
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
                 .setParameter("deniedConceptBits", deniedConceptBits)
@@ -120,6 +122,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var query = entityManager.createNativeQuery(
                         "select count(*) from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
+                                "AND (:questionVersion IS NULL OR q._version = :questionVersion) " +
                                 "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
                                 "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
                                 "AND q.concept_bits & :deniedConceptBits = 0 " +
@@ -135,6 +138,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
                                 "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id AND exercise_attempt_id IS NOT NULL) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
+                .setParameter("questionVersion", qr.getQuestionVersion())
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
                 .setParameter("deniedConceptBits", deniedConceptBits)
@@ -221,6 +225,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
+                                "AND (:questionVersion IS NULL OR q._version = :questionVersion) " +
                                 "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
                                 "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
                                 "AND q.concept_bits & :deniedConceptBits = 0 " +
@@ -255,6 +260,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "limit :lim "
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
+                .setParameter("questionVersion", qr.getQuestionVersion())
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
                 .setParameter("deniedConceptBits", deniedConceptBits)
@@ -311,6 +317,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
+                                "AND (:questionVersion IS NULL OR q._version = :questionVersion) " +
                                 "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
                                 "AND q.integral_complexity <= :complexity + :complWindow " +
                                 "AND q.concept_bits & :deniedConceptBits = 0 " +
@@ -340,6 +347,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "limit :lim "
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
+                .setParameter("questionVersion", qr.getQuestionVersion())
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
                 .setParameter("deniedConceptBits", deniedConceptBits)
@@ -397,6 +405,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
+                                "AND (:questionVersion IS NULL OR q._version = :questionVersion) " +
                                 "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
 
                                 "order by " +
@@ -424,6 +433,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "limit :lim "
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
+                .setParameter("questionVersion", qr.getQuestionVersion())
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
                 .setParameter("deniedConceptBits", deniedConceptBits)

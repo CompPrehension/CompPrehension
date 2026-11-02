@@ -19,11 +19,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BANK;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.PLAY;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.QUESTION;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.SEQUENCE;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.STEP_INTO;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.STEP_OUT;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.bankRecord;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.domain;
 
@@ -31,8 +34,11 @@ class ControlFlowDTDomainQuestionTest {
 
     private static final String ORDER_ACTS = "OrderActs";
     private static final String ACTION_CONCEPT = "action";
-    private static final String LOQI_FACT = "hasLoqi";
     private static final String PYTHON_TAG = "python";
+    private static final String CONCRETE_ACTION_CLASS = "ConcreteAction";
+    private static final String TRACE_STATE_VARIABLE = "S";
+    private static final String TRACE_STATE_CLASS = "TraceState";
+    private static final String SEMANTIC_VALUE_CLASS = "SemanticValue";
 
     static Stream<BankQuestion> bank() {
         return BANK.stream();
@@ -54,15 +60,40 @@ class ControlFlowDTDomainQuestionTest {
         assertEquals(domain().getDomainId(), content.getDomainId());
         assertEquals(record.getId(), content.getMetadata().getId());
         assertEquals(record.getName(), content.getMetadata().getName());
-        assertEquals(2, content.getMetadata().getVersion());
-        assertEquals(bankQuestion.steps() + 1, content.getMetadata().getSolutionSteps());
+        assertEquals(3, content.getMetadata().getVersion());
+        assertEquals(bankQuestion.steps(), content.getMetadata().getSolutionSteps());
         assertEquals(List.of(PYTHON_TAG), content.getTags());
-        assertEquals(1, content.getStatementFacts().size());
-        assertEquals(LOQI_FACT, content.getStatementFacts().getFirst().getVerb());
-        assertTrue(content.getStatementFacts().getFirst().getObject().contains("var STATE"));
     }
 
-    /** Объекты ответа: кнопки действий и условий с уникальными узлами графа. */
+    /** Условие вопроса разворачивается в модель ситуации: в ней есть действия и значения всех ответов и состояние трассы. */
+    @ParameterizedTest
+    @MethodSource("bank")
+    void questionModelHoldsAnswerActionsAndTraceState(BankQuestion bankQuestion) {
+        // Arrange.
+        var content = domain().makeQuestion(bankRecord(bankQuestion), List.of(), Language.ENGLISH).getContent();
+
+        // Act.
+        var model = domain().prepareQuestionModel(content);
+
+        // Assert.
+        for (AnswerObjectData answer : content.getAnswerObjects()) {
+            var actionAndValue = answer.getDomainInfo().split(",", 2);
+            var action = model.getObjects().get(actionAndValue[0]);
+            assertNotNull(action, answer.getDomainInfo());
+            assertTrue(action.isInstanceOf(CONCRETE_ACTION_CLASS), answer.getDomainInfo());
+            if (actionAndValue.length > 1) {
+                var value = model.getObjects().get(actionAndValue[1]);
+                assertNotNull(value, answer.getDomainInfo());
+                assertTrue(value.isInstanceOf(SEMANTIC_VALUE_CLASS), answer.getDomainInfo());
+            }
+        }
+        assertTrue(model.getVariables().get(TRACE_STATE_VARIABLE).getValueObject().isInstanceOf(TRACE_STATE_CLASS));
+    }
+
+    /**
+     * Объекты ответа с уникальными узлами графа: кнопки действий, условий и вызовов функций
+     * и пункты dropdown завершения вызова.
+     */
     @ParameterizedTest
     @MethodSource("bank")
     void makeQuestionBuildsAnswerObjectsForActions(BankQuestion bankQuestion) {
@@ -77,7 +108,15 @@ class ControlFlowDTDomainQuestionTest {
                 answers.stream().map(AnswerObjectData::getAnswerId).collect(Collectors.toSet()));
         assertTrue(answers.stream().allMatch(a -> ACTION_CONCEPT.equals(a.getConcept())));
         assertTrue(answers.stream().noneMatch(AnswerObjectData::isRightCol));
-        assertTrue(Set.of(PLAY, QUESTION).containsAll(hyperTexts(answers)));
+        var buttons = answers.stream().filter(a -> !a.getDomainInfo().contains(",")).toList();
+        assertTrue(Set.of(PLAY, QUESTION, STEP_INTO, STEP_OUT).containsAll(hyperTexts(buttons)));
+        var callEnds = buttons.stream()
+                .filter(a -> STEP_OUT.equals(a.getHyperText()))
+                .map(AnswerObjectData::getDomainInfo)
+                .collect(Collectors.toSet());
+        assertTrue(answers.stream()
+                .filter(a -> a.getDomainInfo().contains(","))
+                .allMatch(a -> callEnds.contains(a.getDomainInfo().split(",", 2)[0])));
         assertEquals(bankQuestion.conditions(), answers.stream()
                 .filter(a -> QUESTION.equals(a.getHyperText()))
                 .map(AnswerObjectData::getDomainInfo)
@@ -92,15 +131,15 @@ class ControlFlowDTDomainQuestionTest {
         var russian = domain().makeQuestion(bankRecord(SEQUENCE), List.of(), Language.RUSSIAN).getContent().getQuestionText();
 
         // Assert.
-        assertTrue(english.startsWith("<p>Press the actions of the algorithm in the order they are evaluated"));
-        assertTrue(russian.startsWith("<p>Нажмите на действия алгоритма в том порядке, в котором они выполнятся"));
+        assertTrue(english.startsWith("<p>Press the action buttons in the order the actions are executed"));
+        assertTrue(russian.startsWith("<p>Нажимайте кнопки действий в том порядке, в котором они выполнятся"));
         assertTrue(english.contains("str_"));
         assertTrue(english.contains("id=\"answer_0\""));
         assertNotEquals(english, russian);
         assertEquals(english.substring(english.indexOf("<div")), russian.substring(russian.indexOf("<div")));
     }
 
-    /** Настройки вопроса на порядок: с трассой, контекстом и повторным выбором действий. */
+    /** Настройки вопроса на порядок: с трассой, контекстом, повторным выбором действий и без номеров шагов на кнопках. */
     @Test
     void makeQuestionSetsOrderOptions() {
         // Act.
@@ -113,6 +152,7 @@ class ControlFlowDTDomainQuestionTest {
         assertTrue(orderOptions.isMultipleSelectionEnabled());
         assertTrue(orderOptions.isRequireAllAnswers());
         assertFalse(orderOptions.isShowSupplementaryQuestions());
+        assertEquals(OrderQuestionOptionsData.OrderNumberPosition.NONE, orderOptions.getOrderNumberOptions().getPosition());
     }
 
     private static Set<String> hyperTexts(List<AnswerObjectData> answers) {

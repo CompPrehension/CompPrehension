@@ -74,11 +74,6 @@ body ul {
   margin: 0;
 }
 
-.comp-ph-question p {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
 .comp-ph-question-wrapper.comp-ph-question-wrapper--finished [data-answer-id], 
 .comp-ph-question-wrapper.comp-ph-question-wrapper--loading-feedback [data-answer-id],
 .comp-ph-question-wrapper.comp-ph-question-wrapper--freezed [data-answer-id] {
@@ -385,6 +380,14 @@ table.comp-ph-trace tr:first-child td {
 	font-weight: bold;
 }
 
+/* value-hint is also the mark the dropdown script of CtrlFlow questions finds call values by */
+.comp-ph-trace .value-hint {
+	color: #9e0d5a;
+	font-family: Consolas, Monaco, 'Courier New', monospace;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
 .comp-ph-trace .warning {
     background-color: #ff9;
 }
@@ -408,195 +411,154 @@ table.comp-ph-trace tr:first-child td {
 
 /* Section: Ctrl Flow 2025 DT domain */
 
-.ctrl-flow-domain-code-block {
-    font-family: courier, monospace;
+/* Фрагмент кода вопроса; стили dropdown значений вызова генератор встраивает во фрагмент сам */
+.ctrl-flow-code-block {
+    font-family: Consolas, Monaco, 'Courier New', monospace;
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
-}
-
-.ctrl-flow-domain-code-block .code-container {
     display: flex;
-
-    --ctrlflow-codeblock-font-size: 15px;
-
-    font-size: var(--ctrlflow-codeblock-font-size);
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-.ctrl-flow-domain-code-block .line-numbers {
+.ctrl-flow-code-block .line-numbers {
     background: #fafafa;
     color: #999;
-    padding: 16px 12px;
+    padding: 10px 0;
     text-align: right;
     user-select: none;
     border-right: 1px solid #e0e0e0;
-    min-width: 50px;
-}
-
-.ctrl-flow-domain-code-block .line-number {
-    display: block;
-    height: 1.6em;
-}
-
-.ctrl-flow-domain-code-block .code-content {
-    flex: 1;
-    padding: 16px;
-    overflow-x: auto;
-}
-
-.ctrl-flow-domain-code-block .code-line {
-    display: flex;
-    align-items: center;
-    min-height: 1.6em;
-    position: relative;
-}
-
-.ctrl-flow-domain-code-block .line-buttons {
-    display: flex;
-    gap: 4px;
-    margin-right: 8px;
+    min-width: 40px;
     flex-shrink: 0;
 }
 
-.ctrl-flow-domain-code-block .action-button {
-    background: transparent;
-    border: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    padding: 0;
-    font-size: 0;
+/* высота номера строки совпадает с высотой строки кода */
+.ctrl-flow-code-block .line-number {
+    display: block;
+    padding: 0 8px;
+    height: 1.5em;
+    box-sizing: content-box;
 }
 
-.ctrl-flow-domain-code-block .action-button > :not(i) {
-    display: none;
-}
-
-.ctrl-flow-domain-code-block .action-button i {
-    font-size: var(--ctrlflow-codeblock-font-size);
-}
-
-.ctrl-flow-domain-code-block .action-button svg {
-    width: 14px;
-    height: 14px;
-    stroke-width: 2;
-}
-
-.ctrl-flow-domain-code-block .action-button:hover {
-    background: rgb(0 0 0 / 5%);
-}
-
-.ctrl-flow-domain-code-block .action-button:active {
-    transform: scale(0.95);
-}
-
-.ctrl-flow-domain-code-block .action-button.filled.play svg,
-.ctrl-flow-domain-code-block .action-button.filled.stop svg,
-.ctrl-flow-domain-code-block .action-button.filled.step-into svg,
-.ctrl-flow-domain-code-block .action-button.filled.step-out svg {
-    /* Цвет будет задан inline через style */
-}
-
-.ctrl-flow-domain-code-block .action-button.outlined.play svg,
-.ctrl-flow-domain-code-block .action-button.outlined.stop svg,
-.ctrl-flow-domain-code-block .action-button.outlined.step-into svg,
-.ctrl-flow-domain-code-block .action-button.outlined.step-out svg {
-    fill: none;
-
-    /* Цвет будет задан inline через style */
-}
-
-.ctrl-flow-domain-code-block .line-content {
+.ctrl-flow-code-block .code-content {
     flex: 1;
+    padding: 10px 0;
+    overflow-x: auto;
+}
+
+.ctrl-flow-code-block .code-line {
+    display: flex;
+    align-items: baseline;
+    height: 1.5em;
+    padding: 0 8px;
+    margin: 0;
+}
+
+/* направляющие уровней отступа */
+.ctrl-flow-code-block .code-line > .token.whitespace {
+    position: relative;
+}
+
+.ctrl-flow-code-block .code-line > .token.whitespace:first-child {
+    --indent-step: 30px;
+    --ruler-offset: 10px;
+
+    background-image: linear-gradient(
+        to right,
+        #c7c7c7 0 1px,
+        transparent 1px 100%
+    );
+    background-size: var(--indent-step) 100%;
+    background-position: var(--ruler-offset) 0;
+    background-repeat: repeat-x;
+}
+
+.ctrl-flow-code-block .token {
     white-space: pre;
+    border-radius: 2px;
+    display: inline-block;
 }
 
-/* Стили для токенов */
-.ctrl-flow-domain-code-block .token-keyword {
+.ctrl-flow-code-block .token.keyword {
     color: #0033B3;
-    font-weight: 600;
+    font-weight: bold;
 }
 
-.ctrl-flow-domain-code-block .token-operator {
-    color: #000;
-}
+.ctrl-flow-code-block .token.string { color: #067D17; }
+.ctrl-flow-code-block .token.number { color: #1750EB; }
 
-.ctrl-flow-domain-code-block .token-const {
-    color: #067D17;
-}
-
-.ctrl-flow-domain-code-block .token-string {
-    color: #067D17;
-}
-
-.ctrl-flow-domain-code-block .token-number {
-    color: #1750EB;
-}
-
-.ctrl-flow-domain-code-block .token-callable {
-    color: #00627A;
-    font-weight: 500;
-}
-
-.ctrl-flow-domain-code-block .token-identifier {
-    color: #000;
-}
-
-.ctrl-flow-domain-code-block .token-cast {
-    color: #0033B3;
-}
-
-.ctrl-flow-domain-code-block .token-brace {
-    color: #000;
-    font-weight: 600;
-}
-
-.ctrl-flow-domain-code-block .token-statement {
-    color: #9876AA;
-}
-
-.ctrl-flow-domain-code-block .token-separator {
-    color: #000;
-}
-
-.ctrl-flow-domain-code-block .token-comma {
-    color: #000;
-}
-
-.ctrl-flow-domain-code-block .token-comment {
+.ctrl-flow-code-block .token.comment {
     color: #8C8C8C;
     font-style: italic;
 }
 
-.ctrl-flow-domain-code-block .token-unknown {
-    color: #000;
+.ctrl-flow-code-block .token.identifier { color: #000; }
+.ctrl-flow-code-block .token.ast-type { color: #9B59B6; }
+
+/* stylelint-disable-next-line selector-class-pattern -- имя класса задаёт генератор вопросов */
+.ctrl-flow-code-block .token.callable_identifier { color: #4c377f; }
+
+/* кнопка ответа не выше строки, чтобы строка не разрывалась; ширина растёт под номер шага */
+.ctrl-flow-code-block .injected-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0 2px;
+    vertical-align: middle;
+    height: 14px;
+    width: 14px;
 }
 
-/* требует поддержки :has (современные браузеры) */
-.ctrl-flow-domain-code-block .line-content:has(> .token-whitespace:first-child) {
-    position: relative;
-    padding-left: 8px; /* отступ, чтобы не налезало содержимое */
+.ctrl-flow-code-block .injected-button i {
+    font-size: 14px;
 }
 
-.ctrl-flow-domain-code-block .line-content:has(> .token-whitespace:first-child)::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: #c7c7c7;
+.ctrl-flow-code-block .injected-button:hover {
+    background-color: rgb(0 0 0 / 5%);
+    outline: 1px solid rgb(0 0 0 / 10%);
+    border-radius: 3px;
 }
 
-.ctrl-flow-domain-code-block .token {
-    cursor: default;
-    position: relative;
+/* dropdown значений вызова; inset и margin снимают позиционирование popover по умолчанию — его ставит скрипт фрагмента */
+.ctrl-flow-code-block .call-value-menu {
+    inset: auto;
+    margin: 0;
+    padding: 2px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
+    font: 13px Consolas, Monaco, 'Courier New', monospace;
+}
+
+.ctrl-flow-code-block .call-value-menu-prompt {
+    padding: 4px 10px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #666;
+}
+
+.ctrl-flow-code-block .call-value-menu button {
+    display: block;
+    width: 100%;
+    padding: 2px 10px;
+    border: none;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+/* скрипт фрагмента отключает вызовы, которых нет в трассе; их не показываем */
+.ctrl-flow-code-block .call-value-menu button:disabled {
+    display: none;
+}
+
+.ctrl-flow-code-block .call-value-menu button:hover:enabled {
+    background: #eef2f7;
 }
