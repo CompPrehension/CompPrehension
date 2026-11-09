@@ -1076,6 +1076,18 @@ tpg CtrlFlow_check(S: TraceState, P: TraceAct, A: ConcreteAction, V: SemanticVal
             EN.explanation = "The ${Program} has already finished, so the ${A} will not be executed anymore." ;
         ];
     };
+    // Выбранный экземпляр вызова должен относиться к выбранному месту возврата.
+    ask (
+        V != obj:NoValue and A=>hasValue() and
+        not (V == A->hasValue or V=>afterOf(A->hasValue))
+    ) out false else {
+        conclude: error [
+            skill = "call_return_matches_activation" ;
+            RU.explanation = "Завершение вызова возвращает выполнение в то место, откуда он был начат. Выбранный вызов ${V} не относится к этому месту вызова, поэтому ${A} сейчас не выполняется." ;
+            EN.explanation = "Completing a call returns execution to the place where it started. The selected call ${V} does not belong to this call site, so the ${A} is not executed now." ;
+        ];
+    };
+
     // Уточнение ошибки после 2а: автоматический уход из конструкции важнее исчерпания значений.
     `fragment`:autoPassedRefinement() out null;
     // Шаг 3.1: в функцию ещё не входили либо она уже завершилась.
