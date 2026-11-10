@@ -1,41 +1,45 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
 name: Java CI with Maven
 
 on:
-  push:
-    branches: [ master, develop ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [master, develop]
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit to verify
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v7
-      with:
-        lfs: 'true'
-    - name: Set up JDK 25
-      uses: actions/setup-java@v6
-      with:
-        java-version: 25
-        distribution: temurin
-        cache: maven
-    - name: Run the Maven verify phase
-      run: ./mvnw -B verify --file pom.xml
-    - name: Upload test reports
-      if: failure()
-      uses: actions/upload-artifact@v7
-      with:
-        name: surefire-reports
-        path: '**/target/surefire-reports/**'
-        retention-days: 7
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          persist-credentials: false
+          lfs: 'true'
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6
+        with:
+          java-version: 25
+          distribution: temurin
+          cache: ${{ github.event_name != 'workflow_dispatch' && 'maven' || '' }}
+      - name: Run the Maven verify phase
+        run: ./mvnw -B verify --file pom.xml
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: surefire-reports
+          path: '**/target/surefire-reports/**'
+          retention-days: 7
 
   frontend:
-
     runs-on: ubuntu-latest
 
     defaults:
@@ -43,82 +47,18 @@ jobs:
         working-directory: modules/server
 
     steps:
-    - uses: actions/checkout@v7
-    - name: Set up Node.js
-      uses: actions/setup-node@v7
-      with:
-        node-version: 24
-        cache: npm
-        cache-dependency-path: modules/server/package-lock.json
-    - name: Install dependencies
-      run: npm ci --prefer-offline --no-audit --fund=false
-    - name: Build the frontend
-      run: npm run build
-
-  images:
-
-    if: github.event_name == 'push' && github.repository == 'CompPrehension/CompPrehension'
-    needs: [ build, frontend ]
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: compprehension-server
-            dockerfile: server.Dockerfile
-          - image: compprehension-server-bg
-            dockerfile: server-bg.Dockerfile
-          - image: compprehension-bkt
-            dockerfile: bkt-service.Dockerfile
-
-    concurrency:
-      group: images-${{ github.ref_name }}-${{ matrix.image }}
-      cancel-in-progress: true
-
-    steps:
-    - uses: actions/checkout@v7
-      with:
-        lfs: 'true'
-    - name: Choose tag
-      id: tag
-      run: echo "tag=$([ "$GITHUB_REF_NAME" = master ] && echo prod || echo dev)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-    - uses: docker/setup-buildx-action@v4
-    - uses: docker/login-action@v4
-      with:
-        username: ${{ vars.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: docker/build-push-action@v7
-      with:
-        context: .
-        file: ${{ matrix.dockerfile }}
-        platforms: linux/amd64
-        push: true
-        tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ steps.tag.outputs.tag }}
-        labels: |
-          org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          org.opencontainers.image.revision=${{ github.sha }}
-        cache-from: type=gha,scope=${{ matrix.image }}-${{ github.ref_name }}
-        cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ github.ref_name }}
-
-  publish:
-
-    needs: images
-    runs-on: ubuntu-latest
-
-    concurrency:
-      group: publish-${{ github.ref_name }}
-      cancel-in-progress: true
-
-    steps:
-    - uses: docker/setup-buildx-action@v4
-    - uses: docker/login-action@v4
-      with:
-        username: ${{ vars.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Move the :dev / :latest tags
-      run: |
-        if [ "$GITHUB_REF_NAME" = master ]; then moving=latest channel=prod; else moving=dev channel=dev; fi
-        for image in compprehension-server compprehension-server-bg compprehension-bkt; do
-          docker buildx imagetools create -t "${{ vars.DOCKERHUB_USERNAME }}/$image:$moving" "${{ vars.DOCKERHUB_USERNAME }}/$image:$channel-${GITHUB_SHA::7}"
-        done
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: ${{ github.event_name != 'workflow_dispatch' && 'npm' || '' }}
+          package-manager-cache: false
+          cache-dependency-path: modules/server/package-lock.json
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      - name: Build the frontend
+        run: npm run build
