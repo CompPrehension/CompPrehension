@@ -1,0 +1,203 @@
+name: Publish Docker images
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && format('Publish {0} to {1}', inputs.branch, inputs.target)
+  || format('Publish {0}', github.ref_name) }}
+
+on:
+  push:
+    branches: [master, develop]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to publish
+        required: true
+        type: string
+      target:
+        description: Deployment target
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - prod
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  authorize-manual-deploy:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: manual-deploy
+    permissions: {}
+    outputs:
+      attempt: ${{ steps.authorize.outputs.attempt }}
+    steps:
+      - name: Authorize manual deployment
+        id: authorize
+        env:
+          ALLOWED_USERS: ${{ secrets.MANUAL_DEPLOY_ALLOWED_USERS }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]]; then
+            echo "::error::Run this workflow from the default branch."
+            exit 1
+          fi
+          allowed_users=${ALLOWED_USERS//$'\r'/}
+          if ! grep -Fixq -- "$GITHUB_ACTOR" <<< "$allowed_users" ||
+             ! grep -Fixq -- "$TRIGGERING_ACTOR" <<< "$allowed_users"; then
+            echo "::error::Manual deployment requires an authorized GitHub login."
+            exit 1
+          fi
+          echo "attempt=$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+
+  source:
+    needs: authorize-manual-deploy
+    if: >-
+      ${{ !cancelled() && (github.event_name == 'push' ||
+      (needs.authorize-manual-deploy.result == 'success' && needs.authorize-manual-deploy.outputs.attempt == github.run_attempt)) }}
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      channel: ${{ steps.resolve.outputs.channel }}
+      authorized_attempt: ${{ needs.authorize-manual-deploy.outputs.attempt }}
+    steps:
+      - name: Resolve source commit and image channel
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_BRANCH: ${{ inputs.branch }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          sha=$GITHUB_SHA
+          channel=dev
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            case "$TARGET" in
+              dev) ;;
+              prod)
+                if [[ "$SOURCE_BRANCH" != master ]]; then
+                  echo "::error::Production can only be published from master."
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "::error::Unknown deployment target."
+                exit 1
+                ;;
+            esac
+            channel=$TARGET
+            git check-ref-format "refs/heads/$SOURCE_BRANCH"
+            branch=$(jq -rn --arg branch "$SOURCE_BRANCH" '$branch | @uri')
+            sha=$(gh api "repos/$GITHUB_REPOSITORY/branches/$branch" --jq '.commit.sha')
+            if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Could not resolve the source branch to a commit."
+              exit 1
+            fi
+          elif [[ "$GITHUB_REF_NAME" == master ]]; then
+            channel=prod
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+  verify:
+    if: ${{ !cancelled() && needs.source.result == 'success' }}
+    needs: source
+    uses: ./.github/workflows/maven.yml
+    with:
+      sha: ${{ needs.source.outputs.sha }}
+
+  images:
+    if: >-
+      ${{ !cancelled() &&
+      needs.source.result == 'success' && needs.verify.result == 'success' &&
+      github.repository == 'CompPrehension/CompPrehension' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && needs.source.outputs.authorized_attempt == github.run_attempt)) }}
+    needs: [source, verify]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.source.outputs.channel }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: compprehension-server
+            dockerfile: server.Dockerfile
+          - image: compprehension-server-bg
+            dockerfile: server-bg.Dockerfile
+          - image: compprehension-bkt
+            dockerfile: bkt-service.Dockerfile
+
+    concurrency:
+      group: images-${{ needs.source.outputs.channel }}-${{ inputs.branch || github.ref_name }}-${{ matrix.image }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.source.outputs.sha }}
+          persist-credentials: false
+          lfs: 'true'
+      - name: Choose tag
+        id: tag
+        env:
+          SOURCE_SHA: ${{ needs.source.outputs.sha }}
+          CHANNEL: ${{ needs.source.outputs.channel }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          if [[ ! "$DOCKERHUB_USERNAME" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+            echo "::error::DOCKERHUB_USERNAME must be a Docker Hub namespace."
+            exit 1
+          fi
+          echo "tag=$CHANNEL-${SOURCE_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ steps.tag.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.source.outputs.sha }}
+          cache-from: ${{ github.event_name == 'push' && format('type=gha,scope={0}-{1}', matrix.image, github.ref_name) || '' }}
+          cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope={0}-{1}', matrix.image, github.ref_name) || '' }}
+
+  publish:
+    # A partial rerun can reuse successful jobs from an earlier attempt.
+    if: >-
+      ${{ !cancelled() && needs.source.result == 'success' && needs.images.result == 'success' &&
+      (github.event_name != 'workflow_dispatch' || needs.source.outputs.authorized_attempt == github.run_attempt) }}
+    needs: [source, images]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.source.outputs.channel }}
+
+    concurrency:
+      group: publish-${{ needs.source.outputs.channel }}
+      cancel-in-progress: false
+
+    steps:
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Move the :dev / :latest tags
+        env:
+          SOURCE_SHA: ${{ needs.source.outputs.sha }}
+          CHANNEL: ${{ needs.source.outputs.channel }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          if [[ "$CHANNEL" == prod ]]; then moving=latest; else moving=dev; fi
+          for image in compprehension-server compprehension-server-bg compprehension-bkt; do
+            docker buildx imagetools create -t "$DOCKERHUB_USERNAME/$image:$moving" "$DOCKERHUB_USERNAME/$image:$CHANNEL-${SOURCE_SHA::7}"
+          done
