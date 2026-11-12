@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.vocabulary.*;
 
 
@@ -26,6 +27,8 @@ public class TermMapping {
 
     static BiMap<String, Resource> commonTerm2Resource;
     static {
+        // Если первым к Jena обращается словарь RDF, инициализация Jena читает его ещё пустые поля и падает, поэтому Jena инициализируется до первого обращения к словарям.
+        JenaSystem.init();
         commonTerm2Resource = HashBiMap.create();
         commonTerm2Resource.put("rdf:type", RDF.type);
         commonTerm2Resource.put("rdf:Property", RDF.Property);

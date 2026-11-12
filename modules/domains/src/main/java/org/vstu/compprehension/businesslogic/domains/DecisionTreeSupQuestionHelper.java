@@ -5,6 +5,7 @@ import its.reasoner.LearningSituation;
 import org.vstu.compprehension.enums.SupplementaryBranchResult;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.SupplementarySituationData;
@@ -51,6 +52,10 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
+    static {
+        DecisionTreeReasonerBackend.installDeclensionFixes();
+    }
+
     public interface DecisionTreeSelector {
         DecisionTree select(QuestionData mainQuestion, QuestionInteractionData lastMainQuestionInteraction);
     }

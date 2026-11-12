@@ -3,23 +3,28 @@ package org.vstu.compprehension.businesslogic.backend;
 import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
+import its.model.DomainSolvingModel;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
 import its.model.nodes.*;
 import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
+import its.reasoner.ReasoningException;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Explanation;
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.domains.Domain;
@@ -65,6 +70,41 @@ public class DecisionTreeReasonerBackend
             ))
     );
 
+    /**
+     * Формы Nom…Pre для лемм, которые не склоняются или склоняются с опечаткой.
+     */
+    private static final Map<String, List<String>> CASE_PARADIGMS = Map.of(
+            "оператор", List.of("оператор", "оператора", "оператору", "оператора", "оператором", "операторе"),
+            "начало", List.of("начало", "начала", "началу", "начало", "началом", "начале"),
+            "конец", List.of("конец", "конца", "концу", "конец", "концом", "конце"),
+            "блок", List.of("блок", "блока", "блоку", "блок", "блоком", "блоке")
+    );
+
+    /** Ошибочная форма Padeg → лемма из {@link #CASE_PARADIGMS}. */
+    private static final Map<String, String> CASE_MISTAKES = Map.ofEntries(
+            Map.entry("операто", "оператор"),
+            Map.entry("конеца", "конец"),
+            Map.entry("конецу", "конец"),
+            Map.entry("конецом", "конец"),
+            Map.entry("конеце", "конец"),
+            Map.entry("блка", "блок"),
+            Map.entry("блку", "блок"),
+            Map.entry("блком", "блок"),
+            Map.entry("блке", "блок")
+    );
+
+    /** Замены без падежа: английская лемма и запасной путь для «операто». */
+    private static final Map<String, String> SPELLING_FIXES = Map.of(
+            "операто", "оператор",
+            "operato", "operator"
+    );
+
+    /** Словари читает склонение внутри шаблона, поэтому их задают до первой шаблонизации. */
+    public static void installDeclensionFixes() {
+        TemplatingUtils.setCaseOverrides(CASE_PARADIGMS, CASE_MISTAKES);
+        TemplatingUtils.setSpellingFixes(SPELLING_FIXES);
+    }
+
     @NotNull
     @Override
     public String getBackendId() {
@@ -75,11 +115,17 @@ public class DecisionTreeReasonerBackend
      * Information, needed to perform a decision-tree based reasoning
      * @param situationDomainModel combined question and domain data, described in the {@link DomainModel} form
      * @param decisionTree a decision tree structure that describes the reasoning process
+     * @param solvingModel the domain solving model whose graphs the decision tree may call; null if it calls none
      */
     public record Input(
         DomainModel situationDomainModel,
-        DecisionTree decisionTree
-    ){}
+        DecisionTree decisionTree,
+        @Nullable DomainSolvingModel solvingModel
+    ){
+        public Input(DomainModel situationDomainModel, DecisionTree decisionTree) {
+            this(situationDomainModel, decisionTree, null);
+        }
+    }
 
     /**
      * Aggregation policy for creating explanation messages
@@ -141,7 +187,11 @@ public class DecisionTreeReasonerBackend
                 domainModel, annotationProcessor, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
-            result.setRawMessage(new HyperText(prefix.trim().concat(":")));
+            String header = prefix.trim();
+            if (header.endsWith(",")) {
+                header = header.substring(0, header.length() - 1);
+            }
+            result.setRawMessage(new HyperText(header.concat(":")));
         }
         // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
         if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
@@ -253,7 +303,8 @@ public class DecisionTreeReasonerBackend
 
         LearningSituation situation = new LearningSituation(
             situationModel,
-            LearningSituation.collectDecisionTreeVariables(situationModel)
+            LearningSituation.collectDecisionTreeVariables(situationModel),
+            questionData.solvingModel
         );
 
         if(situation.getDecisionTreeVariables().keySet().containsAll(
@@ -298,6 +349,16 @@ public class DecisionTreeReasonerBackend
             result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
             result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
+                if (Boolean.TRUE.equals(res.getNode().getMetadata().get("exception"))) {
+                    var message = "Reasoning failed for question (metadata id: %d): exception %s"
+                            .formatted(judgedQuestion.getContent().getMetadata().getId(),
+                                    res.getNode().getMetadata().get("exceptionName"));
+                    var line = res.getNode().getMetadata().get("line");
+                    if (line != null) {
+                        message += " [line=" + line + "]";
+                    }
+                    throw new ReasoningException(message);
+                }
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
                         res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
                 String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
@@ -322,6 +383,10 @@ public class DecisionTreeReasonerBackend
                         })
                         .collect(Collectors.toList());
                 result.violations = mistakes;
+                if (mistakes.isEmpty()) {
+                    throw new ReasoningException("Rejected answer has no diagnosed violation for question "
+                            + judgedQuestion.getContent().getQuestionName());
+                }
             } else {
                 result.violations = List.of();
             }
@@ -358,18 +423,7 @@ public class DecisionTreeReasonerBackend
             Object meta = dt.getMainBranch().getMetadata().get(localizationCode,
                     (type == Explanation.Type.HINT ? "hint" : "error") + "_prefix");
             String rawPrefix = meta != null ? meta.toString() : "";
-            String expanded = TemplatingUtils.interpret(rawPrefix, situation, localizationCode, Map.of());
-            {
-                if (expanded.contains("операто ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("операто ", "оператор ");
-                }
-                if (expanded.contains("operato ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("operato ", "operator ");
-                }
-            }
-            return expanded;
+            return TemplatingUtils.interpret(rawPrefix, situation, localizationCode, Map.of());
         }
 
         static boolean isCorrectAnswer(@NotNull DecisionTreeTrace trace) {
@@ -388,16 +442,6 @@ public class DecisionTreeReasonerBackend
             String prefix = getCommonExplanationPrefix(learningSituation, resultNode.getDecisionTree(), type, localizationCode);
             String explanationTemplate = explanation == null ? "WRONG" : prefix.concat(explanation.toString());
             String expanded = TemplatingUtils.interpret(explanationTemplate, learningSituation, localizationCode, Map.of());
-            {
-                if (expanded.contains("операто ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("операто ", "оператор ");
-                }
-                if (expanded.contains("operato ")) {
-                    // Fix spelling (note the space at the end).
-                    expanded = expanded.replace("operato ", "operator ");
-                }
-            }
             Explanation expl = new Explanation(type, expanded);
             if (resultNode.getMetadata().containsAny("skill")) {
                 String skillName = resultNode.getMetadata().getString("skill");
@@ -408,6 +452,21 @@ public class DecisionTreeReasonerBackend
                 expl.setMuted(true);
             }
             return expl;
+        }
+
+        /**
+         * Решение вопроса, изменённое засчитанным ответом (например, сохранённое состояние рассуждения)
+         * @param question the judged question
+         * @param responses the judged responses, the accepted one last
+         * @param backendOutput the output from the backend's {@link #judge} method
+         * @return the changed solution facts, or null if the solution does not change
+         */
+        default @Nullable List<BackendFactData> updateSolutionAfterJudge(
+            QuestionData question,
+            List<? extends AnswerData> responses,
+            Output backendOutput
+        ) {
+            return null;
         }
 
         @Override

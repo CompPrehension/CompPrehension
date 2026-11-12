@@ -65,7 +65,8 @@ public class QuestionBankImpl implements QuestionBank {
         }
 
         // проверка запрещаемых критериев
-        if (meta.getSolutionSteps() < qr.getStepsMin()
+        if (qr.getQuestionVersion() != null && !qr.getQuestionVersion().equals(meta.getVersion())
+                || meta.getSolutionSteps() < qr.getStepsMin()
                 || qr.getStepsMax() != 0 && meta.getSolutionSteps() > qr.getStepsMax()
                 || qr.getDeniedConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getDeniedConceptsBitmask()) != 0
                 || qr.getDeniedLawsBitmask() != 0 && (meta.getViolationBits() & qr.getDeniedLawsBitmask()) != 0

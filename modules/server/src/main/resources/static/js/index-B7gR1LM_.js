@@ -228,7 +228,8 @@ instance.use(initReactI18next).init({
 			error_page_title: "Failed to load",
 			error_page_retry: "Retry",
 			error_boundary_title: "Something went wrong",
-			error_boundary_reload: "Reload the page"
+			error_boundary_reload: "Reload the page",
+			ctrlflow_function_return_dropdown_tooltip: "Which function call is ending here?"
 		} },
 		RU: { translation: {
 			question_header: "Вопрос #{{questionNumber}}",
@@ -419,7 +420,8 @@ instance.use(initReactI18next).init({
 			error_page_title: "Не удалось загрузить",
 			error_page_retry: "Повторить",
 			error_boundary_title: "Что-то пошло не так",
-			error_boundary_reload: "Перезагрузить страницу"
+			error_boundary_reload: "Перезагрузить страницу",
+			ctrlflow_function_return_dropdown_tooltip: "Какой вызов здесь завершается?"
 		} },
 		PL: { translation: {
 			question_header: "Pytanie #{{questionNumber}}",
@@ -580,7 +582,8 @@ instance.use(initReactI18next).init({
 			error_page_title: "Nie udało się załadować",
 			error_page_retry: "Ponów",
 			error_boundary_title: "Coś poszło nie tak",
-			error_boundary_reload: "Odśwież stronę"
+			error_boundary_reload: "Odśwież stronę",
+			ctrlflow_function_return_dropdown_tooltip: "Które wywołanie funkcji tutaj się kończy?"
 		} }
 	},
 	lng: "EN",
@@ -1846,14 +1849,15 @@ var QuestionStore = class {
 		this.setQuestionState("LOADED");
 		if (isLeft(feedbackEither)) {
 			this.setErrorStoreState(feedbackEither.left);
-			return;
+			return false;
 		}
 		this.onAnswerEvaluated(feedbackEither.right);
+		return true;
 	};
 	sendAnswers = async () => {
 		const { question, lastAnswer } = this;
-		if (!question) return;
-		await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
+		if (!question) return false;
+		return await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
 	};
 	onAnswersChanged = async (answer, sendAnswers = true) => {
 		this.answersHistory.push(answer);
@@ -1871,13 +1875,13 @@ var QuestionStore = class {
 		if (prevLastAnswer.length > 0) this.answersHistory.push(prevLastAnswer);
 		if (!sendAnswers) return true;
 		try {
-			await this.sendAnswers();
-			return true;
-		} catch {
-			this.lastAnswer = prevLastAnswer;
-			if (prevLastAnswer.length > 0) this.answersHistory.pop();
-			return false;
+			if (await this.sendAnswers()) return true;
+		} catch (error) {
+			this.setErrorStoreState({ message: error instanceof Error ? error.message : String(error) });
 		}
+		this.lastAnswer = prevLastAnswer;
+		if (prevLastAnswer.length > 0) this.answersHistory.pop();
+		return false;
 	};
 	isAnswerChanged = (newAnswer) => {
 		const { lastAnswer, question } = this;
@@ -2467,8 +2471,11 @@ var DndMultiChoiceQuestionComponent = observer((props) => {
 });
 //#endregion
 //#region src/main/js/components/common/question/order-question.tsx
+/** Choice of an answer element, from a host click or from the code of the question text. */
+var ANSWER_EVALUATED_EVENT = "compph:on-answer-evaluated";
 var OrderQuestionComponent = observer((props) => {
 	const { question, getAnswers, onChanged, getFeedback } = props;
+	const { t, i18n } = useTranslation();
 	if (!question.options.requireContext) return null;
 	const { options } = question;
 	const orderNumberOptions = options.orderNumberOptions ?? {
@@ -2481,12 +2488,28 @@ var OrderQuestionComponent = observer((props) => {
 		return originalText;
 	}, [question.text]);
 	(0, import_react.useEffect)(() => {
-		document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
-			const id = +(e.getAttribute("data-answer-id") ?? "");
-			e.addEventListener("click", () => onChanged([...getAnswers(), {
+		const root = document.getElementById(`question_${question.questionId}`);
+		const onAnswerEvaluated = (event) => {
+			const idStr = event.target.closest("[data-answer-id]")?.getAttribute("data-answer-id");
+			if (isNullOrUndefined(idStr)) return;
+			const id = +idStr;
+			onChanged([...getAnswers(), {
 				answer: [id, id],
 				isCreatedByUser: true
-			}]));
+			}]);
+		};
+		root?.addEventListener(ANSWER_EVALUATED_EVENT, onAnswerEvaluated);
+		document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
+			e.addEventListener("click", () => {
+				if (!e.hasAttribute("data-comp-ph-custom-click")) e.dispatchEvent(new CustomEvent(ANSWER_EVALUATED_EVENT, { bubbles: true }));
+			});
+		});
+		document.querySelectorAll(`#question_${question.questionId} .comp-ph-question-text script:not([data-comp-ph-executed])`).forEach((original) => {
+			const script = document.createElement("script");
+			Array.from(original.attributes).forEach(({ name, value }) => script.setAttribute(name, value));
+			script.setAttribute("data-comp-ph-executed", "");
+			script.textContent = original.textContent;
+			original.replaceWith(script);
 		});
 		document.querySelectorAll("[data-comp-ph-value]").forEach((e) => {
 			const value = e.getAttribute("data-comp-ph-value");
@@ -2496,7 +2519,15 @@ var OrderQuestionComponent = observer((props) => {
 			const pos = e.getAttribute("data-comp-ph-pos");
 			e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
 		});
+		return () => root?.removeEventListener(ANSWER_EVALUATED_EVENT, onAnswerEvaluated);
 	}, [question.questionId]);
+	(0, import_react.useEffect)(() => {
+		document.querySelectorAll(`#question_${question.questionId} .comp-ph-question-text [data-localization-key]`).forEach((e) => {
+			const key = e.getAttribute("data-localization-key") ?? "";
+			if (!e.hasAttribute("data-localization-default")) e.setAttribute("data-localization-default", e.textContent ?? "");
+			e.textContent = i18n.exists(key) ? t(key) : e.getAttribute("data-localization-default");
+		});
+	}, [question.questionId, i18n.language]);
 	const answersCount = getAnswers().length;
 	(0, import_react.useEffect)(() => {
 		document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
@@ -2519,11 +2550,13 @@ var OrderQuestionComponent = observer((props) => {
 			const answrs = document.querySelectorAll(`[data-answer-id='${h}']`);
 			if (!answrs.length) return 0;
 			answrs.forEach((answr) => {
-				if (lastGeneratedAnswers.includes(answer)) answr.classList.add("comp-ph-question-answer--last-selected-by-system");
+				const orderAnswerId = answr.getAttribute("data-comp-ph-order-answer");
+				const numbered = (orderAnswerId === null ? null : document.querySelector(`#question_${question.questionId} [data-answer-id='${orderAnswerId}']`)) ?? answr;
+				if (lastGeneratedAnswers.includes(answer)) numbered.classList.add("comp-ph-question-answer--last-selected-by-system");
 				if (orderNumberOptions.position !== "NONE") {
 					const delim = orderNumberOptions.delimiter;
 					const orderNumber = orderNumberOptions.replacers?.[idx] ?? idx + 1;
-					answr.innerHTML = orderNumberOptions.position === "PREFIX" ? `${orderNumber}${delim}${answr.innerHTML}` : orderNumberOptions.position === "SUFFIX" ? `${answr.innerHTML}${delim}${orderNumber}` : orderNumberOptions.position === "BOTTOM" ? `<span class="comp-ph-expr-bottom-hint">${delim}${orderNumber}</span>${answr.innerHTML}` : answr.innerHTML;
+					numbered.innerHTML = orderNumberOptions.position === "PREFIX" ? `${orderNumber}${delim}${numbered.innerHTML}` : orderNumberOptions.position === "SUFFIX" ? `${numbered.innerHTML}${delim}${orderNumber}` : orderNumberOptions.position === "BOTTOM" ? `<span class="comp-ph-expr-bottom-hint">${delim}${orderNumber}</span>${numbered.innerHTML}` : numbered.innerHTML;
 				}
 				if (!options.multipleSelectionEnabled) answr.classList.add("disabled");
 			});
@@ -2533,6 +2566,7 @@ var OrderQuestionComponent = observer((props) => {
 	const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		id: `question_${question.questionId}`,
+		className: "comp-ph-question",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 			className: "comp-ph-question-text",
 			dangerouslySetInnerHTML: { __html: question.text }
@@ -2967,7 +3001,7 @@ var Question = observer((props) => {
 		className: "mt-2",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {})
 	});
-	if (!questionData) return null;
+	if (!questionData) return store.storeState.tag === "ERROR" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InlineError, { error: store.storeState.error }) : null;
 	const onChanged = async (newHistory) => {
 		if (await store.setFullAnswer(newHistory)) ParentOnChanged?.(newHistory);
 	};
@@ -2981,7 +3015,7 @@ var Question = observer((props) => {
 		getFeedback,
 		isFeedbackLoading: store.questionState === "ANSWER_EVALUATING",
 		isQuestionFreezed: store.isQuestionFreezed
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Feedback, {
+	}), store.storeState.tag === "ERROR" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InlineError, { error: store.storeState.error }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Feedback, {
 		store,
 		showExtendedFeedback
 	})] });
