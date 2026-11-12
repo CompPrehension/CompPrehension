@@ -138,6 +138,8 @@ class ConstructSpec : AbstractSpec {
 class ASTEntity {
     obj prop ast_id: int ;
     obj prop ast_type: string;
+	obj prop ast_line: int ;
+	obj prop ast_line_end: int ;
 
     rel hasValue(SemanticValue) ;
 } [

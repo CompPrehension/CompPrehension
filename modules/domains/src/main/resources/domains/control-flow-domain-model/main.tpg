@@ -462,7 +462,7 @@ fragment commitCorrectAction() {
             conclude: correct;
         };
         creditCallReturn -> {
-            // Шаг 6 уже сверил выбранное значение с текущим выполнением A.
+            // Ранняя проверка уже сверила экземпляр вызова и место возврата.
             ask (V != obj:NoValue) out false else {
                 conclude: correct [
                     skill = "call_return_matches_activation" ;
@@ -1076,15 +1076,59 @@ tpg CtrlFlow_check(S: TraceState, P: TraceAct, A: ConcreteAction, V: SemanticVal
             EN.explanation = "The ${Program} has already finished, so the ${A} will not be executed anymore." ;
         ];
     };
-    // Выбранный экземпляр вызова должен относиться к выбранному месту возврата.
-    ask (
-        V != obj:NoValue and A=>hasValue() and
-        not (V == A->hasValue or V=>afterOf(A->hasValue))
-    ) out false else {
+    // Сначала проверяем экземпляр вызова независимо от выбранного места A.
+    ask (V != obj:NoValue and V.used) out false else {
         conclude: error [
             skill = "call_return_matches_activation" ;
-            RU.explanation = "Завершение вызова возвращает выполнение в то место, откуда он был начат. Выбранный вызов ${V} не относится к этому месту вызова, поэтому ${A} сейчас не выполняется." ;
-            EN.explanation = "Completing a call returns execution to the place where it started. The selected call ${V} does not belong to this call site, so the ${A} is not executed now." ;
+            RU.explanation = "Вызов <code>${V}</code> уже завершился, поэтому завершить его повторно нельзя." ;
+            EN.explanation = "The call <code>${V}</code> has already finished, so it cannot finish again." ;
+        ];
+    };
+    // После закрытия кадра P — акт func в вызывающем кадре; его END ещё ожидает выбора.
+    ask (
+        V == obj:NoValue or (
+            P->hasAction->derivedFrom.role == "func" and frameClosed(P) and
+            forAny ConcreteAction returnEnd {
+                $returnEnd->belongsTo == P->hasAction->belongsTo and
+                $returnEnd->derivedFrom.role == "END" and
+                $returnEnd=>hasValue() and V == findUnusedValue($returnEnd)
+            }
+        )
+    ) out true else {
+        var SelectedCall: ConcreteAction = find ConcreteAction call {
+            $call->derivedFrom.role == "func" and
+            forAny ConcreteAction callEnd {
+                $callEnd->belongsTo == $call->belongsTo and
+                $callEnd->derivedFrom.role == "END" and
+                $callEnd=>hasValue() and
+                (V == $callEnd->hasValue or V=>afterOf($callEnd->hasValue))
+            }
+        } out true else {
+            conclude: error [ exception = true; exceptionName = "NoSelectedCall"; ];
+        };
+        var FunctionBody: ConcreteAction = find ConcreteAction body {
+            $body->derivedFrom.role == "func_body" and
+            $body->belongsTo.ast_id == SelectedCall.ast_id
+        } out true else {
+            conclude: error [ exception = true; exceptionName = "NoSelectedFunctionBody"; ];
+        };
+        conclude: error [
+            skill = "call_return_matches_activation" ;
+            RU.explanation = "Вызов <code>${V}</code> ещё не может завершиться, поскольку выполнение ${FunctionBody}[case='р'] в этом вызове ещё не закончено." ;
+            EN.explanation = "The call <code>${V}</code> cannot finish yet because execution of the ${FunctionBody} in this call has not finished." ;
+        ];
+    };
+    // Только готовый к завершению экземпляр сверяем с выбранным местом возврата.
+    ask (
+        V == obj:NoValue or (
+            A->derivedFrom.role == "END" and
+            A->belongsTo == P->hasAction->belongsTo
+        )
+    ) out true else {
+        conclude: error [
+            skill = "call_return_matches_activation" ;
+            RU.explanation = "Действие ${A}[case='р'] не может быть выполнено, поскольку оно не является местом начала вызова <code>${V}</code>." ;
+            EN.explanation = "The action ${A} cannot be executed because it does not correspond to the place where the call <code>${V}</code> started." ;
         ];
     };
 
@@ -1225,31 +1269,6 @@ tpg CtrlFlow_check(S: TraceState, P: TraceAct, A: ConcreteAction, V: SemanticVal
             `fragment`:checkLevel(C);
         };
         correct -> {
-            // Шаг 6: значение, выбранное вместе с действием (вызов, из которого возвращается
-            // студент), должно быть значением текущего выполнения A. Без выбора V = NoValue.
-            ask (
-                V != obj:NoValue and A=>hasValue() and V != findUnusedValue(A)
-            ) out false else {
-                // Объяснение — почему выбранный вызов не подходит, без подсказки верного.
-                // Значения END расходуются в порядке выхода: used — вызов уже завершился,
-                // иначе он ещё ждёт вызовы, начатые внутри него.
-                ask (V.used) {
-                    true -> {
-                        conclude: error [
-                            skill = "call_return_matches_activation" ;
-                            RU.explanation = "Вызов ${V} уже завершился, вернуться из него ещё раз нельзя." ;
-                            EN.explanation = "The call ${V} has already finished, so it cannot be returned from again." ;
-                        ];
-                    }
-                    false -> {
-                        conclude: error [
-                            skill = "call_return_matches_activation" ;
-                            RU.explanation = "Вызов ${V} ещё не может завершиться: сначала завершаются вызовы, начатые внутри него." ;
-                            EN.explanation = "The call ${V} cannot finish yet: the calls started inside it finish first." ;
-                        ];
-                    }
-                };
-            };
             // Шаг 7: все уровни пройдены — засчитать выбранное действие.
             `fragment`:commitCorrectAction();
         };
