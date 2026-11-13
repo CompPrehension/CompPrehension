@@ -7,11 +7,10 @@ import org.vstu.compprehension.enums.Language;
 public record QuestionAttemptContextData(
         long attemptId,
         Language userLanguage,
-        String strategyId,
         @NotNull ExerciseStageData questionStage) {
 
     public QuestionAttemptContextData(@NotNull ExerciseAttemptContextData attempt,
                                       @NotNull ExerciseStageData questionStage) {
-        this(attempt.attemptId(), attempt.userLanguage(), attempt.strategyId(), questionStage);
+        this(attempt.attemptId(), attempt.userLanguage(), questionStage);
     }
 }

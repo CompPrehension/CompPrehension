@@ -5,7 +5,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.Skill;
-import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,8 +71,8 @@ class ProgrammingLanguageExpressionDTDomainMetadataTest {
         var finished = false;
         for (var sequence : answerSequences(question)) {
             var result = judge(question, sequence);
-            solved.addAll(result.domainNegativeLaws);
-            finished |= result.isAnswerCorrect && result.IterationsLeft == 0;
+            solved.addAll(traceMetadata(question, sequence, "law"));
+            finished |= result.isAnswerCorrect() && result.stepsLeft() == 0;
         }
 
         // Assert.
@@ -90,7 +92,7 @@ class ProgrammingLanguageExpressionDTDomainMetadataTest {
         // Act.
         var solved = new HashSet<String>();
         for (var sequence : answerSequences(question)) {
-            for (var name : judge(question, sequence).domainSkills) {
+            for (var name : traceMetadata(question, sequence, "skill")) {
                 var skill = domain().getSkill(name);
                 assertNotNull(skill, "неизвестное умение " + name);
                 solved.addAll(baseSkills(List.of(skill)));
@@ -101,8 +103,23 @@ class ProgrammingLanguageExpressionDTDomainMetadataTest {
         assertEquals(Set.of(), difference(solved, declared), "умения решателя, которых нет в метаданных");
     }
 
-    private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
-        return domain().judgeQuestion(question, answers(answers), cppTags(), Language.ENGLISH);
+    private static Judgement judge(QuestionData question, List<AnswerObjectData> answers) {
+        return domain().judgeAnswer(question, answers(answers), cppTags(), Language.ENGLISH);
+    }
+
+    // Метаданные узлов, через которые прошло рассуждение по дереву: их сверяют с метаданными вопроса.
+    private static Set<String> traceMetadata(QuestionData question, List<AnswerObjectData> answers, String key) {
+        DecisionTreeReasonerBackend.Interface backendInterface = domain().getBackendInterface();
+        var output = new DecisionTreeReasonerBackend().judge(
+                backendInterface.prepareBackendInfoForJudge(question, answers(answers), cppTags()));
+        if (!output.isReasoningDone()) {
+            return Set.of();
+        }
+        return DecisionTreeReasonerBackend.nestedTraceElements(output.results()).stream()
+                .map(element -> element.getNode().getMetadata().get(key))
+                .filter(Objects::nonNull)
+                .flatMap(value -> Arrays.stream(value.toString().split(";")))
+                .collect(Collectors.toSet());
     }
 
     private static Set<String> lawsKnownToDecisionTrees() {

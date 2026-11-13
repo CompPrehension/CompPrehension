@@ -1,0 +1,99 @@
+{
+  "id": 2,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "logical",
+      "truthiness",
+      "function_call",
+      "strings",
+      "lists"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "empty_name_or_names",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">name</span> <span class=\"o\">=</span> <span class=\"s2\">&quot;&quot;</span>\n<span class=\"n\">names</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"s2\">&quot;anon&quot;</span><span class=\"p\">]</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-token\">len</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">name</span><span class=\"comp-ph-expr-token\">or</span><span class=\"comp-ph-expr-token\">names</span></span><span class=\"comp-ph-expr-token\">)</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "name or names",
+          "domainInfo": "op_or",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 1,
+          "hyperText": "len(name or names)",
+          "domainInfo": "op_len",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "bool",
+          "domainInfo": "t_bool",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "list[str]",
+          "domainInfo": "t_list_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_bool : py_bool {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_str : py_list { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj name : Variable { hasType(t_str); isTruthy = false; looksLike(names); } [ text = \"name\" ]\nobj names : Variable { hasType(t_list_str); isTruthy = true; } [ text = \"names\" ]\nobj op_or : py_or { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); } [ text = \"name or names\"; expectedType = \"t_list_str\"; value = \"['anon']\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(op_or); } [ text = \"len(name or names)\"; expectedType = \"t_int\"; value = \"1\" ]\nobj op_or_as_py_and : py_and { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); similarOperatorOf(op_or); } [ text = \"name or names\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "empty_name_or_names",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 3340,
+  "skillBits": 16416,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 2
+}

@@ -9,6 +9,7 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.ReferenceTableFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.frontend.dto.DomainDto;
+import org.vstu.compprehension.frontend.dto.SettingsFormDto;
 import org.vstu.compprehension.frontend.dto.StrategyDto;
 
 import java.util.List;
@@ -29,6 +30,12 @@ public class ReferenceTableController {
     @ResponseBody
     public List<StrategyDto> getStrategies() {
         return referenceDataService.getStrategies(currentLanguage());
+    }
+
+    @RequestMapping(value = {"/answerReactionSettings"}, method = { RequestMethod.GET })
+    @ResponseBody
+    public SettingsFormDto getAnswerReactionSettings() {
+        return referenceDataService.getAnswerReactionSettings(currentLanguage());
     }
 
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })

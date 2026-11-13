@@ -1,0 +1,1093 @@
+{
+  "id": 1749330,
+  "data": {
+    "tags": [
+      "C++"
+    ],
+    "concepts": [
+      "default_variable",
+      "if/else",
+      "function"
+    ],
+    "negativeLaws": [
+      "incorrectStep"
+    ],
+    "questionData": {
+      "options": {
+        "requireContext": true
+      },
+      "questionName": "LifeTime9",
+      "questionText": "RU{Р’ РєР°РєРёС… СЃС‚СЂРѕРєР°С… С‚СЂР°СЃСЃС‹ СЃСѓС‰РµСЃС‚РІСѓРµС‚ РїРµСЂРµРјРµРЅРЅР°СЏ \"b\" РёР· 11 СЃС‚СЂРѕРєРё РїСЂРѕРіСЂР°РјРјС‹? <pre><code id=\"editor\" class=\"language-cpp\">1.int main() {\n2.\tint d = 2;\n3.\tint b = 5;\n4.\tint c = b + 3;\n5.\tif (c > 5) {\n6.\t\tint b = 2;\n7.\t\tc = d + 2;\n8.\t}\n9.\tint a = 1;\n10.}\n11.int b = 0;\n12.int c = 2;</code></pre>} EN{In which lines of the trace does the variable \"b\" from line 11 of the program? <pre><code id=\"editor\" class=\"language-cpp\">1.int main() {\n2.\tint d = 2;\n3.\tint b = 5;\n4.\tint c = b + 3;\n5.\tif (c > 5) {\n6.\t\tint b = 2;\n7.\t\tc = d + 2;\n8.\t}\n9.\tint a = 1;\n10.}\n11.int b = 0;\n12.int c = 2;</code></pre>}",
+      "questionType": "ORDER",
+      "answerObjects": [
+        {
+          "concept": "",
+          "answerId": 0,
+          "hyperText": "<span class=\"program\">text.question_program</span> <span class=\"keyword\">text.question_start</span>",
+          "domainInfo": "step1",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 1,
+          "hyperText": "<span class=\"program\">text.question_function main</span> <span class=\"keyword\">text.question_start</span>",
+          "domainInfo": "step2",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 2,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">d</span> = <span class=\"number\">2</span>;",
+          "domainInfo": "step3",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 3,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">b</span> = <span class=\"number\">5</span>;",
+          "domainInfo": "step4",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 4,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">c</span> = <span class=\"variable\">b</span> + <span class=\"number\">3</span>;",
+          "domainInfo": "step5",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 5,
+          "hyperText": "<span class=\"struct\">text.question_condition</span> <span class=\"variable\">c</span> > <span class=\"number\">5</span> <span class=\"keyword\">text.question_evaluation</span> - <span class=\"atom\">true</span>",
+          "domainInfo": "step6",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 6,
+          "hyperText": "<span class=\"struct\">text.question_body</span> <span class=\"struct\">if</span> <span class=\"keyword\">text.question_start</span>",
+          "domainInfo": "step7",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 7,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">b</span> = <span class=\"number\">2</span>;",
+          "domainInfo": "step8",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 8,
+          "hyperText": "<span class=\"variable\">c</span> = <span class=\"variable\">d</span> + <span class=\"number\">2</span>;",
+          "domainInfo": "step9",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 9,
+          "hyperText": "<span class=\"struct\">text.question_body</span> <span class=\"struct\">if</span> <span class=\"keyword\">text.question_end_body</span>",
+          "domainInfo": "step10",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 10,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">a</span> = <span class=\"number\">1</span>;",
+          "domainInfo": "step11",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 11,
+          "hyperText": "<span class=\"program\">text.question_function main</span> <span class=\"keyword\">text.question_end</span>",
+          "domainInfo": "step12",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 12,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">b</span> = <span class=\"number\">0</span>;",
+          "domainInfo": "step13",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 13,
+          "hyperText": "<span class=\"variable\">int</span> <span class=\"variable\">c</span> = <span class=\"number\">2</span>;",
+          "domainInfo": "step14",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 14,
+          "hyperText": "<span class=\"program\">text.question_program</span> <span class=\"keyword\">text.question_end</span>",
+          "domainInfo": "step15",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "concept": "",
+          "answerId": 15,
+          "hyperText": "end_answer",
+          "domainInfo": "EndObject",
+          "isRightCol": false,
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step13",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "GlobalContext",
+          "subject": "step13",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "var...",
+          "object": "stepVar",
+          "subject": "step13",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step14",
+          "subject": "step13",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step13",
+          "subject": "step13",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step13",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "13",
+          "subject": "step13",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "13. int b = 0;",
+          "subject": "step13",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "GlobalContext",
+          "subject": "step1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step2",
+          "subject": "step1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step1",
+          "subject": "step1",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step1",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "1",
+          "subject": "step1",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "1. РџСЂРѕРіСЂР°РјРјР° РЅР°С‡РёРЅР°РµС‚СЃСЏ",
+          "subject": "step1",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step7",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "IfContext",
+          "subject": "step7",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step8",
+          "subject": "step7",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step7",
+          "subject": "step7",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step7",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "7",
+          "subject": "step7",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "7. С‚РµР»Рѕ if РЅР°С‡РёРЅР°РµС‚СЃСЏ",
+          "subject": "step7",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step12",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "MainContext",
+          "subject": "step12",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step13",
+          "subject": "step12",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step12",
+          "subject": "step12",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step12",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "12",
+          "subject": "step12",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "12. С„СѓРЅРєС†РёСЏ main Р·Р°РєРѕРЅС‡РёР»Р°СЃСЊ",
+          "subject": "step12",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "typeNameEn",
+          "object": "variable",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isGlobal",
+          "object": "true",
+          "subject": "VariableB",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "VariableB",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "typeNameR",
+          "object": "РїРµСЂРµРјРµРЅРЅРѕР№",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "lifeTimeTypeName",
+          "object": "РіР»РѕР±Р°Р»СЊРЅРѕР№",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isStatic",
+          "object": "false",
+          "subject": "VariableB",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "lifeTimeTypeNameEn",
+          "object": "global",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Variable",
+          "subject": "VariableB",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "typeName",
+          "object": "РїРµСЂРµРјРµРЅРЅР°СЏ",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "b",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "var...",
+          "object": "var",
+          "subject": "VariableB",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "IfContext",
+          "subject": "step6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step7",
+          "subject": "step6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step6",
+          "subject": "step6",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step6",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "6",
+          "subject": "step6",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "6. СѓСЃР»РѕРІРёРµ c > 5 РІС‹С‡РёСЃР»СЏРµС‚СЃСЏ - true",
+          "subject": "step6",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "MainContext",
+          "subject": "step11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step12",
+          "subject": "step11",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step11",
+          "subject": "step11",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step11",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "11",
+          "subject": "step11",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "11. int a = 1;",
+          "subject": "step11",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Context",
+          "subject": "GlobalContext",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "endsIn",
+          "object": "step15",
+          "subject": "GlobalContext",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "GlobalContext",
+          "subject": "GlobalContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "MainContext",
+          "subject": "step5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step6",
+          "subject": "step5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step5",
+          "subject": "step5",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step5",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "5",
+          "subject": "step5",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "5. int c = b + 3;",
+          "subject": "step5",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "IfContext",
+          "subject": "step10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step11",
+          "subject": "step10",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step10",
+          "subject": "step10",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step10",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "10",
+          "subject": "step10",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "10. С‚РµР»Рѕ if Р·Р°РєРѕРЅС‡РёР»РѕСЃСЊ",
+          "subject": "step10",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Context",
+          "subject": "MainContext",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "endsIn",
+          "object": "step12",
+          "subject": "MainContext",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "MainContext",
+          "subject": "MainContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "С„СѓРЅРєС†РёРё main",
+          "subject": "MainContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "textEn",
+          "object": "function main",
+          "subject": "MainContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "MainContext",
+          "subject": "step4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step5",
+          "subject": "step4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step4",
+          "subject": "step4",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step4",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "4",
+          "subject": "step4",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "4. int b = 5;",
+          "subject": "step4",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Context",
+          "subject": "IfContext",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "endsIn",
+          "object": "step10",
+          "subject": "IfContext",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "IfContext",
+          "subject": "IfContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "С‚РµР»Р° if",
+          "subject": "IfContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "textEn",
+          "object": "if body",
+          "subject": "IfContext",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step15",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "GlobalContext",
+          "subject": "step15",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step15",
+          "subject": "step15",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step15",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "15",
+          "subject": "step15",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "15. РџСЂРѕРіСЂР°РјРјР° Р·Р°РєРѕРЅС‡РёР»Р°СЃСЊ",
+          "subject": "step15",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "MainContext",
+          "subject": "step3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step4",
+          "subject": "step3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step3",
+          "subject": "step3",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step3",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "3",
+          "subject": "step3",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "3. int d = 2;",
+          "subject": "step3",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step9",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "IfContext",
+          "subject": "step9",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step10",
+          "subject": "step9",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step9",
+          "subject": "step9",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step9",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "9",
+          "subject": "step9",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "9. c = d + 2;",
+          "subject": "step9",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step14",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "GlobalContext",
+          "subject": "step14",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step15",
+          "subject": "step14",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step14",
+          "subject": "step14",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step14",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "14",
+          "subject": "step14",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "14. int c = 2;",
+          "subject": "step14",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "MainContext",
+          "subject": "step2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step3",
+          "subject": "step2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step2",
+          "subject": "step2",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step2",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "2",
+          "subject": "step2",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "2. С„СѓРЅРєС†РёСЏ main РЅР°С‡РёРЅР°РµС‚СЃСЏ",
+          "subject": "step2",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Step",
+          "subject": "step8",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "belongsTo",
+          "object": "IfContext",
+          "subject": "step8",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "directlyNext",
+          "object": "step9",
+          "subject": "step8",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdfs:label",
+          "object": "step8",
+          "subject": "step8",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "isEvaluated",
+          "object": "false",
+          "subject": "step8",
+          "objectType": "xsd:boolean",
+          "subjectType": ""
+        },
+        {
+          "verb": "number",
+          "object": "8",
+          "subject": "step8",
+          "objectType": "xsd:biginteger",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "8. int b = 2;",
+          "subject": "step8",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        }
+      ],
+      "questionDomainType": "LifeTime"
+    },
+    "questionType": "ORDER"
+  },
+  "name": "life_time_object_9",
+  "origin": null,
+  "lawBits": 1,
+  "tagBits": 2,
+  "version": 1,
+  "skillBits": 1,
+  "templateId": "life_time_object_9",
+  "conceptBits": 273,
+  "originLicense": null,
+  "solutionSteps": 16,
+  "violationBits": 0,
+  "domainShortname": "obj_scope",
+  "traceConceptBits": 273,
+  "integralComplexity": 0.4,
+  "distinctErrorsCount": 0,
+  "solutionStructuralComplexity": 4.0
+}

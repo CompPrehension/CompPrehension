@@ -8,6 +8,7 @@ import {MatchingQuestionComponent} from "./matching-question";
 import {MultiChoiceQuestionComponent} from "./multi-choice-question";
 import {OrderQuestionComponent} from "./order-question";
 import {SingleChoiceQuestionComponent} from "./single-choice-question";
+import {SolutionTraceComponent} from "./solution-trace";
 import "remixicon/fonts/remixicon.css";
 
 type QuestionComponentProps = {
@@ -49,7 +50,13 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
         isQuestionFreezed && "comp-ph-question-wrapper--freezed" || "",
     ].join(' ');
 
+    // Until the first answer is accepted the trace comes with the question, afterwards with the feedback.
+    const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
+
     return (
-        <div className={wrapperClassName}>{questonComponent}</div>
+        <div className={wrapperClassName}>
+            {questonComponent}
+            {question.options.showTrace && <SolutionTraceComponent trace={trace} />}
+        </div>
     );
 })

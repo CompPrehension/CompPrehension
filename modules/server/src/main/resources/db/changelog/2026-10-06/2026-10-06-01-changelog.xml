@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Рассуждение может состоять из нескольких допущений: у каждого рассуждения взаимодействия вместо одной гипотезы
+        список гипотез, пустой — если ход мысли не установлен. Откат оставляет только первую гипотезу рассуждения.
+    -->
+    <changeSet id="2026-10-06-01-reasoning-hypotheses" author="Artem Prokudin">
+        <sql>
+            update interaction i
+                join (select distinct r.interaction_id,
+                                      json_arrayagg(json_set(json_remove(r.reasoning, '$.hypothesis'), '$.hypotheses',
+                                              if(json_type(json_extract(r.reasoning, '$.hypothesis')) = 'STRING',
+                                                 json_array(json_unquote(json_extract(r.reasoning, '$.hypothesis'))),
+                                                 json_array())))
+                                          over (partition by r.interaction_id order by r.reasoning_index
+                                              rows between unbounded preceding and unbounded following) as reasonings
+                      from (select i.id as interaction_id, t.reasoning_index, t.reasoning
+                            from interaction i,
+                                 json_table(i.reasonings, '$[*]' columns (
+                                     reasoning_index for ordinality,
+                                     reasoning json path '$')) t) r) n on n.interaction_id = i.id
+            set i.reasonings = n.reasonings;
+        </sql>
+        <rollback>
+            <sql>
+                update interaction i
+                    join (select distinct r.interaction_id,
+                                          json_arrayagg(json_set(json_remove(r.reasoning, '$.hypotheses'), '$.hypothesis',
+                                                  json_extract(r.reasoning, '$.hypotheses[0]')))
+                                              over (partition by r.interaction_id order by r.reasoning_index
+                                                  rows between unbounded preceding and unbounded following) as reasonings
+                          from (select i.id as interaction_id, t.reasoning_index, t.reasoning
+                                from interaction i,
+                                     json_table(i.reasonings, '$[*]' columns (
+                                         reasoning_index for ordinality,
+                                         reasoning json path '$')) t) r) n on n.interaction_id = i.id
+                set i.reasonings = n.reasonings;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

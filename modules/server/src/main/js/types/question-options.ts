@@ -4,14 +4,19 @@ import { MergeIntersections } from './utils';
 export type QuestionOptions = {
     requireContext: boolean,
     showSupplementaryQuestions: boolean,
+    showTrace?: boolean,
 }
-export const TQuestionOptions : io.Type<QuestionOptions> = io.type({
-    requireContext: io.boolean,
-    showSupplementaryQuestions: io.boolean,
-}, 'QuestionOptions');
+export const TQuestionOptions : io.Type<QuestionOptions> = io.intersection([
+    io.type({
+        requireContext: io.boolean,
+        showSupplementaryQuestions: io.boolean,
+    }),
+    io.partial({
+        showTrace: io.boolean,
+    }),
+], 'QuestionOptions');
 
 export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
-    showTrace: boolean,
     multipleSelectionEnabled: boolean,
     requireAllAnswers: boolean,
     orderNumberOptions?: {
@@ -23,7 +28,6 @@ export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
 export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
-        showTrace: io.boolean,
         multipleSelectionEnabled: io.boolean,
         requireAllAnswers: io.boolean,        
     }),
@@ -56,7 +60,11 @@ type DnDMatchingQuestionOptions = MergeIntersections<QuestionOptions & {
     dropzoneStyle: string,
     dropzoneHtml: string,
 }>
-export type MatchingQuestionOptions = ComboboxMatchingQuestionOptions | DnDMatchingQuestionOptions
+type InlineMatchingQuestionOptions = MergeIntersections<QuestionOptions & {
+    multipleSelectionEnabled: boolean,
+    displayMode: 'inline',
+}>
+export type MatchingQuestionOptions = ComboboxMatchingQuestionOptions | DnDMatchingQuestionOptions | InlineMatchingQuestionOptions
 export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
@@ -71,6 +79,9 @@ export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.int
             draggableStyle: io.string,
             dropzoneStyle: io.string,
             dropzoneHtml: io.string,
+        }),
+        io.type({
+            displayMode: io.literal('inline'),
         }),
     ]),
 ], 'MatchingQuestionOptions')

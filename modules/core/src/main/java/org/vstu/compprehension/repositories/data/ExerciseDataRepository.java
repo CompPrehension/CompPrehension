@@ -55,7 +55,6 @@ public class ExerciseDataRepository {
         entity.setDomainId(exercise.domainId());
         entity.setName(exercise.name());
         entity.setBackendId(exercise.backendId());
-        entity.setStrategyId(exercise.strategyId());
         entity.setOptions(exercise.options());
         entity.setStages(new ArrayList<>(exercise.stages()));
         entity.setTags(joinTags(exercise.tags()));
@@ -76,7 +75,6 @@ public class ExerciseDataRepository {
         entity.setName(card.name());
         entity.setDomainId(card.domainId());
         entity.setBackendId(card.backendId());
-        entity.setStrategyId(card.strategyId());
         entity.setOptions(card.options());
         entity.setStages(new ArrayList<>(card.stages()));
         entity.setTags(joinTags(card.tags()));

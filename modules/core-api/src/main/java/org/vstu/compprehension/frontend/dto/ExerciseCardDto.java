@@ -16,7 +16,6 @@ public class ExerciseCardDto {
     private @NotNull Long id;
     private @NotNull String name;
     private @NotNull String domainId;
-    private @NotNull String strategyId;
     private @NotNull String backendId;
     private @NotNull List<String> tags;
     private @NotNull List<ExerciseStageDto> stages;

@@ -13,6 +13,7 @@ import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -656,11 +657,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .id(exercise.getId())
                 .name(exercise.getName())
                 .domainId(exercise.getDomainId())
-                .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .tags(new ArrayList<>())
                 .options(exercise.getOptions())
-                .stages(List.of(new ExerciseStageDto(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>())))
+                .stages(List.of(new ExerciseStageDto(TestData.Exercises.STRATEGY_ID, Map.of(), 5, 0.5f,
+                        new ArrayList<>(), new ArrayList<>(), new ArrayList<>())))
                 .isPublic(exercise.isPublic())
                 .build();
     }

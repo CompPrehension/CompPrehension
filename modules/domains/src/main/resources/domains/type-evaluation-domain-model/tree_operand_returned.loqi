@@ -1,0 +1,23 @@
+// Логическая операция E вернёт операнд X — так считает студент; Left — её левый операнд, T — ответ студента.
+tpg OperandReturned(E: Operation, Left: Expr, X: Expr, T: Outcome) {
+    var B : LogicalOperation = (E as class:LogicalOperation);
+    ask (T == X->hasType) out false else {
+        conclude: correct [
+            skill = "logical_returned_operand";
+            hypothesis = "rule";
+            RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, ${X == Left ? 'а ' : ''}${B.class()} на таком операнде ${X == Left ? 'останавливается и возвращает его' : 'не останавливается и возвращает правый операнд'}.";
+            EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, ${X == Left ? 'and the' : 'so the'} ${B.class()} ${X == Left ? 'stops at such an operand and returns it' : 'does not stop at it and returns the right operand'}.";
+        ];
+    };
+    conclude: null
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]

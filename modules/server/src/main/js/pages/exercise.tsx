@@ -170,7 +170,9 @@ export const Exercise = observer(() => {
                   </Optional>
                   <Optional
                     isVisible={
-                      (survey == null &&
+                      // The student answers the clarifying question before going on, also after the last step.
+                      !exerciseStore.currentQuestion.isQuestionFreezed &&
+                      ((survey == null &&
                         (exerciseStore.exercise?.options
                           .newQuestionGenerationEnabled ||
                           exerciseStore.currentQuestion.questionState ===
@@ -179,7 +181,7 @@ export const Exercise = observer(() => {
                         survey.questions[
                           exerciseStore.currentQuestion.question?.questionId ??
                             -1
-                        ]?.status === 'COMPLETED')
+                        ]?.status === 'COMPLETED'))
                     }
                   >
                     <div className='mt-2'>

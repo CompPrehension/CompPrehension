@@ -17,7 +17,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
+import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
@@ -43,6 +46,7 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private UserRepository userRepository;
     @Autowired private ExerciseRepository exerciseRepository;
+    @Autowired private Mapper<ExerciseEntity, AttemptExerciseData> attemptExerciseMapper;
     @Autowired private CourseRepository courseRepository;
     @Autowired private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired private QuestionRepository questionRepository;
@@ -78,7 +82,9 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
     protected ExerciseAttemptEntity createAttempt(long userId, long exerciseId, Long courseId) {
         var attempt = new ExerciseAttemptEntity();
         attempt.setUser(userRepository.findById(userId).orElseThrow());
-        attempt.setExercise(exerciseRepository.findById(exerciseId).orElseThrow());
+        var exercise = exerciseRepository.findById(exerciseId).orElseThrow();
+        attempt.setExercise(exercise);
+        attempt.setExerciseSnapshot(attemptExerciseMapper.map(exercise));
         attempt.setCourse(courseId == null ? null : courseRepository.findById(courseId).orElseThrow());
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setQuestions(new ArrayList<>());

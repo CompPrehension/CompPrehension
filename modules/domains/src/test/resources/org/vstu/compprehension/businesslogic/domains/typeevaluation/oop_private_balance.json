@@ -1,0 +1,97 @@
+{
+  "id": 18,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "visibility",
+      "field_access",
+      "missing_member_errors"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "oop_private_balance",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"k\">class</span><span class=\"w\"> </span><span class=\"nc\">Account</span><span class=\"p\">:</span>\n    <span class=\"k\">def</span><span class=\"w\"> </span><span class=\"fm\">__init__</span><span class=\"p\">(</span><span class=\"bp\">self</span><span class=\"p\">,</span> <span class=\"n\">owner</span><span class=\"p\">:</span> <span class=\"nb\">str</span><span class=\"p\">,</span> <span class=\"n\">balance</span><span class=\"p\">:</span> <span class=\"nb\">int</span><span class=\"p\">):</span>\n        <span class=\"bp\">self</span><span class=\"o\">.</span><span class=\"n\">owner</span> <span class=\"o\">=</span> <span class=\"n\">owner</span>\n        <span class=\"bp\">self</span><span class=\"o\">.</span><span class=\"n\">__balance</span> <span class=\"o\">=</span> <span class=\"n\">balance</span>\n\n\n<span class=\"n\">account</span> <span class=\"o\">=</span> <span class=\"n\">Account</span><span class=\"p\">(</span><span class=\"s2\">&quot;Анна&quot;</span><span class=\"p\">,</span> <span class=\"mi\">100</span><span class=\"p\">)</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:1\"><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">account</span><span class=\"comp-ph-expr-token\">.</span><span class=\"comp-ph-expr-token\">__balance</span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "account.__balance",
+          "domainInfo": "op_balance",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "None",
+          "domainInfo": "t_none",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "AttributeError",
+          "domainInfo": "t_attribute_error",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 105,
+          "hyperText": "Account",
+          "domainInfo": "t_account",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_str : py_str { elementType(t_str); }\nobj t_none : py_NoneType {}\nobj t_error : py_TypeError {}\nobj t_attribute_error : py_AttributeError {}\nobj f_owner : Field { hasType(t_str); isStatic = false; visibility = Visibility:public; } [ text = \"owner\" ]\nobj f_balance : Field { hasType(t_int); isStatic = false; visibility = Visibility:private; } [ text = \"__balance\" ]\nobj t_account : py_class { declares(f_owner); declares(f_balance); } [ text = \"Account\" ]\nobj account : Variable { hasType(t_account); } [ text = \"account\" ]\nobj op_balance : py_field_access { hasOperand<OperandPlacement:left>(account); accesses(f_balance); } [ text = \"account.__balance\"; expectedType = \"t_attribute_error\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "oop_private_balance",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 3178496,
+  "skillBits": 3145728,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 1
+}

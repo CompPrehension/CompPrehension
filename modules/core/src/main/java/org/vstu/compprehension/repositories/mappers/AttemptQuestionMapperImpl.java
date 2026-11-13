@@ -30,6 +30,7 @@ class AttemptQuestionMapperImpl implements AttemptQuestionMapper {
                 question.getQuestionName(),
                 question.getQuestionDomainType(),
                 bits,
+                question.getStageIndex(),
                 interactions);
     }
 }

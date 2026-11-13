@@ -25,5 +25,8 @@ public class MatchingQuestionOptionsData extends QuestionOptionsData {
         COMBOBOX,
         @JsonProperty("dragNdrop")
         DRAGNDROP,
+        /// Compact menus right inside the question text, e.g. over parts of an expression
+        @JsonProperty("inline")
+        INLINE,
     }
 }

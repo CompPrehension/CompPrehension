@@ -71,6 +71,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(ProgrammingLanguageExpressionDomain baseDomain) {
+        // Исключение из «либо законы, либо навыки»: законы базового домена нужны для подбора вопросов (биты нарушений
+        // в метаданных и поиск по банку), ответ же оценивается по навыкам.
         super(DOMAIN_ID, baseDomain.randomProvider, baseDomain.getStructure().withSkills(buildSkills()));
 
         this.baseDomain = baseDomain;
@@ -335,7 +337,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(
+        public Judgement interpretJudgeNotPerformed(
                 QuestionData judgedQuestion,
                 LearningSituation preparedSituation,
                 Language language
@@ -348,49 +350,38 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     domainSolvingModel.decisionTree("earlyfinish")
             );
 
-            ViolationData violation = new ViolationData();
-            violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
-            violation.setViolationFacts(new ArrayList<>());
-            InterpretSentenceResult result = new InterpretSentenceResult();
-            result.violations = new ArrayList<>(List.of(violation));
+            int stepsLeft = calculateLeftInteractions(preparedSituation);
+            if (stepsLeft == 0) {
+                // Достигли полного завершения задачи.
+                // Ошибок уже быть не может — сбросим их все.
+                return new Judgement.Verdict(true, Explanation.empty(Explanation.Type.HINT),
+                        List.of(), List.of(), stepsLeft);
+            }
 
-            result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+            ViolationData violation = new ViolationData();
+            violation.setKnowledgeName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
+            violation.setViolationFacts(new ArrayList<>());
+            var violations = new ArrayList<>(List.of(violation));
+
+            var explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                     Explanation.Type.ERROR, solveResult.trace(),
                     preparedSituation.getDomainModel(),
                     getDomain(),
                     language);
-            result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
+            violations.addAll(explanation.getKnowledgeNames().stream().map(skill -> {
                 ViolationData v = new ViolationData();
-                v.setLawName(skill);
+                v.setKnowledgeName(skill);
                 v.setViolationFacts(new ArrayList<>());
                 return v;
             }).toList());
-            updateInterpretationResult(result, preparedSituation);
-            return result;
+            return new Judgement.Verdict(false, explanation, violations, List.of(), stepsLeft);
         }
 
         @Override
-        public void updateJudgeInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                DecisionTreeReasonerBackend.Output backendOutput
-        ) {
-            updateInterpretationResult(interpretationResult, backendOutput.situation());
-        }
-
-        private void updateInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                LearningSituation situation
-        ) {
-            interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-            interpretationResult.IterationsLeft = calculateLeftInteractions(situation);
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
+        public int countStepsLeft(@NotNull QuestionData judgedQuestion,
+                                  @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                  boolean isAnswerCorrect) {
+            return calculateLeftInteractions(backendOutput.situation());
         }
 
         public int calculateLeftInteractions(LearningSituation situation) {
@@ -915,8 +906,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     //----------Вспомогательные вопросы------------
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
-        Skill skill = getSkill(violationLawName);
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
+        Skill skill = getSkill(violatedKnowledgeName);
         return skill != null && interactionType != InteractionType.REQUEST_CORRECT_ANSWER;
     }
 
@@ -952,11 +943,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     //-----------Объяснения---------------
-
-    @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        return null; //FIXME удалить?
-    }
 
     @Override
     public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {

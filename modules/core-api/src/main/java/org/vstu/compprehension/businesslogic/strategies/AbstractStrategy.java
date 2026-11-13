@@ -3,7 +3,8 @@ package org.vstu.compprehension.businesslogic.strategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
-import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.settings.SettingsType;
+import org.vstu.compprehension.data.exerciseattempt.AttemptStageData;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 
@@ -17,15 +18,14 @@ public interface AbstractStrategy {
 
     @NotNull StrategyOptions getOptions();
 
-    QuestionRequest generateQuestionRequest(long exerciseAttemptId);
+    /** Настройки, которые преподаватель задаёт стратегии в этапе упражнения. */
+    @NotNull SettingsType<?> getSettingsType();
 
-    float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult);
+    QuestionRequest generateQuestionRequest(@NotNull AttemptStageData stage);
 
-    Decision decide(long exerciseAttemptId);
-    
-    default StrategyDecision gradeAndDecide(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
-        var grade = grade(exerciseAttemptId, judgeResult);
-        var decision = decide(exerciseAttemptId);
-        return new StrategyDecision(grade, decision);
-    }
+    /** Оценка этапа после последнего записанного ответа: доля от вопросов, запланированных на этап. */
+    float grade(@NotNull AttemptStageData stage);
+
+    /** {@link Decision#FINISH}, если этап пройден раньше, чем заданы все запланированные на него вопросы. */
+    Decision decide(@NotNull AttemptStageData stage);
 }

@@ -1,0 +1,98 @@
+{
+  "id": 1,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "division",
+      "function_call",
+      "numbers",
+      "lists"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false,
+        "showTrace": true
+      },
+      "questionName": "average_of_grades",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">grades</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">4</span><span class=\"p\">,</span> <span class=\"mi\">5</span><span class=\"p\">]</span>\n<span class=\"n\">total</span> <span class=\"o\">=</span> <span class=\"mi\">14</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-token\">total</span><span class=\"comp-ph-expr-token\">/</span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">len</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-token\">grades</span><span class=\"comp-ph-expr-token\">)</span></span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "len(grades)",
+          "domainInfo": "op_len",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 1,
+          "hyperText": "total / len(grades)",
+          "domainInfo": "op_div",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "float",
+          "domainInfo": "t_float",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "list[int]",
+          "domainInfo": "t_list_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj grades : Variable { hasType(t_list_int); } [ text = \"grades\" ]\nobj total : Variable { hasType(t_int); } [ text = \"total\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(grades); } [ text = \"len(grades)\"; expectedType = \"t_int\"; value = \"3\" ]\nobj op_div : py_truediv { hasOperand<OperandPlacement:left>(total); hasOperand<OperandPlacement:right>(op_len); } [ text = \"total / len(grades)\"; expectedType = \"t_float\"; value = \"4.666666666666667\" ]\nobj op_div_as_py_integer_division : py_integer_division { hasOperand<OperandPlacement:left>(total); hasOperand<OperandPlacement:right>(op_len); foreignVariantOf(op_div); } [ text = \"total / len(grades)\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "average_of_grades",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 2818,
+  "skillBits": 16385,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 2
+}
