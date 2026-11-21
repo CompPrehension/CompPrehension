@@ -104,10 +104,11 @@ public class Explanation {
      * @return общий префикс
      */
     public static String getCommonPrefix(Collection<Explanation> explanations, String defaultVal) {
-        String commonChildrenPrefix = StringUtils.getCommonPrefix(explanations.stream().
-                map(Explanation::getRawMessage).map(HyperText::getText)
+        List<String> texts = explanations.stream()
+                .map(Explanation::getRawMessage).map(HyperText::getText)
                 .filter(x -> !x.startsWith("<i>"))  // отфильтровать агрегационные "влияет ..." (выделены курсивом)
-                .toList().toArray(new String[0]));
+                .toList();
+        String commonChildrenPrefix = StringUtils.getCommonPrefix(texts.toArray(String[]::new));
         if (commonChildrenPrefix.isEmpty()) {
             return defaultVal;
         }
@@ -132,14 +133,40 @@ public class Explanation {
             commonChildrenPrefix = commonChildrenPrefix.substring(0, cutPos) + " ";
         }
 
+        // Общая первая буква ещё не граница слова: «В» нельзя отрезать от «Выполнение».
+        commonChildrenPrefix = cutToWordBoundary(commonChildrenPrefix, texts);
+        if (commonChildrenPrefix.isBlank()) {
+            return defaultVal;
+        }
         return commonChildrenPrefix;
     }
 
+    private static @NotNull String cutToWordBoundary(@NotNull String prefix, @NotNull List<String> texts) {
+        while (!prefix.isEmpty() && !endsAtWordBoundary(prefix, texts)) {
+            prefix = prefix.substring(0, prefix.length() - 1);
+        }
+        return prefix;
+    }
+
+    private static boolean endsAtWordBoundary(@NotNull String prefix, @NotNull List<String> texts) {
+        if (!Character.isLetterOrDigit(prefix.charAt(prefix.length() - 1))) {
+            return true;
+        }
+        int end = prefix.length();
+        for (String text : texts) {
+            if (end < text.length() && Character.isLetterOrDigit(text.charAt(end))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private HyperText recursiveBuildHyperText(Language lang, boolean collapse, Explanation parent) {
-        String commonChildrenPrefix = getCommonPrefix(children, "").trim();
+        String commonChildrenPrefix = getCommonPrefix(children, "");
+        String headerText = StringUtils.removeEnd(commonChildrenPrefix.trim(), ",");
         StringBuilder details = new StringBuilder(String.format("<details class=\"rounded\" %s>", collapse ? "" : "open"));
-        String headerPrefix = commonChildrenPrefix;
-        if (rawMessage.getText().trim().startsWith(commonChildrenPrefix)) {
+        String headerPrefix = headerText;
+        if (!headerText.isEmpty() && rawMessage.getText().trim().startsWith(headerText)) {
             headerPrefix = "";
         }
         if (!rawMessage.getText().isEmpty() && !headerPrefix.isEmpty() &&
@@ -156,12 +183,27 @@ public class Explanation {
                 continue;
             }
             HyperText ht = child.toHyperText(lang, collapse);
-            details.append("<li class=\"p-1\">").append(ht.getText().replace(commonChildrenPrefix, "")).append("</li>");
+            details.append("<li class=\"p-1\">").append(stripLeadingPrefix(ht.getText(), commonChildrenPrefix)).append("</li>");
         }
         details.append("</ul>");
 
         details.append("</details>");
         return new HyperText(details);
+    }
+
+    private static @NotNull String stripLeadingPrefix(@NotNull String text, @NotNull String prefix) {
+        if (prefix.isEmpty()) {
+            return text;
+        }
+        if (text.startsWith(prefix)) {
+            return text.substring(prefix.length());
+        }
+        String summary = "<summary>" + prefix;
+        int at = text.indexOf(summary);
+        if (at >= 0) {
+            return text.substring(0, at + "<summary>".length()) + text.substring(at + summary.length());
+        }
+        return text;
     }
 
     public HyperText toHyperTextWithoutCommonPrefix(Language lang) {

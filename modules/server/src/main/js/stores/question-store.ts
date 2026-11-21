@@ -143,7 +143,7 @@ export class QuestionStore {
         this.onAnswerEvaluated(feedbackEither.right);
     }
 
-    private sendAnswersImpl = async (questionId: number, answers: readonly Answer[]) => {
+    private sendAnswersImpl = async (questionId: number, answers: readonly Answer[]): Promise<boolean> => {
         const body: Interaction = toJS({
             questionId,
             answers: toJS([...answers]),
@@ -157,18 +157,19 @@ export class QuestionStore {
 
         if (E.isLeft(feedbackEither)) {
             this.setErrorStoreState(feedbackEither.left);
-            return;
+            return false;
         }
 
         this.onAnswerEvaluated(feedbackEither.right);
+        return true;
     }
 
-    sendAnswers = async () => {
+    sendAnswers = async (): Promise<boolean> => {
         const { question, lastAnswer } = this;
         if (!question) {
-            return;
+            return false;
         }
-        await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
+        return await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
     }
 
     onAnswersChanged = async (answer: Answer[], sendAnswers: boolean = true) => {
@@ -200,16 +201,18 @@ export class QuestionStore {
         }
 
         try {
-            await this.sendAnswers();
-            return true;
-        } catch {
-            // rollback asnwer if found unexpected error
-            this.lastAnswer = prevLastAnswer;
-            if (prevLastAnswer.length > 0) {
-                this.answersHistory.pop();
+            if (await this.sendAnswers()) {
+                return true;
             }
-            return false;
+        } catch (error: unknown) {
+            // rollback asnwer if found unexpected error
+            this.setErrorStoreState({ message: error instanceof Error ? error.message : String(error) });
         }
+        this.lastAnswer = prevLastAnswer;
+        if (prevLastAnswer.length > 0) {
+            this.answersHistory.pop();
+        }
+        return false;
     }
 
     isAnswerChanged = (newAnswer: Answer[]): boolean => {

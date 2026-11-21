@@ -3,6 +3,7 @@ import React from "react";
 import { QuestionStore } from "../../stores/question-store";
 import { Answer } from "../../types/answer";
 import { Loader } from "../common/loader";
+import { InlineError } from "../common/errors";
 import { QuestionComponent } from "../common/question/question";
 import { Feedback } from "./feedback";
 
@@ -18,7 +19,7 @@ export const Question = observer((props: QuestionOptions) => {
         return <div className="mt-2"><Loader /></div>;
     }
     if (!questionData) {
-        return null;
+        return store.storeState.tag === 'ERROR' ? <InlineError error={store.storeState.error}/> : null;
     }    
 
     const onChanged = async (newHistory: Answer[]) => {
@@ -32,7 +33,9 @@ export const Question = observer((props: QuestionOptions) => {
     return (
         <>
             <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.questionState === 'ANSWER_EVALUATING'} isQuestionFreezed={store.isQuestionFreezed}/>
-            <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
+            {store.storeState.tag === 'ERROR'
+                ? <InlineError error={store.storeState.error}/>
+                : <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>}
         </>
     );
 })

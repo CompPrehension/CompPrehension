@@ -77,8 +77,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
             this.getClass().getClassLoader(),
             DOMAIN_MODEL_LOCATION,
-            DomainSolvingModel.BuildMethod.DICT_RDF
-    ).validate(false);
+            DomainSolvingModel.BuildMethod.DICT_RDF, true
+    );
 
     @Getter
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
