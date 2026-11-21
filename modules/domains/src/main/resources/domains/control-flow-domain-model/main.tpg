@@ -868,8 +868,8 @@ fragment checkLevel(C: ConcreteConstruct) {
                     ask (Dp->derivedFrom.role == "BEGIN" and not Dp->derivedFrom.is_opaque) out false else {
                         conclude: error [
                             skill = "actions_in_order" ;
-                            RU.explanation = "Выполнение ${C}[case='р'] начинается не с ${A}[case='р'], поэтому выбранное действие сейчас не выполняется." ;
-                            EN.explanation = "Execution of the ${C} does not start with the ${A}, so the selected action is not executed now." ;
+                            RU.explanation = "Перед ${A}[case='т'] должны выполниться другие действия ${C}[case='р'], поэтому выбранное действие сейчас не выполняется." ;
+                            EN.explanation = "Other actions of the ${C} must be executed before the ${A}, so the selected action is not executed now." ;
                         ];
                     };
                     conclude: error [
@@ -1143,8 +1143,8 @@ tpg CtrlFlow_check(S: TraceState, P: TraceAct, A: ConcreteAction, V: SemanticVal
         };
         conclude: error [
             skill = "call_return_matches_activation" ;
-            RU.explanation = "Вызов <code>${V}</code> ещё не может завершиться, поскольку выполнение ${FunctionBody}[case='р'] в этом вызове ещё не закончено." ;
-            EN.explanation = "The call <code>${V}</code> cannot finish yet because execution of the ${FunctionBody} in this call has not finished." ;
+            RU.explanation = "Каждый вызов функции выполняет её тело отдельно. Для вызова <code>${V}</code> ${FunctionBody} ещё не выполнено до конца, поэтому этот вызов не может завершиться сейчас." ;
+            EN.explanation = "Each function call executes its body separately. For the call <code>${V}</code>, the ${FunctionBody} has not been executed to the end yet, so this call cannot finish." ;
         ];
     };
     // Только готовый к завершению экземпляр сверяем с выбранным местом возврата.
