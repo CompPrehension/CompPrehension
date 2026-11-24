@@ -297,6 +297,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         b.add("recursion", 1L << 42, List.of(), flags);
         b.add("loop_iteration", 1L << 43, List.of(), flags);
         b.add("call_depth", 1L << 44, List.of(), flags);
+        b.add("partial_trace", 1L << 45, List.of(), flags);
 
         return b.build();
     }
