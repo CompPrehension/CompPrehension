@@ -66,6 +66,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     static final String CHECK_TREE = "";
     static final String FIND_CORRECT_TREE = "findCorrect";
+    private static final String ROOT_CONSTRUCT = "global_statements_structure";
     private static final String RDF_BASE = TermMapping.BASE_URI_DEFAULT + "#";
     /** Объекты, которые рассуждение меняет по ходу решения: трасса, её состояние и расход значений. */
     private static final List<String> SOLUTION_CLASSES = List.of("TraceAct", "TraceState", "SemanticValue");
@@ -94,7 +95,37 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         .formatted(answer.left().getDomainInfo(), q.getQuestionName()));
             }
         }
+        completeTraceAfterLastStudentStep(q, situation);
         return situation;
+    }
+
+    /** После шага студента с номером TraceConfig.skip_steps_after оставшуюся трассу до конца программы строит findCorrect. */
+    private void completeTraceAfterLastStudentStep(@NotNull QuestionContentData q, @NotNull DomainModel situation) {
+        int lastStudentStep = readSkipStepsAfter(situation);
+        if (lastStudentStep == 0 || collectStudentActs(q, situation).size() != lastStudentStep) {
+            return;
+        }
+        while (!isProgramFinished(situation)) {
+            ObjectDef tail = traceTail(situation);
+            solveFindCorrect(prepareFindCorrectSituation(situation), q);
+            if (traceTail(situation) == tail) {
+                throw new IllegalStateException("findCorrect does not extend the trace of CtrlFlow question " + q.getQuestionName());
+            }
+        }
+    }
+
+    /** У вопросов, выгруженных без этого значения, тренажёр трассу не достраивает. */
+    private static int readSkipStepsAfter(@NotNull DomainModel situation) {
+        var value = situation.getObjects().get("TraceConfig").getDefinedPropertyValues().get("skip_steps_after", Map.of());
+        return value == null ? 0 : ((Number) value.getValue()).intValue();
+    }
+
+    /** Последний акт трассы — END корневой конструкции программы. */
+    private static boolean isProgramFinished(@NotNull DomainModel situation) {
+        ObjectDef action = traceTail(situation).getRelationshipLink("hasAction").getObjects().getFirst();
+        ObjectDef construct = action.getRelationshipLink("belongsTo").getObjects().getFirst();
+        return "END".equals(findSpec(action).getPropertyValue("role", Map.of()))
+                && ROOT_CONSTRUCT.equals(findSpec(construct).getPropertyValue("name", Map.of()));
     }
 
     private DomainModel situationFromFacts(List<BackendFactData> facts) {
@@ -345,7 +376,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public List<BackendFactData> updateSolutionAfterJudge(QuestionData question, List<? extends AnswerData> responses,
                                                               DecisionTreeReasonerBackend.Output backendOutput) {
-            return toSolutionFacts(backendOutput.situation().getDomainModel(), responses);
+            DomainModel situation = backendOutput.situation().getDomainModel();
+            completeTraceAfterLastStudentStep(question.getContent(), situation);
+            return toSolutionFacts(situation, responses);
         }
 
         @Override
@@ -531,14 +564,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
         DomainModel situation = prepareSituationModel(q.getContent(), q.findLatestCorrectAnswers());
-        bindVariable(situation, "P", traceTail(situation).getName());
-        situation.getVariables().remove("A");
-        situation.getVariables().remove("V");
-        var learningSituation = learningSituation(situation);
-        DecisionTreeTrace trace = DecisionTreeReasoner.solve(domainSolvingModel.decisionTree(FIND_CORRECT_TREE), learningSituation);
-        if (!DecisionTreeReasonerBackend.Interface.isCorrectAnswer(trace)) {
-            throw new IllegalStateException("No next correct action for CtrlFlow question " + q.getContent().getQuestionName());
-        }
+        var learningSituation = prepareFindCorrectSituation(situation);
+        DecisionTreeTrace trace = solveFindCorrect(learningSituation, q.getContent());
         // Найденный шаг студента становится новым P; после него граф мог добавить прозрачный вход в конструкцию.
         ObjectDef step = learningSituation.getDecisionTreeVariables().get("P").findIn(situation);
         AnswerObjectData answer = findAnswerObject(q.getContent(), step);
@@ -551,6 +578,23 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                 Explanation.Type.HINT, trace, situation, this, language);
         return correctAnswer;
+    }
+
+    /** Ситуация поиска следующего шага: трасса продолжается от последнего акта, ответа студента нет. */
+    private @NotNull LearningSituation prepareFindCorrectSituation(@NotNull DomainModel situation) {
+        bindVariable(situation, "P", traceTail(situation).getName());
+        situation.getVariables().remove("A");
+        situation.getVariables().remove("V");
+        return learningSituation(situation);
+    }
+
+    /** findCorrect дописывает в трассу акты до следующего шага студента включительно. */
+    private @NotNull DecisionTreeTrace solveFindCorrect(@NotNull LearningSituation situation, @NotNull QuestionContentData q) {
+        DecisionTreeTrace trace = DecisionTreeReasoner.solve(domainSolvingModel.decisionTree(FIND_CORRECT_TREE), situation);
+        if (!DecisionTreeReasonerBackend.Interface.isCorrectAnswer(trace)) {
+            throw new IllegalStateException("No next correct action for CtrlFlow question " + q.getQuestionName());
+        }
+        return trace;
     }
 
     private static String replaceInString(String s, Map<String, String> placeholders) {
@@ -602,18 +646,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
         DomainModel situation = prepareSituationModel(question.getContent(), question.findLatestCorrectAnswers());
-        Set<String> answeredActions = question.getContent().getAnswerObjects().stream()
-                .map(answer -> answer.getDomainInfo().split(",", 2)[0])
-                .collect(Collectors.toSet());
         Map<String, Integer> repeats = new HashMap<>();
         List<HyperText> trace = new ArrayList<>();
-        for (ObjectDef act = situation.getObjects().get("act_root"); act != null; act = findNextAct(act)) {
+        for (ObjectDef act : collectStudentActs(question.getContent(), situation)) {
             ObjectDef action = act.getRelationshipLink("hasAction").getObjects().getFirst();
-            // Действия без кнопки проходятся автоматически: прозрачные и непрозрачные действия,
-            // раскрывающиеся в составную конструкцию (тело функции, ветвь, первый оператор блока).
-            if (!answeredActions.contains(action.getName())) {
-                continue;
-            }
             String line = formatTraceLine(action, findActValue(act), repeats.merge(action.getName(), 1, Integer::sum), language);
             trace.add(new HyperText("<span class=\"trace-act\" data-action=\"%s\">%s</span>".formatted(action.getName(), line)));
         }
@@ -628,6 +664,22 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return trace;
     }
 
+    /** Акты трассы, у действий которых есть кнопка, — шаги студента в порядке трассы. */
+    private static @NotNull List<ObjectDef> collectStudentActs(@NotNull QuestionContentData q, @NotNull DomainModel situation) {
+        Set<String> answeredActions = q.getAnswerObjects().stream()
+                .map(answer -> answer.getDomainInfo().split(",", 2)[0])
+                .collect(Collectors.toSet());
+        List<ObjectDef> acts = new ArrayList<>();
+        for (ObjectDef act = situation.getObjects().get("act_root"); act != null; act = findNextAct(act)) {
+            // Действия без кнопки проходятся автоматически: прозрачные и непрозрачные действия,
+            // раскрывающиеся в составную конструкцию (тело функции, ветвь, первый оператор блока).
+            if (answeredActions.contains(act.getRelationshipLink("hasAction").getObjects().getFirst().getName())) {
+                acts.add(act);
+            }
+        }
+        return acts;
+    }
+
     private static @NotNull Optional<AnswerData> latestMistakenAnswer(@NotNull QuestionData question) {
         List<QuestionInteractionData> interactions = question.getInteractions();
         if (interactions.isEmpty() || interactions.getLast().isCorrect() || interactions.getLast().getAnswers().isEmpty()) {
@@ -638,7 +690,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     /** BEGIN и END называют свою конструкцию, остальные действия — себя. */
     private @NotNull String formatTraceLine(@NotNull ObjectDef action, @Nullable ObjectDef value, int repeat, @NotNull Language language) {
-        Object role = actionSpec(action).getPropertyValue("role", Map.of());
+        Object role = findSpec(action).getPropertyValue("role", Map.of());
         boolean begins = "BEGIN".equals(role);
         boolean ends = "END".equals(role);
         ObjectDef named = begins || ends ? action.getRelationshipLink("belongsTo").getObjects().getFirst() : action;
@@ -651,8 +703,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 "value", formatTraceValue(value, language)));
     }
 
-    private static @NotNull ObjectDef actionSpec(@NotNull ObjectDef action) {
-        return action.getRelationshipLink("derivedFrom").getObjects().getFirst();
+    private static @NotNull ObjectDef findSpec(@NotNull ObjectDef actionOrConstruct) {
+        return actionOrConstruct.getRelationshipLink("derivedFrom").getObjects().getFirst();
     }
 
     /** Значение после тире: его имя, без имени — подсказка, без обоих — ничего. */

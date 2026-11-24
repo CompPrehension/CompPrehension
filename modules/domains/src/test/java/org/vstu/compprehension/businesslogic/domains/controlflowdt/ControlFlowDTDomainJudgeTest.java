@@ -43,6 +43,7 @@ import static org.vstu.compprehension.businesslogic.domains.controlflowdt.Contro
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.IF_THEN;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.NESTED_CALLS;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.RECURSION_FACTORIAL;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.RECURSION_FACTORIAL_PARTIAL;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.RECURSION_RANGE_SUM;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.SEQUENCE;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_NOT_ENTERED;
@@ -70,6 +71,11 @@ class ControlFlowDTDomainJudgeTest {
     private static final String BODY_OF_SQUARE = "block_structure_action_first_ast9";
     private static final String INNER_CALL_RETURNS_FACT_2 = "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_1";
     private static final Pattern CYRILLIC = Pattern.compile("[А-Яа-яЁё]");
+    private static final String FACT_3_BEGIN = "func_call_structure_action_BEGIN_ast39";
+    private static final String FACT_3_END = "func_call_structure_action_END_ast39";
+    private static final String INNER_FACT_BEGIN = "func_call_structure_action_BEGIN_ast25";
+    private static final String INNER_FACT_END = "func_call_structure_action_END_ast25";
+    private static final String RESULT_OF_INNER_FACT = "block_structure_action_next_ast27";
 
     static Stream<BankQuestion> bank() {
         return BANK.stream();
@@ -690,6 +696,47 @@ class ControlFlowDTDomainJudgeTest {
         assertTrue(english.getFirst().contains("executed</span> for the"), english.getFirst());
         assertTrue(english.stream().noneMatch(line -> CYRILLIC.matcher(line).find()), english.toString());
         assertTrue(linesOf(english, IF_THEN.action(2)).getFirst().contains(valueHint("true")));
+    }
+
+    // ---- частичная трасса ----
+
+    /** Шаги, выполненные в условии вопроса, видны в трассе до первого ответа. */
+    @Test
+    void skippedFirstStepsAreShownBeforeFirstAnswer() {
+        // Act.
+        var trace = texts(domain().getFullSolutionTrace(bankQuestion(RECURSION_FACTORIAL_PARTIAL), Language.RUSSIAN));
+
+        // Assert.
+        assertEquals(List.of(FACT_3_BEGIN, CONDITION_OF_FACT, INNER_FACT_BEGIN, CONDITION_OF_FACT),
+                trace.stream().map(ControlFlowDTDomainJudgeTest::actionOf).toList());
+    }
+
+    /** Ответы после пропущенных шагов засчитываются, а после последнего шага студента трасса сама доходит до конца программы. */
+    @Test
+    void traceIsCompletedAfterLastStudentStep() {
+        // Arrange.
+        var question = bankQuestion(RECURSION_FACTORIAL_PARTIAL);
+        var given = new ArrayList<AnswerObjectData>();
+        Domain.InterpretSentenceResult result = null;
+
+        for (int step = 0; step < RECURSION_FACTORIAL_PARTIAL.steps(); step++) {
+            given.add(action(question, RECURSION_FACTORIAL_PARTIAL.action(step)));
+
+            // Act.
+            result = judge(question, given);
+
+            // Assert.
+            assertTrue(result.isAnswerCorrect, "на шаге " + step);
+            assertEquals(RECURSION_FACTORIAL_PARTIAL.steps() - given.size(), result.IterationsLeft);
+        }
+        var solved = withSolution(withCorrectSteps(question, given, RECURSION_FACTORIAL_PARTIAL), result.updatedSolutionFacts);
+        var trace = texts(domain().getFullSolutionTrace(solved, Language.RUSSIAN));
+
+        // Assert.
+        // 4 шага из условия, 5 ответов студента и 3 шага, выполненных тренажёром.
+        assertEquals(12, trace.size());
+        assertEquals(List.of(INNER_FACT_END, RESULT_OF_INNER_FACT, FACT_3_END),
+                trace.subList(9, 12).stream().map(ControlFlowDTDomainJudgeTest::actionOf).toList());
     }
 
     // ---- вспомогательное ----

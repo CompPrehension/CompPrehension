@@ -106,6 +106,14 @@ final class ControlFlowDtDomainFixture {
                     "global_statements_structure_action_next_ast90", "global_statements_structure_action_next_ast104"),
             Set.of("if_structure_action_first_cond_ast12"));
 
+    /** Факториал, в котором первые 4 шага выполнены в условии, а после 9-го шага трассу достраивает тренажёр. */
+    static final BankQuestion RECURSION_FACTORIAL_PARTIAL = new BankQuestion("recursion_factorial_partial",
+            List.of("func_call_structure_action_BEGIN_ast25", "if_structure_action_first_cond_ast8",
+                    "block_structure_action_first_ast10",
+                    "func_call_structure_action_END_ast25,semantic_value_action_25_25_END_0",
+                    "block_structure_action_next_ast27"),
+            Set.of("if_structure_action_first_cond_ast8"));
+
     static final List<BankQuestion> BANK = List.of(
             SEQUENCE, WHILE_NOT_ENTERED, IF_ELIF, IF_THEN, WHILE_ONE_ITERATION, BREAK_IN_FOR,
             NESTED_CALLS, RECURSION_FACTORIAL, RECURSION_RANGE_SUM);
