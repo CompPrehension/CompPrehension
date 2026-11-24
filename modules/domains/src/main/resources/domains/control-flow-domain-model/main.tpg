@@ -864,14 +864,6 @@ fragment checkLevel(C: ConcreteConstruct) {
                             EN.explanation = "After the ${Dp}, the execution of the ${C} ends, so the ${A} will not be executed." ;
                         ];
                     };
-                    // Предыдущее — невидимое студенту начало конструкции: выбранное действие не первое в ней.
-                    ask (Dp->derivedFrom.role == "BEGIN" and not Dp->derivedFrom.is_opaque) out false else {
-                        conclude: error [
-                            skill = "actions_in_order" ;
-                            RU.explanation = "Перед ${A}[case='т'] должны выполниться другие действия ${C}[case='р'], поэтому выбранное действие сейчас не выполняется." ;
-                            EN.explanation = "Other actions of the ${C} must be executed before the ${A}, so the selected action is not executed now." ;
-                        ];
-                    };
                     conclude: error [
                         skill = "actions_in_order" ;
                         RU.explanation = "Действия внутри ${C}[case='р'] выполняются по порядку. Между ${Dp}[case='т'] и выбранным действием есть ещё не выполненные действия, поэтому ${A} сейчас не выполняется." ;

@@ -227,6 +227,7 @@ class TraceState {
 
 class TraceConfigSpec {
 	obj prop stop_on_opaque: bool ; // остановить поиск следующего действия перед первым непрозрачным действием (т.е. пройти только прозрачные действия)
+	obj prop skip_steps_after: int ; // > 0: после M-го шага студента (непрозрачного действия, корневой акт не считается) тренажёр сам выполняет оставшиеся шаги
 } [
 	RU.localizedName = "конфигурация трассировки" ;
 	EN.localizedName = "trace configuration" ;
