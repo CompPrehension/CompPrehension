@@ -3737,14 +3737,25 @@ var useTour = () => {
 };
 //#endregion
 //#region src/main/js/utils/TourLauncher.tsx
-var TourLauncher = () => {
+var TourLauncher = observer(() => {
 	const { start, isReady } = useTour();
+	const { selectedLanguage } = useSession();
+	const { i18n } = useTranslation();
+	const isLanguageReady = selectedLanguage !== void 0 && i18n.language === selectedLanguage;
+	const hasStarted = (0, import_react.useRef)(false);
 	(0, import_react.useEffect)(() => {
-		if (!isReady) return;
-		if (localStorage.getItem("tour_completed") !== "true") start();
-	}, [isReady, start]);
+		if (!isReady || !isLanguageReady || hasStarted.current) return;
+		if (localStorage.getItem("tour_completed") !== "true") {
+			hasStarted.current = true;
+			start();
+		}
+	}, [
+		isReady,
+		isLanguageReady,
+		start
+	]);
 	return null;
-};
+});
 //#endregion
 //#region src/main/js/pages/exercise.tsx
 var Exercise = observer(() => {
