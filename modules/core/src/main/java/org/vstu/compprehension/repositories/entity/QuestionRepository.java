@@ -1,7 +1,9 @@
 package org.vstu.compprehension.repositories.entity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.enums.QuestionType;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -28,6 +30,13 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
             where q.id = :questionId
             """)
     Optional<QuestionEntity> findByIdFetchingAnswerObjects(@Param("questionId") long questionId);
+
+    /**
+     * Записать решение вопроса
+     */
+    @Modifying
+    @Query("update QuestionEntity q set q.solutionFacts = :solutionFacts where q.id = :questionId")
+    void updateSolutionFacts(@Param("questionId") long questionId, @Param("solutionFacts") List<BackendFactData> solutionFacts);
 
     @Query("select q.domainId from QuestionEntity q where q.id = :questionId")
     Optional<String> findDomainId(@Param("questionId") long questionId);

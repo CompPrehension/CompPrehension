@@ -219,7 +219,9 @@ const resources = {
             error_page_retry: "Retry",
 
             error_boundary_title: "Something went wrong",
-            error_boundary_reload: "Reload the page"
+            error_boundary_reload: "Reload the page",
+
+            ctrlflow_function_return_dropdown_tooltip: "Which function call is ending here?",
         },
     },
     RU: {
@@ -439,7 +441,9 @@ const resources = {
             error_page_retry: "Повторить",
 
             error_boundary_title: "Что-то пошло не так",
-            error_boundary_reload: "Перезагрузить страницу"
+            error_boundary_reload: "Перезагрузить страницу",
+
+            ctrlflow_function_return_dropdown_tooltip: "Какой вызов здесь завершается?",
         },
     },
     PL: {
@@ -615,7 +619,9 @@ const resources = {
             error_page_retry: "Ponów",
 
             error_boundary_title: "Coś poszło nie tak",
-            error_boundary_reload: "Odśwież stronę"
+            error_boundary_reload: "Odśwież stronę",
+
+            ctrlflow_function_return_dropdown_tooltip: "Które wywołanie funkcji tutaj się kończy?",
         },
     },
 };

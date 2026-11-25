@@ -35,4 +35,6 @@ public interface QuestionDataService {
      Optional<Long> findQuestionOwnerUserId(Long questionId);
 
      @NotNull QuestionData saveQuestion(@NotNull QuestionData question, @Nullable QuestionRequestLogData questionRequestLog, @Nullable Long exerciseAttemptId);
+
+     void saveSolutionFacts(long questionId, @NotNull List<BackendFactData> solutionFacts);
 }

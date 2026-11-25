@@ -201,7 +201,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
             this.getClass().getClassLoader(),
             DOMAIN_MODEL_LOCATION,
-            DomainSolvingModel.BuildMethod.LOQI).validate(false);
+            DomainSolvingModel.BuildMethod.LOQI, true);
 
     private final DomainTermDictionary domainTerms = DomainTermDictionary.fromURL(
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION + "terms.yml")));
