@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 import Shepherd, { StepOptions } from 'shepherd.js';
 import 'shepherd.js/dist/css/shepherd.css';
 
@@ -29,7 +29,6 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
   const tourRef = useRef<InstanceType<typeof Shepherd.Tour>>(undefined);
   const [isReady, setIsReady] = useState(false);
   const isTourCompletedRef = useRef(false);
-  const { t } = useTranslation();
 
   const bindActions = (
     tour: InstanceType<typeof Shepherd.Tour>,
@@ -105,11 +104,11 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
 
         for (let i = 0; i < pendingSteps.length; i++) {
           const step = Object.assign({}, pendingSteps[i]);
-          step.title = t(step.title as string);
-          step.text = t(step.text as string);
+          step.title = i18next.t(step.title as string);
+          step.text = i18next.t(step.text as string);
           step.buttons = step.buttons?.map((button) => ({
             ...button,
-            text: t(button.text as string),
+            text: i18next.t(button.text as string),
           }));
           
           const selector =
@@ -166,7 +165,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
     };
 
     setIsReady(true);
-  }, [steps, t]);
+  }, [steps]);
 
   const start = useCallback(() => tourRef.current?.start?.(), []);
 

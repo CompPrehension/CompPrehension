@@ -3627,7 +3627,6 @@ var TourProvider = ({ steps, children }) => {
 	const tourRef = (0, import_react.useRef)(void 0);
 	const [isReady, setIsReady] = (0, import_react.useState)(false);
 	const isTourCompletedRef = (0, import_react.useRef)(false);
-	const { t } = useTranslation();
 	const bindActions = (tour, steps) => {
 		return steps.map((step) => {
 			const completeTour = () => {
@@ -3681,11 +3680,11 @@ var TourProvider = ({ steps, children }) => {
 				if (pendingSteps.length === 0) return;
 				for (let i = 0; i < pendingSteps.length; i++) {
 					const step = Object.assign({}, pendingSteps[i]);
-					step.title = t(step.title);
-					step.text = t(step.text);
+					step.title = instance.t(step.title);
+					step.text = instance.t(step.text);
 					step.buttons = step.buttons?.map((button) => ({
 						...button,
-						text: t(button.text)
+						text: instance.t(button.text)
 					}));
 					const selector = typeof step.attachTo === "object" ? step.attachTo?.element : null;
 					if (typeof selector === "string") {
@@ -3719,7 +3718,7 @@ var TourProvider = ({ steps, children }) => {
 			await showNextStep();
 		};
 		setIsReady(true);
-	}, [steps, t]);
+	}, [steps]);
 	const start = (0, import_react.useCallback)(() => tourRef.current?.start?.(), []);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TourContext.Provider, {
 		value: {
